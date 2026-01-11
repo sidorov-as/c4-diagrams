@@ -1,6 +1,10 @@
 from dataclasses import dataclass, field
-from enum import StrEnum, unique
-from typing import Any, Literal, Self
+from enum import unique
+from typing import Any, Literal
+
+from typing_extensions import Self
+
+from c4.compat.strenum import StrEnum
 
 
 @unique

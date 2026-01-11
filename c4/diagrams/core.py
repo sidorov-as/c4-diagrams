@@ -13,13 +13,12 @@ from typing import (
     TYPE_CHECKING,
     Any,
     ClassVar,
-    Self,
     TypeVar,
     cast,
 )
 from uuid import uuid4
 
-from typing_extensions import override
+from typing_extensions import Self, override
 
 from c4.compat.strenum import StrEnum
 
