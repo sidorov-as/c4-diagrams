@@ -5,7 +5,7 @@ from collections import UserString
 from collections.abc import Iterable
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from enum import StrEnum, unique
+from enum import unique
 from itertools import repeat
 from pathlib import Path
 from types import TracebackType
@@ -16,9 +16,12 @@ from typing import (
     Self,
     TypeVar,
     cast,
-    override,
 )
 from uuid import uuid4
+
+from typing_extensions import override
+
+from c4.compat.strenum import StrEnum
 
 if TYPE_CHECKING:  # pragma: no cover
     from c4.renderers import BaseRenderer

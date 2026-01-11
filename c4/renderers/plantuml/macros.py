@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, is_dataclass
-from types import get_original_bases
 from typing import (
     Any,
     ClassVar,
@@ -10,8 +9,9 @@ from typing import (
     TypeVar,
     get_args,
     get_origin,
-    override,
 )
+
+from typing_extensions import get_original_bases, override
 
 from c4 import (
     Component,

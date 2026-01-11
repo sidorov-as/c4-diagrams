@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import override
+from typing_extensions import override
 
 from c4.diagrams.core import (
     Diagram,

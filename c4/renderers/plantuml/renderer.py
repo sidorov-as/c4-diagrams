@@ -7,8 +7,9 @@ from typing import (
     ClassVar,
     Generic,
     TypeAlias,
-    override,
 )
+
+from typing_extensions import override
 
 from c4 import (
     ComponentDiagram,

@@ -9,13 +9,13 @@ import zlib
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from contextlib import suppress
-from enum import StrEnum
 from pathlib import Path
 from string import ascii_lowercase, ascii_uppercase, digits
 from typing import Literal
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from c4.compat.strenum import StrEnum
 from c4.exceptions import (
     PlantUMLBackendConfigurationError,
     PlantUMLLocalRenderingError,

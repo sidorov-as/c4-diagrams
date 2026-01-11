@@ -17,6 +17,9 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+dependencies = [
+    "typing-extensions>=4.15.0",
+]
 
 [project.urls]
 Homepage = "https://sidorov-as.github.io/c4-diagrams/"
@@ -109,6 +112,7 @@ ignore = [
 "tests/*" = ["S101", "E501"]
 "c4/renderers/plantuml/renderer.py" = ["A001", "A002"]
 "c4/renderers/plantuml/backends.py" = ["A001", "A002"]
+"c4/compat/strenum.py" = ["E501", "UP031", "SIM102",]
 
 [tool.ruff.format]
 preview = true
