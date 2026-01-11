@@ -7,6 +7,7 @@ from typing import (
     ClassVar,
     Generic,
     TypeVar,
+    cast,
     get_args,
     get_origin,
 )
@@ -698,7 +699,7 @@ class DiagramLayoutPlantUMLMacro(PlantUMLMacro[DiagramLayout]):
         """
         layout = self._diagram_element
 
-        return layout.value
+        return cast(str, layout.value)
 
 
 class LayoutWithLegendPlantUMLMacro(PlantUMLMacroWithoutArgs):
