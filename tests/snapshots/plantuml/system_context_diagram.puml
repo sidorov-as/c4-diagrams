@@ -1,0 +1,38 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Context.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!endif
+
+LAYOUT_TOP_DOWN()
+LAYOUT_WITH_LEGEND()
+
+Person(customer, "Customer", "A customer of Widgets Limited.")
+
+System(taxamo, "Taxamo", "Calculates local tax and acts as a front-end for Braintree Payments.")
+
+System(braintree, "Braintree Payments", "Processes credit card payments on behalf of Widgets Limited.")
+
+System(post, "Jersey Post", "Calculates worldwide shipping costs for packages.")
+
+Enterprise_Boundary(c0, "Widgets Limited") {
+    Person(csa, "Customer Service Agent", "Deals with customer enquiries.")
+
+    System(ecommerce, "E-commerce System", "Allows customers to buy widgets online via the widgets.com website.")
+
+    System(fulfillment, "Fulfillment System", "Responsible for processing and shipping of customer orders.")
+}
+
+Rel_Right(customer, csa, "Asks questions to", "Telephone")
+Rel_Right(customer, ecommerce, "Places orders for widgets using")
+Rel(csa, ecommerce, "Looks up order information using")
+Rel_Right(ecommerce, fulfillment, "Sends order information to")
+Rel_Down(fulfillment, post, "Gets shipping charges from")
+Rel_Down(ecommerce, taxamo, "Delegates credit card processing to")
+Rel_Left(taxamo, braintree, "Uses for credit card processing")
+
+Lay_Down(customer, braintree)
+
+@enduml

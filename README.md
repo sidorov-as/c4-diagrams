@@ -1,4 +1,15 @@
-![c4-diagrams](docs/assets/c4-diagrams-logo.png)
+<!-- begin logo -->
+<p align="center">
+  <a href="https://github.com/sidorov-as/c4-diagrams/">
+    <img src="docs/assets/c4-diagrams-logo.png" alt="c4-diagrams logo" />
+  </a>
+</p>
+
+<p align="center">
+  <em>A Python DSL for C4 model diagrams.</em>
+</p>
+
+<!-- end logo -->
 
 # c4-diagrams
 

@@ -8,9 +8,18 @@ repo_name: sidorov-as/c4-diagrams
 copyright: Maintained by <a href="https://github.com/sidorov-as">sidorov-as</a>.
 
 nav:
-  - Home: index.md
-  - Modules: modules.md
-  - Contributing: contributing.md
+  - Home:
+    - Home: index.md
+    - Introduction: introduction.md
+    - Contributing: contributing.md
+    - Changelog: changelog.md
+  - Diagrams:
+      - System context: diagrams/system-context.md
+      - Containers: diagrams/containers.md
+      - Components: diagrams/components.md
+      - Supporting diagrams: diagrams/supporting.md
+  - Rendering backends:
+      - PlantUML: renderers/plantuml.md
 
 plugins:
   - search
@@ -42,6 +51,11 @@ theme:
       toggle:
         icon: material/lightbulb-outline
         name: Switch to light mode
+  language: en
+  features:
+    - navigation.footer
+    - navigation.tabs
+    - navigation.tabs.sticky
   icon:
     repo: fontawesome/brands/github
   logo: assets/c4-diagrams.png

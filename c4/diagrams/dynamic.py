@@ -1,0 +1,29 @@
+from __future__ import annotations
+
+from typing import override
+
+from c4.diagrams.core import (
+    Diagram,
+    _TRelationship,
+)
+
+
+class DynamicDiagram(Diagram):
+    """
+    Represents a C4 Dynamic diagram.
+    """
+
+    @override
+    def add_relationship(self, relationship: _TRelationship) -> _TRelationship:
+        """
+        Add a relationship between elements.
+
+        Args:
+            relationship: The relationship to add.
+
+        Returns:
+            The added relationship.
+        """
+        self.add_base_element(relationship)
+
+        return relationship
