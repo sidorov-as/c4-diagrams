@@ -1,7 +1,7 @@
 <!-- begin logo -->
 <p align="center">
   <a href="https://github.com/sidorov-as/c4-diagrams/">
-    <img src="docs/assets/c4-diagrams-logo.png" alt="c4-diagrams logo" />
+    <img src="https://sidorov-as.github.io/c4-diagrams/assets/c4-diagrams-logo.png" alt="c4-diagrams logo" />
   </a>
 </p>
 
@@ -13,7 +13,8 @@
 
 # c4-diagrams
 
-[![Release](https://img.shields.io/github/v/release/sidorov-as/c4-diagrams)](https://img.shields.io/github/v/release/sidorov-as/c4-diagrams)
+[![Release](https://img.shields.io/pypi/v/c4-diagrams.svg)](https://pypi.org/project/c4-diagrams/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/c4-diagrams)](https://pypi.org/project/c4-diagrams/)
 [![Build status](https://img.shields.io/github/actions/workflow/status/sidorov-as/c4-diagrams/main.yml?branch=main)](https://github.com/sidorov-as/c4-diagrams/actions/workflows/main.yml?query=branch%3Amain)
 [![Maintainability](https://qlty.sh/gh/sidorov-as/projects/c4-diagrams/maintainability.svg)](https://qlty.sh/gh/sidorov-as/projects/c4-diagrams)
 [![Code Coverage](https://qlty.sh/gh/sidorov-as/projects/c4-diagrams/coverage.svg)](https://qlty.sh/gh/sidorov-as/projects/c4-diagrams)
@@ -105,7 +106,7 @@ Rel(user_91e7, backend_api_610a, "Uses HTTP API")
 
 | System context diagram                                    | Container Diagram                                       | Component Diagram                                       |
 |-----------------------------------------------------------|---------------------------------------------------------|---------------------------------------------------------|
-| ![system context](docs/assets/system-context-diagram.png) | ![container diagram](docs/assets/container-diagram.png) | ![component diagram](docs/assets/component-diagram.png) |
+| ![system context](https://sidorov-as.github.io/c4-diagrams/assets/system-context-diagram.png) | ![container diagram](https://sidorov-as.github.io/c4-diagrams/assets/container-diagram.png) | ![component diagram](https://sidorov-as.github.io/c4-diagrams/assets/component-diagram.png) |
 
 ## Project Links
 

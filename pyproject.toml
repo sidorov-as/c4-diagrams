@@ -40,6 +40,9 @@ dev = [
     "mkdocstrings[python]>=1.0.0",
     "mkdocs-include-markdown-plugin>=7.2.0",
 ]
+git = [
+    "commitizen>=4.11.0",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -137,3 +140,16 @@ source = ["c4"]
 omit = [
     "tests/*",
 ]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.0.2"
+tag_format = "$version"
+version_scheme = "semver"
+version_files = [
+    "c4/__init__.py",
+    "pyproject.toml:version"
+]
+cdupdate_changelog_on_bump = true
+changelog_file = "CHANGELOG.md"
+changelog_start_rev = "0.0.2"

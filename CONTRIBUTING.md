@@ -1,125 +1,197 @@
 # Contributing to `c4-diagrams`
 
-Contributions are welcome, and they are greatly appreciated!
-Every little bit helps, and credit will always be given.
+Contributions are very welcome and greatly appreciated.
+Every little bit helps — whether it’s code, documentation, bug reports, or ideas.
 
-You can contribute in many ways:
+This guide explains **how you can contribute** and **how to set up the project for local development**.
 
-# Types of Contributions
+---
 
-## Report Bugs
+## Ways to Contribute
 
-Report bugs at [c4-diagrams/issues](https://github.com/sidorov-as/c4-diagrams/issues).
+### Issues: Bugs, Questions, and Feature Requests
 
-If you are reporting a bug, please include:
+The primary way to communicate feedback is via
+[GitHub issues](https://github.com/sidorov-as/c4-diagrams/issues).
 
-- Your operating system name and version.
-- Any details about your local setup that might be helpful in troubleshooting.
-- Detailed steps to reproduce the bug.
+When opening an issue, please include as much context as possible.
 
-## Fix Bugs
+**For bug reports:**
 
-Look through the GitHub issues for bugs.
-Anything tagged with "bug" and "help wanted" is open to whoever wants to implement a fix for it.
+- Operating system and version
+- Python version
+- Relevant tooling versions (`uv`, `tox`, etc.)
+- Clear steps to reproduce
+- Expected vs actual behavior
 
-## Implement Features
+**For feature requests:**
 
-Look through the GitHub issues for features.
-Anything tagged with "enhancement" and "help wanted" is open to whoever wants to implement it.
+- What problem you are trying to solve
+- A short description of the proposed solution
+- Keep the scope as small and focused as possible
 
-## Write Documentation
+This is a volunteer-driven project — well-scoped and well-explained issues are much more
+likely to be addressed 🙂
 
-c4-diagrams could always use more documentation, whether as part of the official docs, in docstrings, or even on the web in blog posts, articles, and such.
+---
 
-## Submit Feedback
+### Code Contributions
 
-The best way to send feedback is to file an issue at [c4-diagrams/issues](https://github.com/sidorov-as/c4-diagrams/issues).
+You can contribute by:
 
-If you are proposing a new feature:
+- Fixing bugs
+- Implementing new features
+- Improving performance or internal structure
+- Adding or improving tests
 
-- Explain in detail how it would work.
-- Keep the scope as narrow as possible, to make it easier to implement.
-- Remember that this is a volunteer-driven project, and that contributions
-  are welcome :)
+Issues labeled **`bug`**, **`enhancement`**, or **`help wanted`** are especially good starting points.
 
-# Get Started!
+---
 
-Ready to contribute? Here's how to set up `c4-diagrams` for local development.
-Please note this documentation assumes you already have `uv` and `Git` installed and ready to go.
+### Documentation
 
-1. Fork the `c4-diagrams` repo on GitHub.
+Documentation contributions are always welcome:
 
-2. Clone your fork locally:
+- Official documentation pages
+- Docstrings
+- Examples
+- Blog posts or articles referencing `c4-diagrams`
+
+---
+
+## Development Setup
+
+This project uses **`uv`** for dependency management.
+
+> This guide assumes you already have **Git** and **uv** installed.
+
+### 1. Fork and clone the repository
 
 ```bash
-cd <directory_in_which_repo_should_be_created>
 git clone git@github.com:YOUR_NAME/c4-diagrams.git
-```
-
-3. Now we need to install the environment. Navigate into the directory
-
-```bash
 cd c4-diagrams
 ```
 
-Then, install and activate the environment with:
+### 2. Install dependencies
 
 ```bash
 uv sync
 ```
 
-4. Install pre-commit to run linters/formatters at commit time:
+### 3. Install pre-commit hooks
+
+Pre-commit runs formatters and linters automatically before each commit.
 
 ```bash
 uv run pre-commit install
 ```
 
-5. Create a branch for local development:
+---
+
+## Development Workflow
+
+### 1. Create a feature branch
 
 ```bash
-git checkout -b name-of-your-bugfix-or-feature
+git checkout -b name-of-your-feature-or-fix
 ```
 
-Now you can make your changes locally.
+### 2. Make your changes
 
-6. Don't forget to add test cases for your added functionality to the `tests` directory.
+- Follow existing project structure and style
+- Add or update tests for any behavioral change
+- Keep commits focused and incremental
 
-7. When you're done making changes, check that your changes pass the formatting tests.
+### 3. Run checks locally
+
+Formatting and static checks:
 
 ```bash
 make check
 ```
 
-Now, validate that all unit tests are passing:
+Unit tests:
 
 ```bash
 make test
 ```
 
-9. Before raising a pull request you should also run tox.
-   This will run the tests across different versions of Python:
+### 4. (Optional) Run tox
 
 ```bash
 tox
 ```
 
-This requires you to have multiple versions of python installed.
-This step is also triggered in the CI/CD pipeline, so you could also choose to skip this step locally.
+This runs the test suite across multiple Python versions.
 
-10. Commit your changes and push your branch to GitHub:
+> **Note:**
+> Running `tox` locally requires multiple Python versions to be installed.
+> This step is mandatory in CI, but optional for local development.
 
-```bash
-git add .
-git commit -m "Your detailed description of your changes."
-git push origin name-of-your-bugfix-or-feature
+---
+
+## Commit Message Guidelines
+
+This project follows **[Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)**.
+
+### Commit Message Format
+
+```
+<type>(<scope>): <short summary>
 ```
 
-11. Submit a pull request through the GitHub website.
+- Use **present tense**
+- Do **not** capitalize the summary
+- Do **not** end with a period
 
-# Pull Request Guidelines
+### Commit Types
 
-Before you submit a pull request, check that it meets these guidelines:
+| type     | description                                       |
+|----------|---------------------------------------------------|
+| feat     | New features                                      |
+| fix      | Bug fixes                                         |
+| docs     | Documentation-only changes                        |
+| style    | Formatting, whitespace, etc. (no behavior change) |
+| refactor | Code changes without bug fixes or features        |
+| perf     | Performance improvements                          |
+| test     | Adding or fixing tests                            |
+| build    | Build system or dependency changes                |
+| ci       | CI configuration changes                          |
+| chore    | Other non-code changes                            |
+| revert   | Revert a previous commit                          |
 
-1. The pull request should include tests.
+### Examples
 
-2. If the pull request adds functionality, the docs should be updated.
+```bash
+git commit -m "fix(renderer): handle empty boundary labels"
+git commit -m "docs(readme): add minimal usage example"
+git commit -m "refactor(core): simplify relationship rendering"
+```
+
+---
+
+## Submitting a Pull Request
+
+1. Push your branch to GitHub:
+
+```bash
+git push origin name-of-your-feature-or-fix
+```
+
+2. Open a Pull Request via the GitHub UI.
+
+---
+
+## Pull Request Checklist
+
+Before submitting, please ensure that:
+
+- [ ] Tests are included or updated
+- [ ] Documentation is updated if behavior or APIs changed
+- [ ] `make check` passes
+- [ ] `make test` passes
+- [ ] Commit messages follow Conventional Commits
+
+---
+
+Thank you for contributing to **c4-diagrams** 🚀

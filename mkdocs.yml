@@ -72,6 +72,8 @@ markdown_extensions:
   - admonition
   - codehilite
   - pymdownx.superfences
+  - pymdownx.tasklist:
+      clickable_checkbox: true
   - toc:
       permalink: true
   - pymdownx.arithmatex:
