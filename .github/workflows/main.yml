@@ -46,20 +46,15 @@ jobs:
       - name: Run tests
         run: uv run python -m pytest tests --cov --cov-config=pyproject.toml --cov-report=lcov
 
-      - name: Upload coverage
+      - name: Upload coverage reports to Qlty.sh with GitHub Action on Python 3.12
         uses: qltysh/qlty-action/coverage@v2
+        if: ${{ matrix.python-version == '3.12' }}
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
           files: reports/lcov.info
 
       - name: Check typing
         run: uv run mypy
-
-      - name: Upload coverage reports to Codecov with GitHub Action on Python 3.11
-        uses: codecov/codecov-action@v4
-        if: ${{ matrix.python-version == '3.11' }}
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   check-docs:
     runs-on: ubuntu-latest
