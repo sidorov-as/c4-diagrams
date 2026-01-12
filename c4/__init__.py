@@ -83,7 +83,7 @@ from c4.diagrams.system_context import (
     SystemQueueExt,
 )
 
-__version__ = "0.0.0"
+__version__ = "0.0.2"
 
 __all__ = (
     "BiRel",
