@@ -48,6 +48,18 @@ git = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+exclude = [
+  "tests/",
+  "docs/",
+  "CHANGELOG.md",
+  "CONTRIBUTING.md",
+  "Makefile",
+  "tox.ini",
+  "mkdocs.yml",
+  "uv.lock",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["c4"]
 
@@ -150,6 +162,7 @@ version_files = [
     "c4/__init__.py",
     "pyproject.toml:version"
 ]
-cdupdate_changelog_on_bump = true
+version_provider = "uv"
+update_changelog_on_bump = true
 changelog_file = "CHANGELOG.md"
 changelog_start_rev = "0.0.2"
