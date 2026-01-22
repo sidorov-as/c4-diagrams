@@ -219,3 +219,6 @@ __marimo__/
 .DS_Store
 .AppleDouble
 .LSOverride
+
+local.py
+local.svg

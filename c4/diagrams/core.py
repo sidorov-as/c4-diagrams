@@ -477,6 +477,29 @@ class set_index(BaseDiagramElement):
         self.new_index = new_index
 
 
+@dataclass(frozen=True)
+class _EdgeDraft:
+    """
+    Intermediate object for: Element >> Element | 'label'
+    """
+
+    source: Element
+    destination: Element
+
+    def __or__(self, label: str) -> Relationship:
+        if not isinstance(label, str):
+            return NotImplemented
+
+        return Relationship(
+            label=label,
+            from_element=self.source,
+            to_element=self.destination,
+        )
+
+    def __ror__(self, label: str) -> Relationship:
+        return self.__or__(label)
+
+
 class Element(BaseDiagramElement, abc.ABC):
     """
     Base class for all C4 elements (e.g. Person, System, Container, Component).
@@ -528,6 +551,22 @@ class Element(BaseDiagramElement, abc.ABC):
         self.technology = ""
 
         super().__init__()
+
+    def __rshift__(self, other: Any) -> Any:
+        """
+        Enables:
+          - Element1 >> "label" >> Element2   (pending relationship)
+          - Element >> Element | "label"      (draft for later '| "label"')
+        """
+        if isinstance(other, str):
+            # element1 >> "label" >> element2
+            return Relationship(label=other, from_element=self)
+
+        if isinstance(other, Element):
+            # Draft for: element1 >> element2 | "label"
+            return _EdgeDraft(source=self, destination=other)
+
+        return NotImplemented
 
     def __rrshift__(self, other: Any) -> Any:
         """

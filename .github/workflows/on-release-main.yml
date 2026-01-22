@@ -14,6 +14,7 @@ jobs:
     environment:
       name: release
       url: https://pypi.org/project/c4-diagrams
+
     steps:
       - name: Checkout tag
         uses: actions/checkout@v5
@@ -46,15 +47,6 @@ jobs:
           fi
 
           echo "path=$OUT" >> "$GITHUB_OUTPUT"
-
-      - name: Install uv & Python
-        uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.13"
-
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Build package
         run: uv build --package=c4-diagrams
