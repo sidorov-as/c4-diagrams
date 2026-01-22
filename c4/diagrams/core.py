@@ -628,7 +628,8 @@ class Element(BaseDiagramElement, abc.ABC):
         )
 
     def _generate_alias(self, label: str) -> str:
-        return label.lower().replace(" ", "_") + "_" + uuid4().hex[:4]
+        alias = label.lower().replace(" ", "_").replace("-", "_")
+        return alias + "_" + uuid4().hex[:4]
 
     @override
     def __str__(self) -> str:
