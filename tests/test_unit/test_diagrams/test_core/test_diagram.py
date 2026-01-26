@@ -12,7 +12,18 @@ from c4.diagrams.core import (
     LayDown,
     get_diagram,
 )
-from c4.renderers.plantuml import LocalPlantUMLBackend
+from c4.renderers.plantuml import DiagramFormat
+from c4.renderers.plantuml.backends import BasePlantUMLBackend
+
+
+class MockBasePlantUMLBackend(BasePlantUMLBackend):
+    def to_bytes(
+        self,
+        diagram: str,
+        *,
+        format: DiagramFormat = DiagramFormat.SVG,  # noqa: A002
+    ) -> bytes:
+        return ""
 
 
 @pytest.fixture()
@@ -98,7 +109,7 @@ def test_diagram_as_plantuml(mocker: MockFixture):
     mocked_renderer_class = mocker.patch("c4.renderers.PlantUMLRenderer")
     expected_renderer = mocked_renderer_class.return_value
     kwargs = {
-        "backend": LocalPlantUMLBackend(),
+        "backend": MockBasePlantUMLBackend(),
     }
 
     result = diagram.as_plantuml(**kwargs)
@@ -169,7 +180,7 @@ def test_diagram_save_as_plantuml(tmp_path: Path, mocker: MockFixture):
     diagram_output = tmp_path / "diagram.puml"
     mocked_save = mocker.patch.object(diagram, "save")
     kwargs = {
-        "backend": LocalPlantUMLBackend(),
+        "backend": MockBasePlantUMLBackend(),
     }
 
     diagram.save_as_plantuml(diagram_output, **kwargs)
