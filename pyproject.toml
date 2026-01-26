@@ -34,6 +34,7 @@ dev = [
     "deptry>=0.24.0",
     "mypy>=1.19.1",
     "pytest-cov>=7.0.0",
+    "pytest-mock>=3.15.1",
     "ruff>=0.14.10",
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.7.1",
@@ -136,7 +137,7 @@ preview = true
 
 [tool.coverage.report]
 skip_empty = true
-fail_under = 77
+fail_under = 83
 exclude_also = [
     "pragma: no cover",
     "raise NotImplementedError",
