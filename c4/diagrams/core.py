@@ -234,13 +234,13 @@ class BaseDiagramElement:
         if not args:
             raise ValueError("The header cannot be empty")
 
-        self.properties.header = list(args)
-
         if self.properties.properties:
             raise ValueError(
                 "Cannot change header after properties have been added. "
                 "Set the header before calling add_property()."
             )
+
+        self.properties.header = list(args)
 
         return self
 
@@ -339,7 +339,7 @@ class BaseIndex:
                         or if a prefix has already been set.
         """
         if not isinstance(other, str) or not other:
-            raise ValueError(...)
+            raise ValueError(f"Expected str, got {other!r}")
 
         if self.prefix is not None:
             raise ValueError(
@@ -488,16 +488,13 @@ class _EdgeDraft:
 
     def __or__(self, label: str) -> Relationship:
         if not isinstance(label, str):
-            return NotImplemented
+            return NotImplemented  # pragma: no cover
 
         return Relationship(
             label=label,
             from_element=self.source,
             to_element=self.destination,
         )
-
-    def __ror__(self, label: str) -> Relationship:
-        return self.__or__(label)
 
 
 class Element(BaseDiagramElement, abc.ABC):
@@ -555,16 +552,32 @@ class Element(BaseDiagramElement, abc.ABC):
     def __rshift__(self, other: Any) -> Any:
         """
         Enables:
-          - Element1 >> "label" >> Element2   (pending relationship)
-          - Element >> Element | "label"      (draft for later '| "label"')
+          - Self >> "label" >> Element2   (pending relationship)
+          - Self >> Element2 | "label"    (draft for later '| "label"')
         """
         if isinstance(other, str):
-            # element1 >> "label" >> element2
+            # self >> "label" >> element2
             return Relationship(label=other, from_element=self)
 
         if isinstance(other, Element):
-            # Draft for: element1 >> element2 | "label"
+            # Draft for: self >> element2 | "label"
             return _EdgeDraft(source=self, destination=other)
+
+        return NotImplemented
+
+    def __lshift__(self, other: Any) -> Any:
+        """
+        Enables:
+          - Element2 << "label" << Self   (pending relationship)
+          - Element2 << self | "label"      (draft for later '| "label"')
+        """
+        if isinstance(other, str):
+            # element1 << "label" << element2
+            return Relationship(label=other, to_element=self)
+
+        if isinstance(other, Element):
+            # Draft for: element1 >> element2 | "label"
+            return _EdgeDraft(source=other, destination=self)
 
         return NotImplemented
 
@@ -577,7 +590,7 @@ class Element(BaseDiagramElement, abc.ABC):
         ):
             return [r._connect(r.from_element, destination=self) for r in other]
 
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def __rlshift__(self, other: Any) -> Any:
         """
@@ -590,7 +603,7 @@ class Element(BaseDiagramElement, abc.ABC):
                 r._connect(source=self, destination=r.to_element) for r in other
             ]
 
-        return NotImplemented
+        return NotImplemented  # pragma: no cover
 
     def _check_label(self, label: str | Required) -> str:
         if label is not_provided:
@@ -927,8 +940,7 @@ class Diagram:
 
         if not alias.isidentifier():
             raise ValueError(
-                f"Alias {alias!r} of {existing_element} must be "
-                f"a valid identifier"
+                f"Alias {alias!r} of {element} must be a valid identifier"
             )
 
         self.__aliases[alias] = element
@@ -1271,7 +1283,7 @@ class Relationship(BaseDiagramElement):
 
     def _ensure_not_completed(self) -> None:
         if self.from_element and self.to_element:
-            raise AttributeError(
+            raise ValueError(
                 "Cannot modify relationship with both specified elements"
             )
 
@@ -1484,13 +1496,17 @@ class Layout(BaseDiagramElement, abc.ABC):
             to_element: The element to position relative to.
 
         Raises:
-            ValueError: If the subclass does not define `layout_type`.
+            ValueError: If `layout_type` is not provided and the subclass
+                does not define a class-level ``layout_type``.
         """
         self.from_element = from_element
         self.to_element = to_element
 
         if not hasattr(self, "layout_type"):
-            raise ValueError("Empty `layout_type` class attribute")
+            raise ValueError(
+                "`layout_type` must be provided explicitly or defined as "
+                "a class attribute"
+            )
 
         super().__init__()
 

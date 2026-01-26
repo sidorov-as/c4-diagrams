@@ -18,6 +18,9 @@ class DynamicDiagram(Diagram):
         """
         Add a relationship between elements.
 
+        In dynamic diagrams, relationships are added as base elements
+        to enforce the required rendering order.
+
         Args:
             relationship: The relationship to add.
 
