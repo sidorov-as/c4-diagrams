@@ -6,8 +6,8 @@
     !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 !endif
 
-AddElementTag("microService", "CornflowerBlue", "white", $shape=EightSidedShape(), $legendText="micro service\neight sided")
-AddElementTag("storage", "lightSkyBlue", "white", $shape=RoundedBoxShape())
+AddElementTag("microService", $bgColor="CornflowerBlue", $fontColor="white", $shape=EightSidedShape(), $legendText="micro service\neight sided")
+AddElementTag("storage", $bgColor="lightSkyBlue", $fontColor="white", $shape=RoundedBoxShape())
 
 SHOW_PERSON_OUTLINE()
 

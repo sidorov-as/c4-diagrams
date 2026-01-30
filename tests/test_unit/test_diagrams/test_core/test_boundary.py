@@ -1,7 +1,7 @@
 import uuid
 
 import pytest
-from pytest_mock import MockFixture
+from pytest_mock import MockerFixture
 
 from c4.diagrams import core
 from c4.diagrams.core import (
@@ -60,7 +60,7 @@ def test_current_boundary_without_context():
 
 
 def test_boundary_generate_alias(
-    mocker: MockFixture,
+    mocker: MockerFixture,
 ):
     expected_uuid = uuid.UUID("12340000-0000-0000-0000-000000000000")
     mocker.patch.object(core, "uuid4", return_value=expected_uuid)

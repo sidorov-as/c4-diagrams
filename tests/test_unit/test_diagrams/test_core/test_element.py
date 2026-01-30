@@ -1,7 +1,7 @@
 import uuid
 
 import pytest
-from pytest_mock import MockFixture
+from pytest_mock import MockerFixture
 
 from c4.diagrams import core
 from c4.diagrams.core import Diagram, Element, ElementWithTechnology
@@ -52,7 +52,7 @@ def test_element_check_alias(element_class: type[Element]):
 @pytest.mark.parametrize("element_class", [Element, ElementWithTechnology])
 def test_element_generate_alias(
     element_class: type[Element],
-    mocker: MockFixture,
+    mocker: MockerFixture,
 ):
     expected_uuid = uuid.UUID("12340000-0000-0000-0000-000000000000")
     mocker.patch.object(core, "uuid4", return_value=expected_uuid)

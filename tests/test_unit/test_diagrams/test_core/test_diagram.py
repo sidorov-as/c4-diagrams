@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 
 import pytest
-from pytest_mock import MockFixture, MockType
+from pytest_mock import MockerFixture, MockType
 
 from c4.diagrams.core import (
     BaseDiagramElement,
@@ -27,7 +27,7 @@ class MockBasePlantUMLBackend(BasePlantUMLBackend):
 
 
 @pytest.fixture()
-def mocked_renderer(mocker: MockFixture):
+def mocked_renderer(mocker: MockerFixture):
     from c4.renderers import PlantUMLRenderer
 
     return mocker.create_autospec(spec=PlantUMLRenderer)
@@ -104,7 +104,7 @@ def test_diagram_check_alias_invalid_identifier():
     assert not diagram.elements
 
 
-def test_diagram_as_plantuml(mocker: MockFixture):
+def test_diagram_as_plantuml(mocker: MockerFixture):
     diagram = Diagram()
     mocked_renderer_class = mocker.patch("c4.renderers.PlantUMLRenderer")
     expected_renderer = mocked_renderer_class.return_value
@@ -145,7 +145,7 @@ def test_diagram_render_provided(mocked_renderer: MockType):
     assert result == mocked_renderer.render.return_value
 
 
-def test_diagram_save(tmp_path: Path, mocker: MockFixture):
+def test_diagram_save(tmp_path: Path, mocker: MockerFixture):
     diagram = Diagram()
     diagram_output = tmp_path / "diagram.puml"
     mocked_render = mocker.patch.object(
@@ -159,7 +159,7 @@ def test_diagram_save(tmp_path: Path, mocker: MockFixture):
 
 
 def test_diagram_save_with_provided_renderer(
-    tmp_path: Path, mocker: MockFixture, mocked_renderer: MockType
+    tmp_path: Path, mocker: MockerFixture, mocked_renderer: MockType
 ):
     diagram = Diagram()
     diagram_output = tmp_path / "diagram.puml"
@@ -173,7 +173,7 @@ def test_diagram_save_with_provided_renderer(
     assert diagram_output.read_text(encoding="utf-8") == "diagram content"
 
 
-def test_diagram_save_as_plantuml(tmp_path: Path, mocker: MockFixture):
+def test_diagram_save_as_plantuml(tmp_path: Path, mocker: MockerFixture):
     mocked_renderer_class = mocker.patch("c4.renderers.PlantUMLRenderer")
     expected_renderer = mocked_renderer_class.return_value
     diagram = Diagram()
