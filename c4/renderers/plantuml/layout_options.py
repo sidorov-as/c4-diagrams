@@ -1769,6 +1769,7 @@ class LayoutOptions:
             legend_title=self._legend_title,
             hide_person_sprite=self._hide_person_sprite,
             show_person_sprite=show_person_sprite,
+            show_person_portrait=self._show_person_portrait,
             show_person_outline=self._show_person_outline,
             show_element_descriptions=self._show_element_descriptions,
             show_foot_boxes=self._show_foot_boxes,

@@ -15,7 +15,6 @@ from c4 import (
     ComponentDiagram,
     ContainerDiagram,
     DeploymentDiagram,
-    Node,
     SystemContextDiagram,
     SystemLandscapeDiagram,
 )
@@ -52,7 +51,6 @@ from c4.renderers.plantuml.macros import (
     LayoutAsSketchPlantUMLMacro,
     LayoutPlantUMLMacro,
     LayoutWithLegendPlantUMLMacro,
-    NodePlantUMLMacro,
     PlantUMLMacro,
     RelationshipPlantUMLMacro,
     SetIndexPlantUMLMacro,
@@ -488,22 +486,6 @@ class PlantUMLDeploymentDiagramRenderer(
         RELATIVE_INCLUDE_COMMENT,
         C4_DEPLOYMENT_INCLUDE,
     ]
-
-    @override
-    def render_element(self, element: Element) -> list[str]:
-        macro: PlantUMLMacro[Any]
-
-        if isinstance(element, Node):
-            macro = NodePlantUMLMacro(element)
-        else:
-            macro = ElementPlantUMLMacro.from_element(element)
-
-        properties_macros = macro.render_properties(
-            self._without_property_header
-        )
-        element_macro = macro.render()
-
-        return [*properties_macros, element_macro]
 
 
 DIAGRAM_TYPE_TO_RENDERER_MAP: dict[_DiagramType, _Renderer] = {
