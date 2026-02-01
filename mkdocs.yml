@@ -8,11 +8,14 @@ repo_name: sidorov-as/c4-diagrams
 copyright: Maintained by <a href="https://github.com/sidorov-as">sidorov-as</a>.
 
 nav:
-  - Home:
-    - Home: index.md
-    - Introduction: introduction.md
+  - Get Started:
+    - Get Started: index.md
     - Contributing: contributing.md
     - Changelog: changelog.md
+  - Concepts:
+      - Introduction: concepts/introduction.md
+      - Diagrams and components: concepts/diagrams.md
+      - Renderers: concepts/renderers.md
   - Diagrams:
       - System context: diagrams/system-context.md
       - Containers: diagrams/containers.md
@@ -20,6 +23,20 @@ nav:
       - Supporting diagrams: diagrams/supporting.md
   - Rendering backends:
       - PlantUML: renderers/plantuml.md
+  - Examples:
+      - PlantUML: examples/plantuml.md
+  - API Documentation:
+      - Core:
+          - Diagrams and components: api_docs/core.md
+          - Relationships: api_docs/relationships.md
+          - Layouts: api_docs/layouts.md
+          - Macros: api_docs/macros.md
+      - Diagrams:
+        - System Context Diagram: api_docs/system-context.md
+        - Component Diagram: api_docs/component.md
+        - Container Diagram: api_docs/container.md
+        - Dynamic Diagram: api_docs/dynamic.md
+        - Deployment Diagram: api_docs/deployment.md
 
 plugins:
   - search
@@ -28,6 +45,15 @@ plugins:
       handlers:
         python:
           paths: ["c4"]
+          options:
+            members_order: source
+            separate_signature: true
+            filters: [ '!^_' ]
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_signature_annotations: true
+            signature_crossrefs: true
 theme:
   name: material
   feature:
@@ -53,9 +79,22 @@ theme:
         name: Switch to light mode
   language: en
   features:
-    - navigation.footer
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - announce.dismiss
     - navigation.tabs
+    - navigation.footer
     - navigation.tabs.sticky
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.preview
+    - navigation.instant.progress
+    - navigation.path
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
   icon:
     repo: fontawesome/brands/github
   logo: assets/c4-diagrams.png
@@ -72,6 +111,9 @@ markdown_extensions:
   - admonition
   - codehilite
   - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.highlight:
+      pygments_lang_class: true
   - pymdownx.tasklist:
       clickable_checkbox: true
   - toc:

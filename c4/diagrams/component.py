@@ -11,7 +11,7 @@ from c4.diagrams.core import (
 
 class ComponentDiagram(Diagram):
     """
-    Represents a C4 Component diagram.
+    Represents a [C4 Component diagram](https://c4model.com/diagrams/component).
     """
 
 

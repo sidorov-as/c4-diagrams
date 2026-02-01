@@ -12,7 +12,7 @@ from c4.diagrams.core import (
 
 class DeploymentDiagram(Diagram):
     """
-    Represents a C4 Deployment Diagram.
+    Represents a [C4 Deployment Diagram](https://c4model.com/diagrams/deployment).
 
     A deployment diagram shows how software systems and containers are
     mapped onto infrastructure nodes, such as servers, devices,

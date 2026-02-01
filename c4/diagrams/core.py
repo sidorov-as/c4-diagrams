@@ -418,7 +418,12 @@ class LastIndex(BaseIndex):
 
 class SetIndex(BaseIndex):
     """
-    Represents an operation to explicitly set the internal index to a new value.
+    Explicitly sets the relationship index to a new value.
+
+    This index operation resets the internal counter and returns a new index.
+    It is typically used as an argument to
+    [`Relationship`](core.md#c4.diagrams.core.Relationship) to control
+    relationship ordering explicitly.
     """
 
     def __init__(self, new_index: int) -> None:
@@ -460,7 +465,7 @@ class increment(BaseDiagramElement):
 
 class set_index(BaseDiagramElement):
     """
-    Diagram element representing a setIndex macro call.
+    Diagram element representing a **setIndex** PlantUML macro call.
 
     Used to explicitly set the internal index counter to a given value.
     """

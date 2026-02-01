@@ -11,13 +11,13 @@ from c4.diagrams.core import (
 
 class SystemContextDiagram(Diagram):
     """
-    Represents a System Context Diagram in the C4 model.
+    Represents a [C4 System Context Diagram](https://c4model.com/diagrams/system-context).
     """
 
 
 class SystemLandscapeDiagram(Diagram):
     """
-    Represents a System Landscape Diagram in the C4 model.
+    Represents a [C4 System Landscape Diagram](https://c4model.com/diagrams/system-landscape).
     """
 
 

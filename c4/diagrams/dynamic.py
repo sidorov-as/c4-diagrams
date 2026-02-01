@@ -10,7 +10,7 @@ from c4.diagrams.core import (
 
 class DynamicDiagram(Diagram):
     """
-    Represents a C4 Dynamic diagram.
+    Represents a [C4 Dynamic diagram](https://c4model.com/diagrams/dynamic).
     """
 
     @override

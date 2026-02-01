@@ -12,7 +12,7 @@ from c4.diagrams.core import (
 
 class ContainerDiagram(Diagram):
     """
-    Represents a C4 Container diagram.
+    Represents a [C4 Container diagram](https://c4model.com/diagrams/container).
     """
 
 

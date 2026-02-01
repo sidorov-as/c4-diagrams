@@ -531,6 +531,26 @@ def test_relationship_many_to_one(diagram: Diagram):
     assert diagram.relationships[1].technology == "JSON/HTTPS"
 
 
+def test_relationship_many_to_one_reversed(diagram: Diagram):
+    frontend = Element("frontend", "Web app")
+    mobile_app = Element("mobile", "Mobile app")
+    api_service = Element("api", "Backend API Service")
+
+    result = api_service << Rel("Uses", "JSON/HTTPS") << [frontend, mobile_app]
+
+    assert len(diagram.relationships) == 2
+    assert isinstance(result, list)
+    assert diagram.relationships == result
+    assert diagram.relationships[0].from_element == frontend
+    assert diagram.relationships[0].to_element == api_service
+    assert diagram.relationships[0].label == "Uses"
+    assert diagram.relationships[0].technology == "JSON/HTTPS"
+    assert diagram.relationships[1].from_element == mobile_app
+    assert diagram.relationships[1].to_element == api_service
+    assert diagram.relationships[1].label == "Uses"
+    assert diagram.relationships[1].technology == "JSON/HTTPS"
+
+
 def test_relationship_connect_many_to_many_error(diagram: Diagram):
     frontend = Element("frontend", "Web app")
     mobile_app = Element("mobile", "Mobile app")
