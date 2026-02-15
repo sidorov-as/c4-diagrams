@@ -1,3 +1,0 @@
-# PlantUML
-
-TBD

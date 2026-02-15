@@ -11,7 +11,7 @@ nav:
   - Getting started:
     - Overview: index.md
     - Installation: installation.md
-    - CLI: cli.md  # TODO: может заменить на Usage -> CLI, Usage -> DSL/API? Подумать
+    - CLI: cli.md
     - Contributing: contributing.md
     - Changelog: changelog.md
   - Concepts:
@@ -24,7 +24,10 @@ nav:
       - Components: diagrams/components.md
       - Supporting diagrams: diagrams/supporting.md
   - Rendering backends:
-      - PlantUML: renderers/plantuml.md
+      - PlantUML:
+          - Renderers: renderers/plantuml/renderers.md
+          - Styles and layout options: renderers/plantuml/styles-and-options.md
+          - Macros: renderers/plantuml/macros.md
   - Examples:
       - PlantUML: examples/plantuml.md
   - API Documentation:
@@ -33,12 +36,18 @@ nav:
           - Relationships: api_docs/relationships.md
           - Layouts: api_docs/layouts.md
           - Macros: api_docs/macros.md
+          - Formats: api_docs/diagram-formats.md
       - Diagrams:
         - System Context Diagram: api_docs/system-context.md
         - Component Diagram: api_docs/component.md
         - Container Diagram: api_docs/container.md
         - Dynamic Diagram: api_docs/dynamic.md
         - Deployment Diagram: api_docs/deployment.md
+      - Rendering backends:
+          - PlantUML:
+              - Renderers: api_docs/plantuml/renderers.md
+              - Macros: api_docs/plantuml/macros.md
+              - Layout options: api_docs/plantuml/layout-options.md
 
 plugins:
   - search

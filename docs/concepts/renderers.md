@@ -6,7 +6,7 @@ Renderers are responsible for converting a `Diagram` object into a textual repre
 !!! note
 
     You can find a detailed description of the different rendering backends in the
-    corresponding sections of the [documentation](../renderers/plantuml.md).
+    corresponding sections of the [documentation](../renderers/plantuml/renderers.md).
 
 
 ## Basic rendering
