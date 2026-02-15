@@ -32,25 +32,25 @@ class Node(Boundary):
 
     def __init__(
         self,
-        alias: str | EmptyStr = empty,
         label: str | Required = not_provided,
-        type_: str = "",
         description: str = "",
+        type_: str = "",
         sprite: str = "",
         tags: str = "",
         link: str = "",
+        alias: str | EmptyStr = empty,
     ) -> None:
         """
         Initialize a new Node element.
 
         Args:
-            alias: Optional identifier for the node.
             label: Display label shown on the diagram.
-            type_: Optional classifier for the node (e.g., "database").
             description: Optional description shown in the rendered diagram.
+            type_: Optional classifier for the node (e.g., "database").
             sprite: Optional sprite name to visually represent the node.
             tags: Comma-separated list of tags for styling or filtering.
             link: Optional hyperlink associated with the node.
+            alias: Optional identifier for the node.
         """
         super().__init__(
             label=label,

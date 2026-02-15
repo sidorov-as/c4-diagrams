@@ -30,47 +30,53 @@ def test_render_system_landscape_diagram(
         title="System Landscape diagram for Big Bank plc"
     ) as diagram:
         customer = Person(
-            "customer",
             "Personal Banking Customer",
             "A customer of the bank, with personal bank accounts.",
+            alias="customer",
         )
 
-        with EnterpriseBoundary("c0", "Big Bank plc"):
+        with EnterpriseBoundary("Big Bank plc", alias="c0"):
             banking_system = System(
-                "banking_system",
                 "Internet Banking System",
                 "Allows customers to view information about their bank accounts, and make payments.",
+                alias="banking_system",
             )
 
-            atm = SystemExt("atm", "ATM", "Allows customers to withdraw cash.")
+            atm = SystemExt(
+                "ATM", "Allows customers to withdraw cash.", alias="atm"
+            )
             mail_system = SystemExt(
-                "mail_system",
                 "E-mail system",
                 "The internal Microsoft Exchange e-mail system.",
+                alias="mail_system",
             )
 
             mainframe = SystemExt(
-                "mainframe",
                 "Mainframe Banking System",
                 "Stores all of the core banking information about customers, accounts, transactions, etc.",
+                alias="mainframe",
             )
 
             customer_service = PersonExt(
-                "customer_service",
                 "Customer Service Staff",
                 "Customer service staff within the bank.",
+                alias="customer_service",
             )
             back_office = PersonExt(
-                "back_office",
                 "Back Office Staff",
                 "Administration and support staff within the bank.",
+                alias="back_office",
             )
 
         customer >> RelNeighbor("Uses") >> banking_system
         customer >> RelR("Withdraws cash using") >> atm
         customer >> RelBack("Sends e-mails to") >> mail_system
 
-        customer >> RelR("Asks questions to", "Telephone") >> customer_service
+        (
+            customer
+            >> RelR("Asks questions to", technology="Telephone")
+            >> customer_service
+        )
 
         banking_system >> RelD("Sends e-mail using") >> mail_system
         atm >> RelR("Uses") >> mainframe

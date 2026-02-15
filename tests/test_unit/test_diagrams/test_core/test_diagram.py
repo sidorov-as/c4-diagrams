@@ -12,7 +12,7 @@ from c4.diagrams.core import (
     LayDown,
     get_diagram,
 )
-from c4.renderers.plantuml import DiagramFormat
+from c4.enums import DiagramFormat
 from c4.renderers.plantuml.backends import BasePlantUMLBackend
 
 

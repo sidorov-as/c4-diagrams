@@ -28,44 +28,46 @@ def test_render_diagram(
     """
     with SystemContextDiagram() as diagram:
         customer = Person(
-            "customer", "Customer", "A customer of Widgets Limited."
+            "Customer",
+            "A customer of Widgets Limited.",
+            alias="customer",
         )
 
-        with EnterpriseBoundary("c0", "Widgets Limited"):
+        with EnterpriseBoundary("Widgets Limited", alias="c0"):
             csa = Person(
-                "csa",
                 "Customer Service Agent",
                 "Deals with customer enquiries.",
+                alias="csa",
             )
 
             ecommerce = System(
-                "ecommerce",
                 "E-commerce System",
                 "Allows customers to buy widgets online via the widgets.com website.",
+                alias="ecommerce",
             )
 
             fulfillment = System(
-                "fulfillment",
                 "Fulfillment System",
                 "Responsible for processing and shipping of customer orders.",
+                alias="fulfillment",
             )
 
         taxamo = System(
-            "taxamo",
             "Taxamo",
             "Calculates local tax and acts as a front-end for Braintree Payments.",
+            alias="taxamo",
         )
 
         braintree = System(
-            "braintree",
             "Braintree Payments",
             "Processes credit card payments on behalf of Widgets Limited.",
+            alias="braintree",
         )
 
         post = System(
-            "post",
             "Jersey Post",
             "Calculates worldwide shipping costs for packages.",
+            alias="post",
         )
 
         customer >> RelR("Asks questions to", technology="Telephone") >> csa

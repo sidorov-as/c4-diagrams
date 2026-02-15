@@ -27,83 +27,101 @@ def test_render_dynamic_diagram(
     assert_match_snapshot: AssertMatchSnapshot,
 ):
     with DynamicDiagram() as diagram:
-        customer = Person("customer", "Customer", "A customer")
+        customer = Person("Customer", "A customer", alias="customer")
 
-        with SystemBoundary("c1", "Customer Information"):
+        with SystemBoundary("Customer Information", alias="c1"):
             app = Container(
-                "app",
                 "Customer Application",
-                "Javascript, Angular",
                 "Allows customers to manage their profile",
+                "Javascript, Angular",
+                alias="app",
             )
             customer_service = Container(
-                "customer_service",
                 "Customer Service",
-                "Java, Spring Boot",
                 "The point of access for customer information",
+                "Java, Spring Boot",
+                alias="customer_service",
             )
             message_bus = Container(
-                "message_bus",
                 "Message Bus",
-                "RabbitMQ",
                 "Transport for business events",
+                "RabbitMQ",
+                alias="message_bus",
             )
             reporting_service = Container(
-                "reporting_service",
                 "Reporting Service",
-                "Ruby",
                 "Creates normalised data for reporting purposes",
+                "Ruby",
+                alias="reporting_service",
             )
             audit_service = Container(
-                "audit_service",
                 "Audit Service",
-                "C#/.NET",
                 "Provides organisation-wide auditing facilities",
+                "C#/.NET",
+                alias="audit_service",
             )
             customer_db = ContainerDb(
-                "customer_db",
                 "Customer Database",
-                "Oracle 12c",
                 "Stores customer information",
+                "Oracle 12c",
+                alias="customer_db",
             )
             reporting_db = ContainerDb(
-                "reporting_db",
                 "Reporting Database",
-                "MySQL",
                 "Stores a normalized version of all business data for ad hoc reporting purposes",
+                "MySQL",
+                alias="reporting_db",
             )
             audit_store = Container(
-                "audit_store",
                 "Audit Store",
-                "Event Store",
                 "Stores information about events that have happened",
+                "Event Store",
+                alias="audit_store",
             )
 
-        customer >> RelDown("Updates his profile using", "HTTPS") >> app
+        (
+            customer
+            >> RelDown("Updates his profile using", technology="HTTPS")
+            >> app
+        )
         (
             app
-            >> Rel("Updates customer information using", "JSON/HTTPS")
+            >> Rel(
+                "Updates customer information using", technology="JSON/HTTPS"
+            )
             >> customer_service
         )
-        customer_service >> RelRight("Stores data in", "JDBC") >> customer_db
+        (
+            customer_service
+            >> RelRight("Stores data in", technology="JDBC")
+            >> customer_db
+        )
 
         (
             customer_service
             >> RelDown(
-                "Sends customer update events to", "async", index=f"{Index()}-1"
+                "Sends customer update events to",
+                technology="async",
+                index=f"{Index()}-1",
             )
             >> message_bus
         )
         (
             customer_service
-            >> RelUp("Confirm update to", "async", index=LastIndex() + "-2")
+            >> RelUp(
+                "Confirm update to",
+                technology="async",
+                index=LastIndex() + "-2",
+            )
             >> app
         )
 
         (
             message_bus
             >> RelLeft(
-                "Sends customer update events to", "async", index=f"{Index()}-1"
+                "Sends customer update events to",
+                technology="async",
+                index=f"{Index()}-1",
             )
             >> reporting_service
         )
@@ -117,7 +135,7 @@ def test_render_dynamic_diagram(
             message_bus
             >> RelRight(
                 "Sends customer update events to",
-                "async",
+                technology="async",
                 index=f"{SetIndex(5)}-2",
             )
             >> audit_service

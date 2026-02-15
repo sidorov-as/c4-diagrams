@@ -26,27 +26,27 @@ class Container(Element):
 
     def __init__(
         self,
-        alias: str | EmptyStr = empty,
         label: str | Required = not_provided,
-        technology: str = "",
         description: str = "",
+        technology: str = "",
         sprite: str = "",
         tags: str = "",
         link: str = "",
         base_shape: str = "",
+        alias: str | EmptyStr = empty,
     ) -> None:
         """
         Initialize a container element.
 
         Args:
-            alias: Unique identifier for the container.
             label: Human-readable name of the container.
-            technology: The technology stack used by the container.
             description: Optional description of the container's purpose.
+            technology: The technology stack used by the container.
             sprite: Optional sprite identifier for visual representation.
             tags: Comma-separated tags for filtering or styling.
             link: Optional URL for external documentation or navigation.
             base_shape: Optional base shape override for rendering.
+            alias: Unique identifier for the container.
         """
         super().__init__(
             alias=alias,
@@ -98,22 +98,22 @@ class ContainerBoundary(Boundary):
 
     def __init__(
         self,
-        alias: str | EmptyStr = empty,
         label: str | Required = not_provided,
+        description: str = "",
         tags: str = "",
         link: str = "",
-        description: str = "",
+        alias: str | EmptyStr = empty,
     ) -> None:
         """
         Initialize a container-level boundary.
 
         Args:
-            alias: Unique identifier for the boundary. Defaults to `empty`.
             label: Displayed label of the boundary. Defaults to `empty`.
+            description: Optional human-readable description of the boundary.
             tags: Optional comma-separated tags for styling or filtering.
             link: URL associated with the boundary for navigation or
                 documentation.
-            description: Optional human-readable description of the boundary.
+            alias: Unique identifier for the boundary.
         """
         super().__init__(
             alias=alias,

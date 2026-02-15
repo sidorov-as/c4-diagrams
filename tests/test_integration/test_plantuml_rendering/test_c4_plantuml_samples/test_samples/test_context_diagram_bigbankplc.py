@@ -28,30 +28,34 @@ def test_render_diagram(
         title="System Context diagram for Internet Banking System"
     ) as diagram:
         customer = Person(
-            "customer",
             "Personal Banking Customer",
             "A customer of the bank, with personal bank accounts.",
+            alias="customer",
         )
 
         banking_system = System(
-            "banking_system",
             "Internet Banking System",
             "Allows customers to view information about their bank accounts, and make payments.",
+            alias="banking_system",
         )
         mail_system = SystemExt(
-            "mail_system",
             "E-mail system",
             "The internal Microsoft Exchange e-mail system.",
+            alias="mail_system",
         )
         mainframe = SystemExt(
-            "mainframe",
             "Mainframe Banking System",
             "Stores all of the core banking information about customers, accounts, transactions, etc.",
+            alias="mainframe",
         )
 
         customer >> Rel("Uses") >> banking_system
         customer >> RelBack("Sends e-mails to") >> mail_system
-        banking_system >> RelNeighbor("Sends e-mails", "SMTP") >> mail_system
+        (
+            banking_system
+            >> RelNeighbor("Sends e-mails", technology="SMTP")
+            >> mail_system
+        )
         banking_system >> Rel("Uses") >> mainframe
 
         layout_options = LayoutOptions().layout_with_legend()

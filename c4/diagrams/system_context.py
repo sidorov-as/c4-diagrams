@@ -40,7 +40,6 @@ class System(Element):
 
     def __init__(
         self,
-        alias: str | EmptyStr = empty,
         label: str | Required = not_provided,
         description: str = "",
         sprite: str = "",
@@ -48,12 +47,12 @@ class System(Element):
         link: str = "",
         type_: str = "",
         base_shape: str = "",
+        alias: str | EmptyStr = empty,
     ) -> None:
         """
         Initialize a software system element.
 
         Args:
-            alias: Unique ID used in PlantUML rendering.
             label: Human-readable name.
             description: Optional description for the system.
             sprite: Optional icon or sprite.
@@ -61,6 +60,7 @@ class System(Element):
             link: Optional hyperlink associated with the element.
             type_: Custom type/stereotype string.
             base_shape: Optional override for visual shape.
+            alias: Unique identifier for the system.
         """
         super().__init__(
             alias=alias,
@@ -116,21 +116,21 @@ class EnterpriseBoundary(Boundary):
 
     def __init__(
         self,
-        alias: str | EmptyStr = empty,
         label: str | Required = not_provided,
+        description: str = "",
         tags: str = "",
         link: str = "",
-        description: str = "",
+        alias: str | EmptyStr = empty,
     ) -> None:
         """
         Initialize the enterprise boundary element.
 
         Args:
-            alias: Unique PlantUML ID.
             label: Display name.
+            description: Optional description.
             tags: Optional comma-separated tags.
             link: Optional hyperlink.
-            description: Optional description.
+            alias: Unique identifier for the boundary.
         """
         super().__init__(
             label=label,

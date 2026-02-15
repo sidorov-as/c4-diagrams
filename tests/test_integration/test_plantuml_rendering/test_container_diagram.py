@@ -24,71 +24,79 @@ def test_render_container_diagram(
     assert_match_snapshot: AssertMatchSnapshot,
 ):
     with ContainerDiagram() as diagram:
-        customer = Person("customer", "Customer", "A customer")
+        customer = Person("Customer", "A customer", alias="customer")
 
-        with SystemBoundary("c1", "Customer Information"):
+        with SystemBoundary("Customer Information", alias="c1"):
             app = Container(
-                "app",
                 "Customer Application",
-                "Javascript, Angular",
                 "Allows customers to manage their profile",
+                "Javascript, Angular",
+                alias="app",
             )
             customer_service = Container(
-                "customer_service",
                 "Customer Service",
-                "Java, Spring Boot",
                 "The point of access for customer information",
+                "Java, Spring Boot",
                 tags="microService",
+                alias="customer_service",
             )
             message_bus = ContainerQueue(
-                "message_bus",
                 "Message Bus",
-                "RabbitMQ",
                 "Transport for business events",
+                "RabbitMQ",
+                alias="message_bus",
             )
             reporting_service = Container(
-                "reporting_service",
                 "Reporting Service",
-                "Ruby",
                 "Creates normalised data for reporting purposes",
+                "Ruby",
                 tags="microService",
+                alias="reporting_service",
             )
             audit_service = Container(
-                "audit_service",
                 "Audit Service",
-                "C#/.NET",
                 "Provides organisation-wide auditing facilities",
+                "C#/.NET",
                 tags="microService",
+                alias="audit_service",
             )
             customer_db = ContainerDb(
-                "customer_db",
                 "Customer Database",
-                "Oracle 12c",
                 "Stores customer information",
+                "Oracle 12c",
                 tags="storage",
+                alias="customer_db",
             )
             reporting_db = ContainerDb(
-                "reporting_db",
                 "Reporting Database",
-                "MySQL",
                 "Stores a normalized version of all business data for ad hoc reporting purposes",
+                "MySQL",
                 tags="storage",
+                alias="reporting_db",
             )
             audit_store = Container(
-                "audit_store",
                 "Audit Store",
-                "Event Store",
                 "Stores information about events that have happened",
+                "Event Store",
                 tags="storage",
+                alias="audit_store",
             )
 
-            customer >> RelDown("Uses", "HTTPS") >> app
-            app >> RelDown('Updates customer information using', 'async, JSON/HTTPS') >> customer_service  # fmt: off
+            customer >> RelDown("Uses", technology="HTTPS") >> app
+            app >> RelDown('Updates customer information using', technology='async, JSON/HTTPS') >> customer_service  # fmt: off
 
-            customer_service >> RelUp("Sends events to", "WebSocket") >> app
+            (
+                customer_service
+                >> RelUp("Sends events to", technology="WebSocket")
+                >> app
+            )
             customer_service >> RelUp('Sends customer update events to') >> message_bus  # fmt: off
 
-            customer_service >> Rel("Stores data in", "JDBC") >> customer_db
+            (
+                customer_service
+                >> Rel("Stores data in", technology="JDBC")
+                >> customer_db
+            )
 
             message_bus >> Rel('Sends customer update events to') >> [reporting_service, audit_service]  # fmt: off
 

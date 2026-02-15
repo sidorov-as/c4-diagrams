@@ -24,65 +24,65 @@ def test_render_component_diagram(
         title="Component diagram for Internet Banking System - API Application"
     ) as diagram:
         spa = Container(
-            "spa",
             "Single Page Application",
-            "javascript and angular",
             "Provides all the internet banking functionality to customers via their web browser.",
+            "javascript and angular",
+            alias="spa",
         )
         ma = Container(
-            "ma",
             "Mobile App",
-            "Xamarin",
             "Provides a limited subset ot the internet banking functionality to customers via their mobile mobile device.",
+            "Xamarin",
+            alias="ma",
         )
         db = ContainerDb(
-            "db",
             "Database",
-            "Relational Database Schema",
             "Stores user registration information, hashed authentication credentials, access logs, etc.",
+            "Relational Database Schema",
+            alias="db",
         )
         mbs = SystemExt(
-            "mbs",
             "Mainframe Banking System",
             "Stores all of the core banking information about customers, accounts, transactions, etc.",
+            alias="mbs",
         )
 
-        with ContainerBoundary("api", "API Application"):
+        with ContainerBoundary("API Application", alias="api"):
             sign = Component(
-                "sign",
                 "Sign In Controller",
-                "MVC Rest Controller",
                 "Allows users to sign in to the internet banking system",
+                "MVC Rest Controller",
+                alias="sign",
             )
             accounts = Component(
-                "accounts",
                 "Accounts Summary Controller",
-                "MVC Rest Controller",
                 "Provides customers with a summary of their bank accounts",
+                "MVC Rest Controller",
+                alias="accounts",
             )
             security = Component(
-                "security",
                 "Security Component",
-                "Spring Bean",
                 "Provides functionality related to singing in, changing passwords, etc.",
+                "Spring Bean",
+                alias="security",
             )
             mbsfacade = Component(
-                "mbsfacade",
                 "Mainframe Banking System Facade",
-                "Spring Bean",
                 "A facade onto the mainframe banking system.",
+                "Spring Bean",
+                alias="mbsfacade",
             )
 
             sign >> Rel("Uses") >> security
             accounts >> Rel("Uses") >> mbsfacade
-            security >> Rel("Read & write to", "JDBC") >> db
-            mbsfacade >> Rel("Uses", "XML/HTTPS") >> mbs
+            security >> Rel("Read & write to", technology="JDBC") >> db
+            mbsfacade >> Rel("Uses", technology="XML/HTTPS") >> mbs
 
-        spa >> Rel("Uses", "JSON/HTTPS") >> sign
-        spa >> Rel("Uses", "JSON/HTTPS") >> accounts
+        spa >> Rel("Uses", technology="JSON/HTTPS") >> sign
+        spa >> Rel("Uses", technology="JSON/HTTPS") >> accounts
 
-        ma >> Rel("Uses", "JSON/HTTPS") >> sign
-        ma >> Rel("Uses", "JSON/HTTPS") >> accounts
+        ma >> Rel("Uses", technology="JSON/HTTPS") >> sign
+        ma >> Rel("Uses", technology="JSON/HTTPS") >> accounts
 
         layout_options = LayoutOptions().layout_with_legend()
 

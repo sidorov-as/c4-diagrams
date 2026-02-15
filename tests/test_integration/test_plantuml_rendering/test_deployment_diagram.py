@@ -25,93 +25,121 @@ def test_render_deployment_diagram(
     with DeploymentDiagram(
         title="Deployment Diagram for Internet Banking System - Live"
     ) as diagram:
-        with DeploymentNode("plc", "Big Bank plc", "Big Bank plc data center"):
+        with DeploymentNode(
+            "Big Bank plc", type_="Big Bank plc data center", alias="plc"
+        ):
             with DeploymentNode(
-                "dn", "bigbank-api***\\tx8", "Ubuntu 16.04 LTS"
+                "bigbank-api***\\tx8",
+                type_="Ubuntu 16.04 LTS",
+                alias="dn",
             ):
                 with DeploymentNode(
-                    "apache", "Apache Tomcat", "Apache Tomcat 8.x"
+                    "Apache Tomcat",
+                    type_="Apache Tomcat 8.x",
+                    alias="apache",
                 ):
                     api = Container(
-                        "api",
                         "API Application",
-                        "Java and Spring MVC",
                         "Provides Internet Banking functionality via a JSON/HTTPS API.",
+                        "Java and Spring MVC",
+                        alias="api",
                     )
 
             with DeploymentNode(
-                "bigbankdb01", "bigbank-db01", "Ubuntu 16.04 LTS"
-            ):
-                with DeploymentNode("oracle", "Oracle - Primary", "Oracle 12c"):
-                    db = ContainerDb(
-                        "db",
-                        "Database",
-                        "Relational Database Schema",
-                        "Stores user registration information, hashed authentication credentials, access logs, etc.",
-                    )
-
-            with DeploymentNode(
-                "bigbankdb02",
-                "bigbank-db02",
-                "Ubuntu 16.04 LTS",
-                tags="fallback",
+                "bigbank-db01",
+                type_="Ubuntu 16.04 LTS",
+                alias="bigbankdb01",
             ):
                 with DeploymentNode(
-                    "oracle2",
+                    "Oracle - Primary", type_="Oracle 12c", alias="oracle"
+                ):
+                    db = ContainerDb(
+                        "Database",
+                        "Stores user registration information, hashed authentication credentials, access logs, etc.",
+                        "Relational Database Schema",
+                        alias="db",
+                    )
+
+            with DeploymentNode(
+                "bigbank-db02",
+                type_="Ubuntu 16.04 LTS",
+                tags="fallback",
+                alias="bigbankdb02",
+            ):
+                with DeploymentNode(
                     "Oracle - Secondary",
-                    "Oracle 12c",
+                    type_="Oracle 12c",
                     tags="fallback",
+                    alias="oracle2",
                 ):
                     db2 = ContainerDb(
-                        "db2",
                         "Database",
-                        "Relational Database Schema",
                         "Stores user registration information, hashed authentication credentials, access logs, etc.",
+                        "Relational Database Schema",
                         tags="fallback",
+                        alias="db2",
                     )
 
             with DeploymentNode(
-                "bb2", "bigbank-web***\\tx4", "Ubuntu 16.04 LTS"
+                "bigbank-web***\\tx4",
+                type_="Ubuntu 16.04 LTS",
+                alias="bb2",
             ):
                 with DeploymentNode(
-                    "apache2", "Apache Tomcat", "Apache Tomcat 8.x"
+                    "Apache Tomcat",
+                    type_="Apache Tomcat 8.x",
+                    alias="apache2",
                 ):
                     web = Container(
-                        "web",
                         "Web Application",
-                        "Java and Spring MVC",
                         "Delivers the static content and the Internet Banking single page application.",
+                        "Java and Spring MVC",
+                        alias="web",
                     )
 
         with DeploymentNode(
-            "mob", "Customer's mobile device", "Apple IOS or Android"
+            "Customer's mobile device",
+            type_="Apple IOS or Android",
+            alias="mob",
         ):
             mobile = Container(
-                "mobile",
                 "Mobile App",
-                "Xamarin",
                 "Provides a limited subset of the Internet Banking functionality to customers via their mobile device.",
+                "Xamarin",
+                alias="mobile",
             )
 
         with DeploymentNode(
-            "comp", "Customer's computer", "Microsoft Windows or Apple macOS"
+            "Customer's computer",
+            type_="Microsoft Windows or Apple macOS",
+            alias="comp",
         ):
             with DeploymentNode(
-                "browser",
                 "Web Browser",
-                "Google Chrome, Mozilla Firefox, Apple Safari or Microsoft Edge",
+                type_="Google Chrome, Mozilla Firefox, Apple Safari or Microsoft Edge",
+                alias="browser",
             ):
                 spa = Container(
-                    "spa",
                     "Single Page Application",
-                    "JavaScript and Angular",
                     "Provides all of the Internet Banking functionality to customers via their web browser.",
+                    "JavaScript and Angular",
+                    alias="spa",
                 )
 
-        [mobile, spa] >> Rel("Makes API calls to", "json/HTTPS") >> api
+        (
+            [mobile, spa]
+            >> Rel("Makes API calls to", technology="json/HTTPS")
+            >> api
+        )
         web >> RelUp("Delivers to the customer's web browser") >> spa
-        api >> Rel("Reads from and writes to", "JDBC") >> db
-        api >> Rel("Reads from and writes to", "JDBC", tags="fallback") >> db2
+        api >> Rel("Reads from and writes to", technology="JDBC") >> db
+        (
+            api
+            >> Rel(
+                "Reads from and writes to", technology="JDBC", tags="fallback"
+            )
+            >> db2
+        )
         db >> RelRight("Replicates data to") >> db2
 
         layout_options = (
@@ -136,132 +164,149 @@ def test_render_deployment_diagram_with_properties(
         title="Deployment Diagram for Internet Banking System - Live"
     ) as diagram:
         with DeploymentNode(
-            "plc", "Live", "Big Bank plc", "Big Bank plc data center"
+            "Live",
+            "Big Bank plc data center",
+            type_="Big Bank plc",
+            alias="plc",
         ):
             with DeploymentNodeLeft(
-                "dn",
                 "bigbank-api***\\tx8",
-                "Ubuntu 16.04 LTS",
                 "A web server residing in the web server farm, accessed via F5 BIG-IP LTMs.",
+                type_="Ubuntu 16.04 LTS",
+                alias="dn",
             ) as dn:
                 dn.add_property("Location", "London and Reading")
 
                 with DeploymentNodeLeft(
-                    "apache",
                     "Apache Tomcat",
-                    "Apache Tomcat 8.x",
                     "An open source Java EE web server.",
+                    type_="Apache Tomcat 8.x",
+                    alias="apache",
                 ) as apache:
                     apache.add_property("Java Version", "8")
                     apache.add_property("Xmx", "512M")
                     apache.add_property("Xms", "1024M")
 
                     api = Container(
-                        "api",
                         "API Application",
-                        "Java and Spring MVC",
                         "Provides Internet Banking functionality via a JSON/HTTPS API.",
+                        "Java and Spring MVC",
+                        alias="api",
                     )
 
             with DeploymentNodeLeft(
-                "bigbankdb01",
                 "bigbank-db01",
-                "Ubuntu 16.04 LTS",
                 "The primary database server.",
+                type_="Ubuntu 16.04 LTS",
+                alias="bigbankdb01",
             ) as bigbankdb01:
                 bigbankdb01.add_property("Location", "London")
 
                 with DeploymentNodeLeft(
-                    "oracle",
                     "Oracle - Primary",
-                    "Oracle 12c",
                     "The primary, live database server.",
+                    type_="Oracle 12c",
+                    alias="oracle",
                 ):
                     db = ContainerDb(
-                        "db",
                         "Database",
-                        "Relational Database Schema",
                         "Stores user registration information, hashed authentication credentials, access logs, etc.",
+                        "Relational Database Schema",
+                        alias="db",
                     )
 
             with DeploymentNodeRight(
-                "bigbankdb02",
                 "bigbank-db02",
-                "Ubuntu 16.04 LTS",
                 "The secondary database server.",
+                type_="Ubuntu 16.04 LTS",
+                alias="bigbankdb02",
                 tags="fallback",
             ) as bigbankdb02:
                 bigbankdb02.add_property("Location", "Reading")
 
                 with DeploymentNodeRight(
-                    "oracle2",
                     "Oracle - Secondary",
-                    "Oracle 12c",
                     "A secondary, standby database server, used for failover purposes only.",
+                    type_="Oracle 12c",
+                    alias="oracle2",
                     tags="fallback",
                 ):
                     db2 = ContainerDb(
-                        "db2",
                         "Database",
-                        "Relational Database Schema",
                         "Stores user registration information, hashed authentication credentials, access logs, etc.",
+                        "Relational Database Schema",
+                        alias="db2",
                         tags="fallback",
                     )
 
             with DeploymentNodeRight(
-                "bb2",
                 "bigbank-web***\\tx4",
-                "Ubuntu 16.04 LTS",
                 "A web server residing in the web server farm, accessed via F5 BIG-IP LTMs.",
+                type_="Ubuntu 16.04 LTS",
+                alias="bb2",
             ) as bb2:
                 bb2.add_property("Location", "London and Reading")
 
                 with DeploymentNodeRight(
-                    "apache2",
                     "Apache Tomcat",
-                    "Apache Tomcat 8.x",
                     "An open source Java EE web server.",
+                    alias="apache2",
+                    type_="Apache Tomcat 8.x",
                 ) as apache2:
                     apache2.add_property("Java Version", "8")
                     apache2.add_property("Xmx", "512M")
                     apache2.add_property("Xms", "1024M")
 
                     web = Container(
-                        "web",
                         "Web Application",
-                        "Java and Spring MVC",
                         "Delivers the static content and the Internet Banking single page application.",
+                        "Java and Spring MVC",
+                        alias="web",
                     )
 
         with DeploymentNode(
-            "mob", "Customer's mobile device", "Apple IOS or Android"
+            "Customer's mobile device",
+            type_="Apple IOS or Android",
+            alias="mob",
         ):
             mobile = Container(
-                "mobile",
                 "Mobile App",
-                "Xamarin",
                 "Provides a limited subset of the Internet Banking functionality to customers via their mobile device.",
+                "Xamarin",
+                alias="mobile",
             )
 
         with DeploymentNode(
-            "comp", "Customer's computer", "Microsoft Windows or Apple macOS"
+            "Customer's computer",
+            type_="Microsoft Windows or Apple macOS",
+            alias="comp",
         ):
             with DeploymentNode(
-                "browser",
                 "Web Browser",
-                "Google Chrome, Mozilla Firefox, Apple Safari or Microsoft Edge",
+                type_="Google Chrome, Mozilla Firefox, Apple Safari or Microsoft Edge",
+                alias="browser",
             ):
                 spa = Container(
-                    "spa",
                     "Single Page Application",
-                    "JavaScript and Angular",
                     "Provides all of the Internet Banking functionality to customers via their web browser.",
+                    "JavaScript and Angular",
+                    alias="spa",
                 )
 
-        [mobile, spa] >> Rel("Makes API calls to", "json/HTTPS") >> api
+        (
+            [mobile, spa]
+            >> Rel("Makes API calls to", technology="json/HTTPS")
+            >> api
+        )
         web >> RelUp("Delivers to the customer's web browser") >> spa
-        api >> Rel("Reads from and writes to", "JDBC") >> db
-        api >> Rel("Reads from and writes to", "JDBC", tags="fallback") >> db2
+        api >> Rel("Reads from and writes to", technology="JDBC") >> db
+        (
+            api
+            >> Rel(
+                "Reads from and writes to", technology="JDBC", tags="fallback"
+            )
+            >> db2
+        )
         db >> RelRight("Replicates data to") >> db2
 
         layout_options = (

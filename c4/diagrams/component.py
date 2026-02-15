@@ -26,28 +26,28 @@ class Component(Element):
 
     def __init__(
         self,
-        alias: str | EmptyStr = empty,
         label: str | Required = not_provided,
-        technology: str = "",
         description: str = "",
+        technology: str = "",
         sprite: str = "",
         tags: str = "",
         link: str = "",
         base_shape: str = "",
+        alias: str | EmptyStr = empty,
     ) -> None:
         """
         Initialize a component element.
 
         Args:
-            alias: Unique identifier for the component.
             label: Human-readable name of the component.
-            technology: Technology used to implement the component.
             description: Optional description of the component's
                 behavior or role.
+            technology: Technology used to implement the component.
             sprite: Optional sprite for visual appearance in the diagram.
             tags: Comma-separated tags for filtering or styling.
             link: Optional external link related to the component.
             base_shape: Optional shape override for rendering.
+            alias: Unique identifier for the component.
         """
         super().__init__(
             alias=alias,
