@@ -485,7 +485,7 @@ class SetIndex(BaseIndex):
 
     This index operation resets the internal counter and returns a new index.
     It is typically used as an argument to
-    [`Relationship`](core.md#c4.diagrams.core.Relationship) to control
+    [`Relationship`][c4.diagrams.core.Relationship] to control
     relationship ordering explicitly.
     """
 

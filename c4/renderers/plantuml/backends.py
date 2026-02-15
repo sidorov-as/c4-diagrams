@@ -105,6 +105,8 @@ class BasePlantUMLBackend(ABC):
             FileNotFoundError: If the required PlantUML backend is
                 not available.
         """
+        output_path = Path(output_path)
+
         if format is None:
             if not output_path.suffix:
                 raise ValueError(
