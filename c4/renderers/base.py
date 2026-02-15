@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Generic
 
+from c4 import DiagramFormat
 from c4.diagrams.core import _TDiagram
 
 
@@ -130,4 +132,56 @@ class BaseRenderer(ABC, Generic[_TDiagram]):
         """
         raise NotImplementedError(
             "Renderer class requires .render() to be implemented"
+        )
+
+    @abstractmethod
+    def render_bytes(
+        self,
+        diagram: _TDiagram,
+        *,
+        format: DiagramFormat,
+    ) -> bytes:
+        """
+        Render a Diagram and return the result as raw bytes.
+
+        This method first converts the Diagram into PlantUML source text
+        and then delegates the actual rendering to the
+        configured PlantUML backend.
+
+        Args:
+            diagram: The diagram instance to render.
+            format: Output format of the rendered diagram.
+
+        Returns:
+            The rendered diagram content as raw bytes.
+        """
+        raise NotImplementedError(
+            "Renderer class requires .render_bytes() to be implemented"
+        )
+
+    @abstractmethod
+    def render_file(
+        self,
+        diagram: _TDiagram,
+        output_path: Path,
+        *,
+        format: DiagramFormat,
+        overwrite: bool = True,
+    ) -> Path:
+        """
+        Render a Diagram and write the result to a file.
+
+
+        Args:
+            diagram: The diagram instance to render.
+            output_path: Path where the rendered diagram should be written.
+            format: Output format of the rendered diagram.
+            overwrite: Whether to overwrite the output file if it already
+                exists.
+
+        Returns:
+            Path to the written output file.
+        """
+        raise NotImplementedError(
+            "Renderer class requires .render_file() to be implemented"
         )

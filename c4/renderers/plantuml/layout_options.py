@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from typing_extensions import Self
 
-from c4.compat.strenum import StrEnum
+from c4.compat import StrEnum
 
 
 @unique

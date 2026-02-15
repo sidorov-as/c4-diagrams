@@ -11,28 +11,27 @@ from collections.abc import Mapping, Sequence
 from contextlib import suppress
 from pathlib import Path
 from string import ascii_lowercase, ascii_uppercase, digits
-from typing import Literal
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from c4.compat.strenum import StrEnum
+from c4 import PNG, DiagramFormat
+from c4.constants import (
+    DEFAULT_JAVA_BIN,
+    DEFAULT_PLANTUML_BIN,
+    DEFAULT_PLANTUML_SERVER_URL,
+    DEFAULT_RENDERING_TIMEOUT_SECONDS,
+    JAVA_BIN_ENV_VAR,
+    PLANTUML_BIN_ENV_VAR,
+    PLANTUML_JAR_ENV_VAR,
+    PLANTUML_SERVER_URL_ENV_VAR,
+    RENDERING_TIMEOUT_SECONDS_ENV_VAR,
+)
+from c4.enums import PLANTUML_DIAGRAM_FORMATS
 from c4.exceptions import (
     PlantUMLBackendConfigurationError,
     PlantUMLLocalRenderingError,
     PlantUMLRemoteRenderingError,
 )
-
-
-class DiagramFormat(StrEnum):
-    EPS = "eps"
-    LATEX = "latex"
-    SVG = "svg"
-    PNG = "png"
-    TXT = "txt"
-    UTXT = "utxt"
-
-
-DEFAULT_PLANTUML_SERVER_URL = "https://www.plantuml.com/plantuml"
 
 BASE64_TO_PLANTUML = {
     ord(b): b2.encode()
@@ -56,7 +55,7 @@ class BasePlantUMLBackend(ABC):
         self,
         diagram: str,
         *,
-        format: DiagramFormat = DiagramFormat.SVG,
+        format: DiagramFormat = PNG,
     ) -> bytes:
         """
         Generate a PlantUML diagram and return the generated image as bytes.
@@ -80,7 +79,7 @@ class BasePlantUMLBackend(ABC):
         diagram: str,
         output_path: Path,
         *,
-        format: DiagramFormat | None = None,
+        format: DiagramFormat | None = PNG,
         overwrite: bool = True,
     ) -> Path:
         """
@@ -121,6 +120,16 @@ class BasePlantUMLBackend(ABC):
         output_path.write_bytes(content)
         return output_path
 
+    def _ensure_format_supported(
+        self,
+        format: DiagramFormat,
+    ) -> None:
+        if format not in PLANTUML_DIAGRAM_FORMATS:
+            raise ValueError(
+                f"{format.value!r} format is not supported "
+                f"by PlantUML renderer."
+            )
+
 
 class RemotePlantUMLBackend(BasePlantUMLBackend):
     """
@@ -137,21 +146,24 @@ class RemotePlantUMLBackend(BasePlantUMLBackend):
         self,
         *,
         server_url: str | None = None,
-        timeout_seconds: float = 30.0,
+        timeout_seconds: float = DEFAULT_RENDERING_TIMEOUT_SECONDS,
     ) -> None:
         server_url = server_url or os.getenv(
-            "PLANTUML_SERVER_URL", DEFAULT_PLANTUML_SERVER_URL
+            PLANTUML_SERVER_URL_ENV_VAR, DEFAULT_PLANTUML_SERVER_URL
         )
         self._server_url = (
             server_url[:-1] if server_url.endswith("/") else server_url  # type: ignore[index, union-attr, assignment]
         )
-        self._timeout_seconds = timeout_seconds
+        _timeout_seconds = os.getenv(
+            RENDERING_TIMEOUT_SECONDS_ENV_VAR, timeout_seconds
+        )
+        self._timeout_seconds = float(_timeout_seconds)
 
     def to_bytes(
         self,
         diagram: str,
         *,
-        format: DiagramFormat = DiagramFormat.SVG,
+        format: DiagramFormat = PNG,
     ) -> bytes:
         """
         Generate a PlantUML diagram using PlantUML server and
@@ -167,6 +179,8 @@ class RemotePlantUMLBackend(BasePlantUMLBackend):
         Raises:
             PlantUMLRemoteRenderingError: If rendering fails.
         """
+        self._ensure_format_supported(format)
+
         encoded = self._encode_text_diagram(diagram).decode("utf-8")
         url = f"{self._server_url}/{format}/{encoded}"
         request = Request(url, method="GET")  # noqa: S310
@@ -210,6 +224,12 @@ class RemotePlantUMLBackend(BasePlantUMLBackend):
         return b"".join(BASE64_TO_PLANTUML[b] for b in b64_encoded)
 
 
+class _Empty: ...
+
+
+empty = _Empty()
+
+
 class LocalPlantUMLBackend(BasePlantUMLBackend):
     """
     Generate PlantUML diagrams using local PlantUML binary or jar.
@@ -219,42 +239,62 @@ class LocalPlantUMLBackend(BasePlantUMLBackend):
       - PLANTUML_JAR: path to plantuml.jar
     """
 
-    _plantuml_bin: str
-    _java_bin: str
+    _plantuml_bin: str | None
+    _plantuml_jar: Path | None
 
     def __init__(
         self,
         *,
-        backend: Literal["binary", "jar"] = "binary",
-        plantuml_bin: str | None = None,
-        plantuml_jar: Path | None = None,
-        java_bin: str = "java",
-        timeout_seconds: float = 30.0,
+        plantuml_bin: str | None | _Empty = empty,
+        plantuml_jar: Path | None | _Empty = empty,
+        java_bin: str | None = None,
+        timeout_seconds: float = DEFAULT_RENDERING_TIMEOUT_SECONDS,
         plantuml_args: Sequence[str] = (),
         java_args: Sequence[str] = (),
         env: Mapping[str, str] | None = None,
     ) -> None:
-        self._backend = backend
-        self._plantuml_bin = plantuml_bin or os.getenv(  # type: ignore[assignment]
-            "PLANTUML_BIN", "plantuml"
-        )
-
-        jar_env = os.getenv("PLANTUML_JAR")
-        self._plantuml_jar = plantuml_jar or (
-            Path(jar_env) if jar_env else None
-        )
-        self._plantuml_args = list(plantuml_args)
-
-        self._java_bin = java_bin
-        self._java_args = list(java_args)
-
         self._env = dict(os.environ)
         if env:
             self._env.update(env)
 
+        if plantuml_bin is empty:
+            self._plantuml_bin = self._env.get(
+                PLANTUML_BIN_ENV_VAR, DEFAULT_PLANTUML_BIN
+            )
+        else:
+            self._plantuml_bin = plantuml_bin  # type: ignore[assignment]
+
+        self._plantuml_args = list(plantuml_args)
+
+        if plantuml_jar is empty:
+            jar_env = self._env.get(PLANTUML_JAR_ENV_VAR)
+            self._plantuml_jar = Path(jar_env) if jar_env else None
+        else:
+            self._plantuml_jar = plantuml_jar  # type: ignore[assignment]
+
+        self._java_bin = java_bin or self._env.get(
+            JAVA_BIN_ENV_VAR, DEFAULT_JAVA_BIN
+        )
+        self._java_args = list(java_args)
+
+        timeout_env = self._env.get(
+            RENDERING_TIMEOUT_SECONDS_ENV_VAR,
+            timeout_seconds,
+        )
+        try:
+            self._timeout_seconds = float(timeout_env)
+        except ValueError as exc:
+            raise PlantUMLBackendConfigurationError(
+                f"Invalid {RENDERING_TIMEOUT_SECONDS_ENV_VAR}={timeout_env!r}:"
+                f" expected a number of seconds."
+            ) from exc
+
+        _timeout_seconds = os.getenv(
+            RENDERING_TIMEOUT_SECONDS_ENV_VAR, timeout_seconds
+        )
         self._timeout_seconds = timeout_seconds
 
-        self._validate_backend_available()
+        self._resolve_backend()
 
     def to_bytes(
         self,
@@ -283,7 +323,7 @@ class LocalPlantUMLBackend(BasePlantUMLBackend):
             input_path = tmp_dir / "diagram.puml"
             input_path.write_text(diagram, encoding="utf-8")
 
-            out_path = input_path.with_suffix(f".{format}")
+            output_path = self._build_output_path(input_path, format)
             cmd = self._build_cmd(input_path=input_path, format=format)
 
             res = subprocess.run(  # noqa: S603
@@ -301,29 +341,65 @@ class LocalPlantUMLBackend(BasePlantUMLBackend):
                     stderr or stdout or "PlantUML failed."
                 )
 
-            if not out_path.exists():
-                raise FileNotFoundError(
-                    f"Expected output was not generated: {out_path.name}"
+            if not output_path.exists():
+                raise PlantUMLLocalRenderingError(
+                    f"Expected output was not generated: {output_path.name}"
                 )
 
-            return out_path.read_bytes()
+            return output_path.read_bytes()
 
-    def _validate_backend_available(self) -> None:
-        if self._backend == "binary":
-            if not shutil.which(self._plantuml_bin):
-                raise PlantUMLBackendConfigurationError(
-                    "PlantUML binary not found. Install it or set PLANTUML_BIN."
-                )
-        elif self._backend == "jar":
-            if not (self._plantuml_jar and self._plantuml_jar.exists()):
-                raise PlantUMLBackendConfigurationError(
-                    "PlantUML jar not found. Set PLANTUML_JAR "
-                    "or pass plantuml_jar."
-                )
-        else:
-            raise PlantUMLBackendConfigurationError(
-                f"Unknown backend: {self._backend!r}"
-            )
+    def _build_output_path(
+        self,
+        input_path: Path,
+        format: DiagramFormat,
+    ) -> Path:
+        """
+        Build the output file path for a rendered diagram.
+
+        The output path is derived from the input path by replacing its suffix
+        with an extension corresponding to the requested diagram format.
+
+        Special case:
+            For ``DiagramFormat.TXT``, the extension is prefixed with ``"a"``
+            (e.g. ``.atxt``) to avoid collisions with source files or to
+            distinguish generated textual artifacts from inputs.
+
+        Args:
+            input_path:
+                Path to the input file used as the base for naming the output.
+            format:
+                Target diagram output format.
+
+        Returns:
+            A new ``Path`` with the updated file extension.
+        """
+        ext = format.value
+        if format == DiagramFormat.TXT:
+            ext = f"a{format.value}"
+
+        out_path = input_path.with_suffix(f".{ext}")
+
+        return out_path
+
+    def _resolve_backend(self) -> None:
+        binary_found = self._plantuml_bin and shutil.which(self._plantuml_bin)
+        jar_found = self._plantuml_jar and self._plantuml_jar.exists()
+
+        if binary_found:
+            self._use_jar = False
+            return
+
+        if jar_found:
+            self._use_jar = True
+            return
+
+        raise PlantUMLBackendConfigurationError(
+            "PlantUML is not available. "
+            f"Tried binary {self._plantuml_bin!r} in PATH and "
+            f"jar {self._plantuml_jar!r}. "
+            "Configure PlantUML by setting the PLANTUML_BIN or PLANTUML_JAR "
+            "environment variables, or by passing plantuml_bin / plantuml_jar."
+        )
 
     def _build_cmd(
         self,
@@ -331,8 +407,11 @@ class LocalPlantUMLBackend(BasePlantUMLBackend):
         input_path: Path,
         format: DiagramFormat,
     ) -> list[str]:
+        self._ensure_format_supported(format)
+
         tflag = f"-t{format}"
-        if self._backend == "jar":
+
+        if self._use_jar:
             return [
                 self._java_bin,
                 *self._java_args,
@@ -344,7 +423,7 @@ class LocalPlantUMLBackend(BasePlantUMLBackend):
             ]
 
         return [
-            self._plantuml_bin,
+            self._plantuml_bin,  # type: ignore[list-item]
             tflag,
             *self._plantuml_args,
             input_path.name,

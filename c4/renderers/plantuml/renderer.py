@@ -215,6 +215,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         self,
         includes: list[str] | None = None,
         layout_config: LayoutConfig | None = None,
+        backend: BasePlantUMLBackend | None = None,
     ) -> None:
         """
         Initialize the renderer.
@@ -228,13 +229,20 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         """
         self._config = layout_config or LayoutConfig()
 
+        _includes = getattr(self, "default_includes", [])
+        _includes.extend(includes or [])
+
         self._layout_options_renderer = LayoutOptionsRenderer(
-            includes=includes or getattr(self, "default_includes", []),
+            includes=_includes,
             layout_config=self._config,
         )
         self._without_property_header = self._config.without_property_header
 
         self._builder = IndentedStringBuilder()
+
+        self._includes = includes or []
+        self._layout_config = None
+        self._plantuml_backend = backend
 
     def render_base_element(self, element: BaseDiagramElement) -> list[str]:
         raise NotImplementedError
@@ -385,6 +393,87 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
         return self._builder.get_result()
 
+    def render_bytes(
+        self,
+        diagram: _TDiagram,
+        *,
+        format: DiagramFormat,
+    ) -> bytes:
+        """
+        Render a Diagram and return the result as raw bytes.
+
+        This method first converts the Diagram into PlantUML source text
+        and then delegates the actual rendering to the
+        configured PlantUML backend.
+
+        Args:
+            diagram: The diagram instance to render.
+            format: Output format of the rendered diagram.
+
+        Returns:
+            The rendered diagram content as raw bytes.
+
+        Raises:
+            PlantUMLBackendConfigurationError: If no PlantUML backend is
+                configured for this renderer.
+            PlantUMLError: If the underlying PlantUML backend fails to
+                render the diagram.
+        """
+        if not self._plantuml_backend:
+            raise PlantUMLBackendConfigurationError()
+
+        diagram_source = self.render(diagram)
+
+        return self._plantuml_backend.to_bytes(
+            diagram=diagram_source,
+            format=format,
+        )
+
+    def render_file(
+        self,
+        diagram: _TDiagram,
+        output_path: Path,
+        *,
+        format: DiagramFormat,
+        overwrite: bool = True,
+    ) -> Path:
+        """
+        Render a Diagram and write the result to a file.
+
+        This method first converts the Diagram into PlantUML source text
+        and then delegates file generation to the
+        configured PlantUML backend.
+
+        Args:
+            diagram: The diagram instance to render.
+            output_path: Path where the rendered diagram should be written.
+            format: Output format of the rendered diagram.
+            overwrite: Whether to overwrite the output file if it already
+                exists.
+
+        Returns:
+            Path to the written output file.
+
+        Raises:
+            PlantUMLBackendConfigurationError: If no PlantUML backend is
+                configured for this renderer.
+            FileExistsError: If the output file exists and ``overwrite`` is
+                set to ``False``.
+            PlantUMLError: If the underlying PlantUML backend fails to
+                render or write the diagram.
+        """
+        if not self._plantuml_backend:
+            raise PlantUMLBackendConfigurationError()
+
+        diagram_source = self.render(diagram)
+
+        return self._plantuml_backend.to_file(
+            diagram=diagram_source,
+            output_path=output_path,
+            format=format,
+            overwrite=overwrite,
+        )
+
 
 _DiagramType: TypeAlias = type[Diagram]
 _Renderer: TypeAlias = type[BasePlantUMLRenderer[Any]]
@@ -531,6 +620,21 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
         if layout_options:
             self._layout_config = layout_options.build()
 
+    def get_renderer(self, diagram: Diagram) -> BasePlantUMLRenderer[Diagram]:
+        diagram_type = type(diagram)
+
+        renderer_class = DIAGRAM_TYPE_TO_RENDERER_MAP.get(diagram_type)
+        if not renderer_class:
+            raise NotImplementedError(
+                f"Unsupported PlantUML diagram type: {diagram_type}"
+            )
+
+        return renderer_class(
+            includes=self._includes,
+            layout_config=self._layout_config,
+            backend=self._plantuml_backend,
+        )
+
     @override
     def render(self, diagram: Diagram) -> str:
         """
@@ -542,18 +646,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
         Returns:
             A PlantUML-formatted string representing the diagram.
         """
-        diagram_type = type(diagram)
-
-        renderer_class = DIAGRAM_TYPE_TO_RENDERER_MAP.get(diagram_type)
-        if not renderer_class:
-            raise NotImplementedError(
-                f"Unsupported PlantUML diagram type: {diagram_type}"
-            )
-
-        renderer = renderer_class(
-            includes=self._includes,
-            layout_config=self._layout_config,
-        )
+        renderer = self.get_renderer(diagram)
         return renderer.render(diagram)
 
     def render_bytes(
@@ -582,13 +675,9 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
             PlantUMLError: If the underlying PlantUML backend fails to
                 render the diagram.
         """
-        if not self._plantuml_backend:
-            raise PlantUMLBackendConfigurationError()
-
-        diagram_source = self.render(diagram)
-
-        return self._plantuml_backend.to_bytes(
-            diagram=diagram_source,
+        renderer = self.get_renderer(diagram)
+        return renderer.render_bytes(
+            diagram,
             format=format,
         )
 
@@ -625,13 +714,9 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
             PlantUMLError: If the underlying PlantUML backend fails to
                 render or write the diagram.
         """
-        if not self._plantuml_backend:
-            raise PlantUMLBackendConfigurationError()
-
-        diagram_source = self.render(diagram)
-
-        return self._plantuml_backend.to_file(
-            diagram=diagram_source,
+        renderer = self.get_renderer(diagram)
+        return renderer.render_file(
+            diagram,
             output_path=output_path,
             format=format,
             overwrite=overwrite,
