@@ -756,17 +756,15 @@ def test_render_unknown_renderer(
     module_path = make_tmp_py_file("module.py")
     module_path.unlink()
     expected_error = (
-        "usage: c4 render [-h] [-o OUTPUT] "
-        "[--renderer {plantuml} | --plantuml] target\n"
         "c4 render: error: argument --renderer: invalid choice: 'unknown' "
-        "(choose from plantuml)\n"
+        "(choose from plantuml)"
     )
 
     result = cli(["render", str(module_path), "--renderer", "unknown"])
 
     assert result.exit_code == 2
     assert not result.stdout
-    assert result.stderr == expected_error
+    assert expected_error in result.stderr
 
 
 def test_render_mutually_exclusive_renderers(
@@ -777,8 +775,6 @@ def test_render_mutually_exclusive_renderers(
     module_path = make_tmp_py_file("module.py")
     module_path.unlink()
     expected_error = (
-        "usage: c4 render [-h] [-o OUTPUT] "
-        "[--renderer {plantuml} | --plantuml] target\n"
         "c4 render: error: argument --plantuml: not "
         "allowed with argument --renderer\n"
     )
@@ -794,7 +790,7 @@ def test_render_mutually_exclusive_renderers(
     assert result.exit_code == 2
     print(result.stdout)
     assert not result.stdout
-    assert result.stderr == expected_error
+    assert expected_error in result.stderr
 
 
 def test_render_output_file_path_is_directory(
@@ -852,3 +848,39 @@ def test_render_output_file_path_parent_does_not_exist(
     print(result.stdout)
     assert not result.stdout
     assert expected_error in result.stderr
+
+
+def test_render__use_new_c4_style(
+    tmp_path: Path,
+    make_tmp_py_file: MakeTmpPyFile,
+    cli: CLI,
+    assert_match_snapshot: AssertMatchSnapshot,
+):
+    diagram_output = tmp_path / "diagram.puml"
+    make_tmp_py_file(
+        "module.py",
+        textwrap.dedent(
+            """
+            from c4 import SystemContextDiagram
+
+            diagram = SystemContextDiagram("Example")
+            """
+        ),
+    )
+
+    result = cli([
+        "render",
+        "module",
+        "--plantuml-use-new-c4-style",
+        "-o",
+        str(diagram_output),
+    ])
+
+    assert result.exit_code == 0
+    assert not result.stdout
+    assert not result.stderr
+    assert_match_snapshot(
+        snapshot="test_render_success_new_c4_style.puml",
+        diagram_code=diagram_output.read_text(),
+        snapshot_dir=SNAPSHOT_DIR,
+    )

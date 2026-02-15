@@ -15,10 +15,13 @@ from c4.cli.options import (
     DiagramFormat,
     ExportCLIOptions,
     PlantUMLExportCLIOptions,
+    PlantUMLRenderCLIOptions,
     RenderCLIOptions,
     RendererEnum,
     _build_plantuml_export_cli_options,
     _build_plantuml_exporter,
+    _build_plantuml_render_cli_options,
+    _build_plantuml_renderer,
     _get_renderer_name,
     _validate_output_format,
     build_export_cli_options,
@@ -46,6 +49,7 @@ def test_render_cli_options_open_output(
         renderer=RendererEnum.PLANTUML,
         target="diagram",
         output=output,
+        renderer_options=PlantUMLRenderCLIOptions(),
     )
 
     with cli_options.open_output() as out:
@@ -63,6 +67,7 @@ def test_render_cli_options_open_output__output_is_none(
         renderer=RendererEnum.PLANTUML,
         target="diagram",
         output=None,
+        renderer_options=PlantUMLRenderCLIOptions(),
     )
 
     with cli_options.open_output() as out:
@@ -302,17 +307,80 @@ def test_build_render_cli_options(mocker: MockerFixture, output: Path | None):
         "c4.cli.options._get_renderer_name",
         return_value=RendererEnum.PLANTUML,
     )
-    args = argparse.Namespace(target="module:diagram", output=output)
+    renderer_options = PlantUMLRenderCLIOptions()
+    args = argparse.Namespace(
+        target="module:diagram",
+        output=output,
+    )
 
     result = build_render_cli_options(args)
 
     assert result.renderer == RendererEnum.PLANTUML
     assert result.target == "module:diagram"
     assert result.output is output
+    assert result.renderer_options == renderer_options
+
+
+@pytest.mark.parametrize("use_new_c4_style", [True, False])
+def test_build_render_cli_options_c4_style(
+    mocker: MockerFixture,
+    use_new_c4_style: bool,
+):
+    mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=RendererEnum.PLANTUML,
+    )
+    args = argparse.Namespace(
+        target="module:diagram",
+        output=mocker.ANY,
+        plantuml_use_new_c4_style=use_new_c4_style,
+    )
+
+    result = build_render_cli_options(args)
+
+    assert result.renderer == RendererEnum.PLANTUML
+    assert result.renderer_options.use_new_c4_style is use_new_c4_style
+
+
+@pytest.mark.parametrize(
+    "renderer", [renderer for renderer in RendererEnum if renderer != PLANTUML]
+)
+def test_build_render_cli_options_unsupported_renderer(
+    mocker: MockerFixture,
+    renderer: RendererEnum,
+):
+    mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=renderer,
+    )
+    args = argparse.Namespace(target="x")
+    expected_error = (
+        f"Renderer {renderer.value!r} is not supported by the 'render' command."
+    )
+
+    with pytest.raises(CLIError, match=expected_error):
+        build_render_cli_options(args)
+
+
+@pytest.mark.parametrize("use_new_c4_style", [True, False])
+def test_build_plantuml_render_cli_options_c4_style(
+    use_new_c4_style: bool,
+):
+    args = argparse.Namespace(
+        plantuml_use_new_c4_style=use_new_c4_style,
+    )
+
+    result = _build_plantuml_render_cli_options(args)
+
+    assert result.use_new_c4_style == use_new_c4_style
 
 
 def test_build_renderer_plantuml():
-    cli_options = RenderCLIOptions(renderer=RendererEnum.PLANTUML, target="x")
+    cli_options = RenderCLIOptions(
+        renderer=RendererEnum.PLANTUML,
+        target="x",
+        renderer_options=PlantUMLRenderCLIOptions(),
+    )
 
     result = build_renderer(cli_options)
 
@@ -323,13 +391,30 @@ def test_build_renderer_plantuml():
     "renderer", [renderer for renderer in RendererEnum if renderer != PLANTUML]
 )
 def test_build_renderer_unsupported_renderer(renderer: RendererEnum):
-    cli_options = RenderCLIOptions(renderer=renderer, target="x")
-    expected_error = (
-        f"Renderer {str(renderer)!r} is not supported by the 'render' command."
+    cli_options = RenderCLIOptions(
+        renderer=renderer,
+        target="x",
+        renderer_options=PlantUMLRenderCLIOptions(),
     )
+    expected_error = f"Unsupported renderer: {renderer.value!r}"
 
     with pytest.raises(CLIError, match=expected_error):
         build_renderer(cli_options)
+
+
+def test_build_plantuml_renderer_new_c4_style():
+    cli_options = RenderCLIOptions(
+        renderer=RendererEnum.PLANTUML,
+        target="x",
+        renderer_options=PlantUMLRenderCLIOptions(
+            use_new_c4_style=True,
+        ),
+    )
+
+    result = _build_plantuml_renderer(cli_options)
+
+    assert isinstance(result, PlantUMLRenderer)
+    assert result._use_new_c4_style is True
 
 
 @pytest.mark.parametrize(
@@ -362,6 +447,27 @@ def test_build_plantuml_export_cli_options_local_backend(
     assert result.plantuml_backend == "local"
     assert result.java_bin == "java"
     assert result.plantuml_skinparam_dpi == 300
+    assert result.use_new_c4_style is False
+
+
+@pytest.mark.parametrize("use_new_c4_style", [True, False])
+def test_build_plantuml_export_cli_options_c4_style(
+    use_new_c4_style: bool,
+    mocker: MockerFixture,
+):
+    args = argparse.Namespace(
+        plantuml_backend=mocker.ANY,
+        plantuml_server_url=mocker.ANY,
+        plantuml_bin=mocker.ANY,
+        plantuml_jar=mocker.ANY,
+        java_bin=mocker.ANY,
+        plantuml_skinparam_dpi=mocker.ANY,
+        plantuml_use_new_c4_style=use_new_c4_style,
+    )
+
+    result = _build_plantuml_export_cli_options(args)
+
+    assert result.use_new_c4_style == use_new_c4_style
 
 
 def test_build_plantuml_export_cli_options_remote_backend():
@@ -465,6 +571,30 @@ def test_build_plantuml_exporter_injects_dpi_include(mocker: MockerFixture):
     assert isinstance(result, PlantUMLRenderer)
     assert result._plantuml_backend == backend
     assert result._includes == [expected_dpi_include]
+
+
+def test_build_plantuml_exporter_new_c4_style(mocker: MockerFixture):
+    backend = mocker.create_autospec(spec=LocalPlantUMLBackend)
+    mocker.patch("c4.cli.options.LocalPlantUMLBackend", return_value=backend)
+    renderer_options = PlantUMLExportCLIOptions(
+        plantuml_backend=LOCAL_BACKEND,
+        plantuml_bin="plantuml",
+        plantuml_skinparam_dpi=200,
+        use_new_c4_style=True,
+    )
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.PLANTUML,
+        target="x",
+        renderer_options=renderer_options,
+        format=DiagramFormat.PNG,
+        timeout=DEFAULT_RENDERING_TIMEOUT_SECONDS,
+    )
+
+    result = _build_plantuml_exporter(cli_options)
+
+    assert isinstance(result, PlantUMLRenderer)
+    assert result._plantuml_backend == backend
+    assert result._use_new_c4_style is True
 
 
 @pytest.mark.parametrize(

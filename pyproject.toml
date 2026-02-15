@@ -146,7 +146,7 @@ preview = true
 
 [tool.coverage.report]
 skip_empty = true
-fail_under = 91
+fail_under = 93
 exclude_also = [
     "pragma: no cover",
     "raise NotImplementedError",

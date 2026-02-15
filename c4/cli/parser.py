@@ -194,6 +194,17 @@ def _add_renderer_flags(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _add_plantuml_render_flags(parser: argparse.ArgumentParser) -> None:
+    """Add PlantUML-specific flags."""
+    group = parser.add_argument_group("PlantUML options")
+
+    group.add_argument(
+        "--plantuml-use-new-c4-style",
+        action="store_true",
+        help="Activates the new C4-PlantUML style.",
+    )
+
+
 def _build_render_parser(
     subparser: _SubParsersAction,
 ) -> None:
@@ -221,6 +232,7 @@ def _build_render_parser(
     )
 
     _add_renderer_flags(render_parser)
+    _add_plantuml_render_flags(render_parser)
 
     render_parser.set_defaults(func=handle_render)
 
@@ -297,6 +309,11 @@ def _add_plantuml_export_flags(parser: argparse.ArgumentParser) -> None:
             f"Can also be set via the {PLANTUML_SKINPARAM_DPI_ENV_VAR} "
             f"environment variable."
         ),
+    )
+    group.add_argument(
+        "--plantuml-use-new-c4-style",
+        action="store_true",
+        help="Activates the new C4-PlantUML style.",
     )
 
 

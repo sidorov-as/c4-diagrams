@@ -216,6 +216,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         includes: list[str] | None = None,
         layout_config: LayoutConfig | None = None,
         backend: BasePlantUMLBackend | None = None,
+        use_new_c4_style: bool = False,
     ) -> None:
         """
         Initialize the renderer.
@@ -226,6 +227,14 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
             layout_config: Layout configuration that controls
                 diagram rendering behavior, such as direction,
                 spacing, and group alignment.
+            backend:
+                Optional PlantUML backend responsible for converting
+                generated PlantUML source into image bytes (e.g. PNG, SVG).
+                If not provided, image rendering is not available.
+            use_new_c4_style:
+                If ``True``, activates the new C4-PlantUML style by injecting
+                the following directive into the generated source:
+                    !NEW_C4_STYLE=1
         """
         self._config = layout_config or LayoutConfig()
 
@@ -243,6 +252,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         self._includes = includes or []
         self._layout_config = None
         self._plantuml_backend = backend
+        self._use_new_c4_style = use_new_c4_style
 
     def render_base_element(self, element: BaseDiagramElement) -> list[str]:
         raise NotImplementedError
@@ -319,6 +329,10 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
     def _render_header(self, diagram: _TDiagram) -> None:
         self._builder.add("@startuml")
+
+        if self._use_new_c4_style:
+            self._builder.add_blank_line()
+            self._builder.add("!NEW_C4_STYLE=1", blank_line_after=True)
 
         layout_header = self._layout_options_renderer.render_header(diagram)
         self._builder.add(layout_header, blank_line_after=True)
@@ -432,7 +446,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
     def render_file(
         self,
         diagram: _TDiagram,
-        output_path: Path,
+        output_path: str | Path,
         *,
         format: DiagramFormat,
         overwrite: bool = True,
@@ -597,6 +611,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
         includes: list[str] | None = None,
         layout_options: LayoutOptions | None = None,
         backend: BasePlantUMLBackend | None = None,
+        use_new_c4_style: bool = False,
         *args: Any,
         **kwargs: Any,
     ):
@@ -609,6 +624,16 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
             layout_options: Layout configuration that controls
                 diagram rendering behavior, such as direction,
                 spacing, and group alignment.
+            backend:
+                Optional PlantUML backend responsible for converting
+                generated PlantUML source into image bytes (e.g. PNG, SVG).
+                If not provided, image rendering is not available.
+
+            use_new_c4_style:
+                If ``True``, activates the new C4-PlantUML style by injecting
+                the following directive into the generated source:
+                    `!NEW_C4_STYLE=1`
+
             *args: Additional positional arguments passed to the base renderer.
             **kwargs: Additional keyword arguments passed to the base renderer.
         """
@@ -616,6 +641,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
         self._includes = includes or []
         self._layout_config = None
         self._plantuml_backend = backend
+        self._use_new_c4_style = use_new_c4_style
 
         if layout_options:
             self._layout_config = layout_options.build()
@@ -633,6 +659,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
             includes=self._includes,
             layout_config=self._layout_config,
             backend=self._plantuml_backend,
+            use_new_c4_style=self._use_new_c4_style,
         )
 
     @override
@@ -684,7 +711,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
     def render_file(
         self,
         diagram: Diagram,
-        output_path: Path,
+        output_path: str | Path,
         *,
         format: DiagramFormat,
         overwrite: bool = True,

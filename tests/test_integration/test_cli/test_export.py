@@ -1122,3 +1122,40 @@ def test_export_output_file_path_parent_does_not_exist(
     print(result.stdout)
     assert not result.stdout
     assert expected_error in result.stderr
+
+
+def test_export__use_new_c4_style(
+    make_tmp_py_file: MakeTmpPyFile,
+    cli: CLI,
+    assert_match_snapshot: AssertMatchSnapshot,
+):
+    module_path = make_tmp_py_file(
+        "module.py",
+        textwrap.dedent(
+            """
+            from c4 import Person, Rel, System, SystemContextDiagram
+
+            with SystemContextDiagram("Example system context") as diagram:
+                user = Person(label="User", description="System user")
+                backend = System(label="Backend API", description="Main application backend")
+
+                user >> Rel("Uses HTTP API") >> backend
+            """
+        ),
+    )
+
+    result = cli([
+        "export",
+        str(module_path),
+        "--plantuml-use-new-c4-style",
+        "-f",
+        "txt",
+    ])
+
+    assert result.exit_code == 0
+    assert not result.stderr
+    assert_match_snapshot(
+        snapshot="test_export_success.txt",
+        diagram_code=result.stdout,
+        snapshot_dir=SNAPSHOT_DIR,
+    )

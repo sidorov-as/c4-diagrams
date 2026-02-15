@@ -55,14 +55,28 @@ class CLIOptions:
 
 
 @dataclass
+class PlantUMLRenderCLIOptions:
+    """
+    PlantUML-specific render options.
+
+    Attributes:
+        use_new_c4_style: Activates the new C4-PlantUML style.
+    """
+
+    use_new_c4_style: bool = False
+
+
+@dataclass
 class RenderCLIOptions(CLIOptions):
     """
     CLI options for the `render` command.
 
     Attributes:
+        renderer_options: Renderer-specific render options (e.g. PlantUML).
         output: Optional output path. If omitted, writes to stdout.
     """
 
+    renderer_options: PlantUMLRenderCLIOptions
     output: Path | None = None
 
     @contextmanager
@@ -96,6 +110,7 @@ class PlantUMLExportCLIOptions:
         plantuml_jar: Local PlantUML JAR path. If provided, it takes precedence
             over plantuml_bin.
         java_bin: Java executable to run the PlantUML JAR.
+        use_new_c4_style: Activates the new C4-PlantUML style.
     """
 
     plantuml_backend: Literal["local", "remote"] = "local"
@@ -104,6 +119,7 @@ class PlantUMLExportCLIOptions:
     plantuml_jar: str | None = None
     java_bin: str | None = DEFAULT_JAVA_BIN
     plantuml_skinparam_dpi: int | None = None
+    use_new_c4_style: bool = False
 
     @property
     def local_backend_kwargs(self) -> dict[str, Any]:
@@ -232,6 +248,19 @@ def _validate_output_format(
     return DiagramFormat(fmt)
 
 
+def _build_plantuml_render_cli_options(
+    args: argparse.Namespace,
+) -> PlantUMLRenderCLIOptions:
+    """
+    Build PlantUML render options from parsed CLI args.
+    """
+    use_new_c4_style = getattr(args, "plantuml_use_new_c4_style", False)
+
+    return PlantUMLRenderCLIOptions(
+        use_new_c4_style=use_new_c4_style,
+    )
+
+
 def build_render_cli_options(
     args: argparse.Namespace,
 ) -> RenderCLIOptions:
@@ -242,11 +271,41 @@ def build_render_cli_options(
         renderer=_get_renderer_name(args),
         target=args.target,
     )
+    renderer = cli_options.renderer
+
+    if renderer == RendererEnum.PLANTUML:
+        renderer_options = _build_plantuml_render_cli_options(args)
+    else:
+        raise CLIError(
+            f"Renderer {renderer.value!r} is not supported by "
+            f"the 'render' command."
+        )
 
     return RenderCLIOptions(
         renderer=cli_options.renderer,
         target=cli_options.target,
         output=args.output,
+        renderer_options=renderer_options,
+    )
+
+
+def _build_plantuml_renderer(
+    cli_options: RenderCLIOptions,
+) -> PlantUMLRenderer:
+    """
+    Build a PlantUML renderer.
+
+    Args:
+        cli_options: Parsed render CLI options containing
+            renderer-specific settings.
+
+    Returns:
+        A PlantUMLRenderer instance.
+    """
+    renderer_options = cli_options.renderer_options
+
+    return PlantUMLRenderer(
+        use_new_c4_style=renderer_options.use_new_c4_style,
     )
 
 
@@ -260,11 +319,9 @@ def build_renderer(cli_options: RenderCLIOptions) -> BaseRenderer:
     renderer = cli_options.renderer
 
     if renderer == PLANTUML:
-        return PlantUMLRenderer()
+        return _build_plantuml_renderer(cli_options)
 
-    raise CLIError(
-        f"Renderer {str(renderer)!r} is not supported by the 'render' command."
-    )
+    raise CLIError(f"Unsupported renderer: {renderer.value!r}")
 
 
 def _build_plantuml_export_cli_options(
@@ -280,6 +337,8 @@ def _build_plantuml_export_cli_options(
     plantuml_bin: str | None = args.plantuml_bin
     plantuml_jar: str | None = args.plantuml_jar
 
+    use_new_c4_style = getattr(args, "plantuml_use_new_c4_style", False)
+
     if plantuml_jar:
         # If plantuml_jar is provided, ignore plantuml_bin
         # to ensure JAR priority
@@ -292,6 +351,7 @@ def _build_plantuml_export_cli_options(
         plantuml_jar=plantuml_jar,
         java_bin=args.java_bin,
         plantuml_skinparam_dpi=args.plantuml_skinparam_dpi,
+        use_new_c4_style=use_new_c4_style,
     )
 
 
@@ -345,6 +405,7 @@ def _build_plantuml_exporter(
     return PlantUMLRenderer(
         includes=includes,
         backend=backend,
+        use_new_c4_style=renderer_options.use_new_c4_style,
     )
 
 
