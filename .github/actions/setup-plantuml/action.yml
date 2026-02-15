@@ -10,6 +10,13 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Install Graphviz (dot)
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y graphviz
+        echo "GRAPHVIZ_DOT=$(command -v dot)" >> "$GITHUB_ENV"
+
     - name: Install PlantUML jar
       shell: bash
       run: |
