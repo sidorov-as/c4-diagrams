@@ -1,4 +1,4 @@
-# Introduction
+# What is C4?
 
 The C4 model is named after the core set of static structure diagrams:
 

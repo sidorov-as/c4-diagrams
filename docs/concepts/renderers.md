@@ -91,7 +91,7 @@ print(diagram.as_plantuml())
 
 <br/>
 
-## Saving rendered diagrams to a File
+## Saving rendered diagrams to a file
 
 Rendered output can be written directly to a file using `Diagram.save()`.
 

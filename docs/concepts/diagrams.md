@@ -8,7 +8,7 @@
 ## Diagrams
 
 
-`Diagram` is a primary object representing a diagram.
+[`Diagram`][c4.diagrams.core.Diagram] is a primary object representing a diagram.
 
 ```python
 from c4.diagrams.core import Diagram
@@ -17,7 +17,7 @@ with Diagram("Simple Diagram") as diagram:
     # Declare diagram components here
 ```
 
-Each C4 diagram type is implemented as a subclass of `Diagram`:
+Each C4 diagram type is implemented as a subclass of [`Diagram`][c4.diagrams.core.Diagram]:
 
 ```python
 from c4 import (
@@ -32,17 +32,17 @@ from c4 import (
 
 !!! note "Note"
 
-    `Diagram` is a low-level abstraction and is not intended to be instantiated directly.
+    [`Diagram`][c4.diagrams.core.Diagram] is a low-level abstraction and is not intended to be instantiated directly.
 
-    Always use one of the concrete diagram classes (`SystemContextDiagram`,
-    `ContainerDiagram`, `ComponentDiagram`, etc.), as they define the semantics,
+    Always use one of the concrete diagram classes ([`SystemContextDiagram`][c4.diagrams.system_context.SystemContextDiagram],
+    [`ContainerDiagram`][c4.diagrams.container.ContainerDiagram], [`ComponentDiagram`][c4.diagrams.component.ComponentDiagram], etc.), as they define the semantics,
     constraints, and rendering rules specific to each C4 diagram type.
 
 <br/>
 
 ## Elements
 
-`Element` represents a C4 abstraction such as a **System**, **Container**, or **Component**.
+[`Element`][c4.diagrams.core.Element] represents a C4 abstraction such as a **System**, **Container**, or **Component**.
 
 Elements must be declared within a diagram context:
 
@@ -57,7 +57,7 @@ with Diagram("Simple Diagram") as diagram:
 assert diagram.elements == [element1, element2]
 ```
 
-Each C4 component type is implemented as a subclass of  `Element`:
+Each C4 component type is implemented as a subclass of  [`Element`][c4.diagrams.core.Element]:
 
 ```python
 from c4 import (
@@ -94,7 +94,7 @@ from c4 import (
 
 ## Relationships
 
-`Relationship` represents a connection between elements and may include additional
+[`Relationship`][c4.diagrams.core.Relationship] represents a connection between elements and may include additional
 properties such as direction and label.
 
 A relationship object contains four primary attributes: **label**, **relationship_type**,
@@ -178,7 +178,7 @@ with Diagram("Simple Diagram") as diagram:
 
 ??? note "Rel attributes"
 
-    `Rel` (and other `Relationship` subclasses like `RelUp`, `RelLeft`, etc.)
+    [`Rel`][c4.diagrams.core.Rel] (and other `Relationship` subclasses like `RelUp`, `RelLeft`, etc.)
     lets you specify additional relationship attributes such as `technology`,
     `description`, `link`, and `tags`.
 
@@ -208,7 +208,7 @@ with Diagram("Simple Diagram") as diagram:
     element1.uses(element2, label="Uses")
 ```
 
-All syntaxes above produce the same `Relationship` in the diagram.
+All syntaxes above produce the same [`Relationship`][c4.diagrams.core.Relationship] in the diagram.
 
 <br/>
 
@@ -303,7 +303,7 @@ with Diagram("Simple Diagram") as diagram:
 
 ## Boundaries
 
-`Boundary` allows grouping (or clustering) elements into an isolated logical container.
+[`Boundary`][c4.diagrams.core.Boundary] allows grouping (or clustering) elements into an isolated logical container.
 
 Elements that belong to a boundary must be created within a boundary context:
 

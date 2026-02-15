@@ -42,71 +42,69 @@ Currently supported and planned backends:
   - remote rendering via PlantUML server
 - [**Mermaid**](https://mermaid.js.org/syntax/c4.html) — WIP
 - [**Structurizr**](https://structurizr.com/) — WIP
+- [**D2**](https://d2lang.com/) — WIP
 
 ## Getting started
 
 **c4-diagrams** requires **Python 3.10** or higher.
 
 ```shell
-# using pip (pip3)
-$ pip install c4-diagrams
-
-# using pipenv
-$ pipenv install c4-diagrams
-
-# using poetry
-$ poetry add c4-diagrams
-
-# using uv
-$ uv add c4-diagrams
+pip install c4-diagrams
 ```
 
-## Minimal example
+## Example
 
-A minimal system context diagram defined in Python:
+Here’s an example of **System Context** diagram defined in Python:
 
 ```python
-from c4 import Person, Rel, System, SystemContextDiagram
+# diagram.py
+from c4 import *
 
-with SystemContextDiagram("Example system context") as diagram:
-    user = Person(label="User", description="System user")
-    backend = System(label="Backend API", description="Main application backend")
 
-    user >> Rel("Uses HTTP API") >> backend
+with SystemContextDiagram("Acme Shop Platform") as diagram:
+    user = Person(
+        "Customer",
+        "A registered customer who browses products and places orders.",
+    )
 
-print(diagram.as_plantuml())
+    with EnterpriseBoundary("Acme Corp"):
+        web_app = System(
+            "Web Application",
+            "Customer-facing website for browsing products and placing orders.",
+        )
+
+        api_backend = System(
+            "Backend API",
+            "Handles authentication, order processing, and business logic.",
+        )
+
+    email_provider = SystemExt(
+        "Email Provider",
+        "Delivers transactional emails.",
+    )
+
+    user >> RelRight("Uses") >> web_app
+    web_app >> RelRight("Calls API") >> api_backend
+    api_backend >> RelDown("Sends emails via") >> email_provider
 ```
 
-<details>
-<summary>Generated PlantUML source</summary>
+To export the diagram to a rendered artifact, run:
 
-```puml
-@startuml
-' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
-!if %variable_exists("RELATIVE_INCLUDE")
-    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Context.puml
-!else
-    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
-!endif
-
-title Example system context
-
-Person(user_91e7, "User", "System user")
-
-System(backend_api_610a, "Backend API", "Main application backend")
-
-Rel(user_91e7, backend_api_610a, "Uses HTTP API")
-
-@enduml
+```shell
+c4 export diagram.py > diagram.png
 ```
 
-</details>
+This generates the diagram below:
 
-## Examples
+<p align="center">
+  <img src="https://sidorov-as.github.io/c4-diagrams/assets/readme-diagram.png" alt="readme-diagram" />
+</p>
 
-| System context diagram                                    | Container Diagram                                       | Component Diagram                                       |
-|-----------------------------------------------------------|---------------------------------------------------------|---------------------------------------------------------|
-| ![system context](https://sidorov-as.github.io/c4-diagrams/assets/system-context-diagram.png) | ![container diagram](https://sidorov-as.github.io/c4-diagrams/assets/container-diagram.png) | ![component diagram](https://sidorov-as.github.io/c4-diagrams/assets/component-diagram.png) |
+<p align="center">
+  <em>diagram.png</em>
+</p>
+
+For details (renderers, diagram types, API), see the [documentation](https://sidorov-as.github.io/c4-diagrams/).
 
 ## Project Links
 

@@ -8,12 +8,14 @@ repo_name: sidorov-as/c4-diagrams
 copyright: Maintained by <a href="https://github.com/sidorov-as">sidorov-as</a>.
 
 nav:
-  - Get Started:
-    - Get Started: index.md
+  - Getting started:
+    - Overview: index.md
+    - Installation: installation.md
+    - CLI: cli.md  # TODO: может заменить на Usage -> CLI, Usage -> DSL/API? Подумать
     - Contributing: contributing.md
     - Changelog: changelog.md
   - Concepts:
-      - Introduction: concepts/introduction.md
+      - What is C4?: concepts/introduction.md
       - Diagrams and components: concepts/diagrams.md
       - Renderers: concepts/renderers.md
   - Diagrams:
@@ -110,7 +112,10 @@ extra:
 markdown_extensions:
   - admonition
   - codehilite
+  - tables
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.details
   - pymdownx.highlight:
       pygments_lang_class: true
@@ -120,3 +125,6 @@ markdown_extensions:
       permalink: true
   - pymdownx.arithmatex:
       generic: true
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
