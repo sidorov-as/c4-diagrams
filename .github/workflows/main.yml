@@ -13,11 +13,6 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Install PlantUML (binary) + Graphviz
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y plantuml graphviz
-
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pre-commit
@@ -46,6 +41,11 @@ jobs:
         uses: ./.github/actions/setup-python-env
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Install PlantUML (binary) + Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y plantuml graphviz
 
       - name: Run tests
         run: uv run python -m pytest tests --cov --cov-config=pyproject.toml --cov-report=lcov
