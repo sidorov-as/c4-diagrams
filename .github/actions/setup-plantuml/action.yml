@@ -1,0 +1,64 @@
+name: "Setup PlantUML"
+description: "Install a pinned PlantUML jar and expose PLANTUML_JAR + plantuml wrapper"
+
+inputs:
+  plantuml-version:
+    description: "PlantUML version to install (e.g. 1.2025.10)"
+    required: true
+    default: "1.2025.10"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install PlantUML jar
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        VERSION="${{ inputs.plantuml-version }}"
+        JAR_PATH="$RUNNER_TEMP/plantuml-${VERSION}.jar"
+
+        echo "Downloading PlantUML ${VERSION}..."
+        curl -fsSL -o "$JAR_PATH" \
+          "https://github.com/plantuml/plantuml/releases/download/v${VERSION}/plantuml-${VERSION}.jar"
+
+        # Export for your app/tests
+        echo "PLANTUML_JAR=$JAR_PATH" >> "$GITHUB_ENV"
+
+        # Provide `plantuml` command (wrapper) for convenience/tests
+        BIN_DIR="$HOME/.local/bin"
+        mkdir -p "$BIN_DIR"
+
+        cat > "$BIN_DIR/plantuml" <<'EOF'
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        : "${PLANTUML_JAR:?PLANTUML_JAR is not set}"
+
+        # Default to headless unless -gui is explicitly used (matches Homebrew wrapper behavior)
+        VMARGS=""
+        case " $* " in
+          *" -gui "*) VMARGS="";;
+          *) VMARGS="-Djava.awt.headless=true";;
+        esac
+
+        # Optional: if GRAPHVIZ_DOT is set, pass it through for deterministic dot resolution.
+        # (PlantUML supports -graphvizdot <path>)
+        EXTRA_ARGS=()
+        if [[ -n "${GRAPHVIZ_DOT:-}" ]]; then
+          EXTRA_ARGS+=("-graphvizdot" "$GRAPHVIZ_DOT")
+        fi
+
+        exec java ${VMARGS} -jar "$PLANTUML_JAR" "${EXTRA_ARGS[@]}" "$@"
+        EOF
+
+        chmod +x "$BIN_DIR/plantuml"
+        echo "$BIN_DIR" >> "$GITHUB_PATH"
+
+    - name: Show Java version
+      shell: bash
+      run: java -version
+
+    - name: Show PlantUML version
+      shell: bash
+      run: plantuml -version
