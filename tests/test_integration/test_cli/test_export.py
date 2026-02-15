@@ -976,35 +976,6 @@ def test_export_shortcut_renderer_plantuml(
 
 
 @pytest.mark.skipif(
-    sys.version_info >= (3, 13),
-    reason="Different traceback in Python 3.13+",
-)
-def test_export_unknown_renderer_lt_313(
-    make_tmp_py_file: MakeTmpPyFile,
-    cli: CLI,
-    assert_match_snapshot: AssertMatchSnapshot,
-):
-    module_path = make_tmp_py_file("module.py")
-    expected_error = (
-        "c4 export: error: argument --renderer: invalid choice: 'unknown' "
-        "(choose from 'plantuml')\n"
-    )
-
-    result = cli([
-        "export",
-        str(module_path),
-        "--renderer",
-        "unknown",
-        "-f",
-        "txt",
-    ])
-
-    assert result.exit_code == 2
-    assert not result.stdout
-    assert expected_error in result.stderr
-
-
-@pytest.mark.skipif(
     sys.version_info < (3, 13),
     reason="Different traceback in Python 3.13+",
 )

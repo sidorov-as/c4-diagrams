@@ -745,31 +745,6 @@ def test_render_shortcut_renderer_plantuml(
 
 
 @pytest.mark.skipif(
-    sys.version_info >= (3, 13),
-    reason="Different traceback in Python 3.13+",
-)
-def test_render_unknown_renderer_lt_313(
-    make_tmp_py_file: MakeTmpPyFile,
-    cli: CLI,
-    assert_match_snapshot: AssertMatchSnapshot,
-):
-    module_path = make_tmp_py_file("module.py")
-    module_path.unlink()
-    expected_error = (
-        "usage: c4 render [-h] [-o OUTPUT] "
-        "[--renderer {plantuml} | --plantuml] target\n"
-        "c4 render: error: argument --renderer: invalid choice: 'unknown' "
-        "(choose from 'plantuml')\n"
-    )
-
-    result = cli(["render", str(module_path), "--renderer", "unknown"])
-
-    assert result.exit_code == 2
-    assert not result.stdout
-    assert result.stderr == expected_error
-
-
-@pytest.mark.skipif(
     sys.version_info < (3, 13),
     reason="Different traceback in Python 3.13+",
 )
