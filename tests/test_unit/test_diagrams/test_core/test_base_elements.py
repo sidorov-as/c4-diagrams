@@ -54,28 +54,63 @@ def test_index_str_with_prefix_and_or_suffix(
 
 
 @pytest.mark.parametrize(
+    ("expr", "expected"),
+    [
+        (LastIndex() + 1, "LastIndex()+1"),
+        (Index() + 1, "Index()+1"),
+        (Index(3) + 1, "Index(3)+1"),
+        (SetIndex(7) + 1, "SetIndex(7)+1"),
+        (Index() - 2, "Index()-2"),
+        (Index(3) - 2, "Index(3)-2"),
+        (SetIndex(7) - 2, "SetIndex(7)-2"),
+        (Index() + 1 - 2 + 3, "Index()+1-2+3"),
+        ("2+" + Index(3) + 1 + "-1", "2+Index(3)+1-1"),
+        ("P" + Index() + 0, "PIndex()+0"),
+    ],
+)
+def test_index_str_with_arithmetic_operations(
+    expr: BaseIndex,
+    expected: str,
+) -> None:
+    result = str(expr)
+    assert result == expected
+
+
+@pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex, SetIndex])
+def test_index_add_rejects_empty_string(
+    index_class: type[BaseIndex],
+) -> None:
+    idx = index_class() if index_class is not SetIndex else SetIndex(0)
+    expected_error = re.escape(
+        f"{index_class.__name__}.__add__() requires non-empty string"
+    )
+
+    with pytest.raises(TypeError, match=expected_error):
+        idx + ""  # type: ignore[operator]
+
+
+@pytest.mark.parametrize(
     ("other",),
     [
         (None,),
-        (0,),
         ([],),
         ({},),
         ((),),
-        ("",),
+        (0.5,),
+        (object(),),
     ],
 )
-@pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex])
-def test_index_add_rejects_non_empty_string_requirement(
+@pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex, SetIndex])
+def test_index_add_rejects_invalid_type(
     other: object,
     index_class: type[BaseIndex],
 ) -> None:
-    idx = index_class()
+    idx = index_class() if index_class is not SetIndex else SetIndex(0)
     expected_error = re.escape(
-        f"{index_class.__name__}.__add__() requires a non-empty string as "
-        f"the right-hand operand, but got: {other!r}"
+        f"{index_class.__name__}.__add__() requires str or int, got {other!r}"
     )
 
-    with pytest.raises(ValueError, match=expected_error):
+    with pytest.raises(TypeError, match=expected_error):
         idx + other  # type: ignore[operator]
 
 
@@ -90,39 +125,17 @@ def test_index_add_rejects_non_empty_string_requirement(
         ("",),
     ],
 )
-def test_set_index_add_rejects_non_empty_string_requirement(
-    other: object,
-) -> None:
-    idx = SetIndex(0)
-    expected_error = re.escape(
-        f"{SetIndex.__name__}.__add__() requires a non-empty string as "
-        f"the right-hand operand, but got: {other!r}"
-    )
-
-    with pytest.raises(ValueError, match=expected_error):
-        idx + other  # type: ignore[operator]
-
-
-@pytest.mark.parametrize(
-    ("other",),
-    [
-        (None,),
-        (0,),
-        ([],),
-        ({},),
-        ((),),
-        ("",),
-    ],
-)
-@pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex])
+@pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex, SetIndex])
 def test_index_radd_rejects_non_empty_string_requirement(
     other: object,
     index_class: type[BaseIndex],
 ) -> None:
-    idx = index_class()
-    expected_error = re.escape(f"Expected str, got {other!r}")
+    idx = index_class() if index_class is not SetIndex else SetIndex(0)
+    expected_error = re.escape(
+        f"{index_class.__name__}.__add__() requires non-empty string"
+    )
 
-    with pytest.raises(ValueError, match=expected_error):
+    with pytest.raises(TypeError, match=expected_error):
         other + idx  # type: ignore[operator]
 
 
@@ -130,21 +143,26 @@ def test_index_radd_rejects_non_empty_string_requirement(
     ("other",),
     [
         (None,),
-        (0,),
+        ("1",),
+        (0.5,),
         ([],),
         ({},),
         ((),),
-        ("",),
+        (object(),),
     ],
 )
-def test_set_index_radd_rejects_non_empty_string_requirement(
+@pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex, SetIndex])
+def test_index_sub_rejects_non_int(
     other: object,
+    index_class: type[BaseIndex],
 ) -> None:
-    idx = SetIndex(0)
-    expected_error = re.escape(f"Expected str, got {other!r}")
+    idx = index_class() if index_class is not SetIndex else SetIndex(0)
+    expected_error = re.escape(
+        f"{index_class.__name__}.__sub__() requires int, got {other!r}"
+    )
 
-    with pytest.raises(ValueError, match=expected_error):
-        other + idx  # type: ignore[operator]
+    with pytest.raises(TypeError, match=expected_error):
+        idx - other  # type: ignore[operator]
 
 
 @pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex])
@@ -202,18 +220,9 @@ def test_set_index_radd_rejects_setting_prefix_twice() -> None:
 @pytest.mark.parametrize(
     ("index", "expected_signature"),
     [
-        (
-            BaseIndex(),
-            "",
-        ),
-        (
-            Index(),
-            "",
-        ),
-        (
-            Index(offset=1),
-            "1",
-        ),
+        (BaseIndex(), ""),
+        (Index(), ""),
+        (Index(offset=1), "1"),
         (LastIndex(), ""),
         (SetIndex(5), "5"),
     ],
@@ -221,7 +230,7 @@ def test_set_index_radd_rejects_setting_prefix_twice() -> None:
 def test_index_get_signature(
     index: BaseIndex,
     expected_signature: str,
-):
+) -> None:
     assert index.get_signature() == expected_signature
 
 

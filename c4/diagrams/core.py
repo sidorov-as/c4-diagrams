@@ -294,39 +294,95 @@ class BaseIndex:
         self.suffix: str | None = None
         self._class_name = self.__class__.__name__
 
+        self._operations: list[tuple[str, int]] = []
+
     def __add__(self, other: Any) -> Self:
         """
-        Adds a suffix to the index using right-side string addition.
+        Applies a right-hand operation to the index.
+
+        This method supports two behaviors:
+
+        - If `other` is a non-empty string, it is appended as a suffix.
+          This is allowed only once per instance.
+        - If `other` is an integer, it is recorded as a `+N` arithmetic
+          operation that will be rendered after the base index.
+
+        Examples:
+            str(Index() + "-2") -> "Index()-2"
+            str(Index() + 1) -> "Index()+1"
+            str(Index() - 1) -> "Index()-1"
 
         Args:
-            other: A non-empty string to append.
+            other: A non-empty string suffix or an integer offset.
 
         Returns:
-            Self, with the suffix applied.
+            Self, with the suffix applied or the arithmetic operation recorded.
 
         Raises:
-            ValueError: If `other` is not a string or is empty,
-                        or if a suffix has already been set.
+            ValueError: If `other` is not a non-empty string or an int,
+                or if a suffix has already been set when adding a string.
         """
-        if not isinstance(other, str) or not other:
-            raise ValueError(
-                f"{self._class_name}.__add__() requires a non-empty string as "
-                f"the right-hand operand, but got: {other!r}"
+        if isinstance(other, str):
+            if not other:
+                raise TypeError(
+                    f"{self._class_name}.__add__() requires non-empty string"
+                )
+
+            if self.suffix is not None:
+                raise ValueError(
+                    f"Operation not allowed. "
+                    f"Use a new {self._class_name}() instance instead"
+                )
+
+            self.suffix = other
+            return self
+
+        if isinstance(other, int):
+            self._operations.append(("+", other))
+            return self
+
+        raise TypeError(
+            f"{self._class_name}.__add__() requires str or int, got {other!r}"
+        )
+
+    def __sub__(self, other: Any) -> Self:
+        """
+        Records a subtraction operation on the index.
+
+        The operation is stored and later rendered after the base index.
+
+        Examples:
+            str(Index() - 2) -> "Index()-2"
+            str(SetIndex(10) - 3) -> "SetIndex(10)-3"
+
+        Args:
+            other: An integer value to subtract.
+
+        Returns:
+            Self, with the `-N` arithmetic operation recorded.
+
+        Raises:
+            ValueError: If `other` is not an integer.
+        """
+        if not isinstance(other, int):
+            raise TypeError(
+                f"{self._class_name}.__sub__() requires int, got {other!r}"
             )
 
-        if self.suffix is not None:
-            raise ValueError(
-                f"Operation not allowed. "
-                f"Use a new {self._class_name}() instance instead"
-            )
-
-        self.suffix = other
-
+        self._operations.append(("-", other))
         return self
 
     def __radd__(self, other: Any) -> Self:
         """
-        Adds a prefix to the index using left-side string addition.
+        Applies a left-hand string prefix to the index.
+
+        This enables expressions where a string appears on the left side,
+        such as `"prefix" + Index()`. The prefix is allowed only once per
+        instance.
+
+        Examples:
+            str("1+" + Index()) -> "1+Index()"
+            str("2-" + Index() + 1) -> "2-Index()+1"
 
         Args:
             other: A non-empty string to prepend.
@@ -335,11 +391,13 @@ class BaseIndex:
             Self, with the prefix applied.
 
         Raises:
-            ValueError: If `other` is not a string or is empty,
-                        or if a prefix has already been set.
+            ValueError: If `other` is not a non-empty string,
+                or if a prefix has already been set.
         """
         if not isinstance(other, str) or not other:
-            raise ValueError(f"Expected str, got {other!r}")
+            raise TypeError(
+                f"{self._class_name}.__add__() requires non-empty string"
+            )
 
         if self.prefix is not None:
             raise ValueError(
@@ -376,7 +434,12 @@ class BaseIndex:
 
         signature = self.get_signature()
 
-        return f"{prefix}{self._class_name}({signature}){suffix}"
+        base = f"{self._class_name}({signature})"
+
+        # render arithmetic operations
+        ops = "".join(f"{op}{value}" for op, value in self._operations)
+
+        return f"{prefix}{base}{ops}{suffix}"
 
 
 class Index(BaseIndex):
