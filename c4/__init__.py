@@ -82,10 +82,25 @@ from c4.diagrams.system_context import (
     SystemQueue,
     SystemQueueExt,
 )
+from c4.enums import (
+    EPS,
+    LATEX,
+    PNG,
+    SVG,
+    TXT,
+    UTXT,
+    DiagramFormat,
+)
 
 __version__ = "0.1.2"
 
 __all__ = (
+    "EPS",
+    "LATEX",
+    "PNG",
+    "SVG",
+    "TXT",
+    "UTXT",
     "BiRel",
     "BiRelD",
     "BiRelDown",
@@ -115,6 +130,7 @@ __all__ = (
     "DeploymentNode",
     "DeploymentNodeLeft",
     "DeploymentNodeRight",
+    "DiagramFormat",
     "DynamicDiagram",
     "EnterpriseBoundary",
     "Index",

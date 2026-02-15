@@ -26,6 +26,9 @@ Homepage = "https://sidorov-as.github.io/c4-diagrams/"
 Repository = "https://github.com/sidorov-as/c4-diagrams"
 Documentation = "https://sidorov-as.github.io/c4-diagrams/"
 
+[project.scripts]
+c4 = "c4.__main__:entrypoint"
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
@@ -83,6 +86,10 @@ testpaths = ["tests"]
 target-version = "py39"
 line-length = 80
 fix = true
+exclude = [
+    "tests/snapshots/",
+    "tests/test_integration/test_cli/snapshots",
+]
 
 [tool.ruff.lint]
 select = [
@@ -128,6 +135,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "E501"]
+"c4/cli/parser.py" = ["A001", "A002"]
+"c4/renderers/base.py" = ["A001", "A002"]
 "c4/renderers/plantuml/renderer.py" = ["A001", "A002"]
 "c4/renderers/plantuml/backends.py" = ["A001", "A002"]
 "c4/compat/strenum.py" = ["E501", "UP031", "SIM102",]
