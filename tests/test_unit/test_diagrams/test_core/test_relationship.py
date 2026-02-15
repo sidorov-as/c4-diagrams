@@ -260,7 +260,7 @@ def test_relationship_one_to_one(diagram: Diagram):
     frontend = Element("frontend", "Web app")
     backend = Element("backend", "API")
 
-    result = frontend >> Rel("Uses", "JSON/HTTPS") >> backend
+    result = frontend >> Rel("Uses", technology="JSON/HTTPS") >> backend
 
     assert len(diagram.relationships) == 1
     assert isinstance(result, Relationship)
@@ -285,7 +285,7 @@ def test_relationship_one_to_one_reversed(diagram: Diagram):
     frontend = Element("frontend", "Web app")
     backend = Element("backend", "API")
 
-    result = backend << Rel("Uses", "JSON/HTTPS") << frontend
+    result = backend << Rel("Uses", technology="JSON/HTTPS") << frontend
 
     assert len(diagram.relationships) == 1
     assert isinstance(result, Relationship)
@@ -473,7 +473,9 @@ def test_relationship_one_to_many(diagram: Diagram):
     api_service = Element("api", "Backend API Service")
 
     result = (
-        frontend >> Rel("Uses", "JSON/HTTPS") >> [auth_service, api_service]
+        frontend
+        >> Rel("Uses", technology="JSON/HTTPS")
+        >> [auth_service, api_service]
     )
 
     assert len(diagram.relationships) == 2
@@ -495,7 +497,9 @@ def test_relationship_one_to_many_reversed(diagram: Diagram):
     api_service = Element("api", "Backend API Service")
 
     result = (
-        [auth_service, api_service] << Rel("Uses", "JSON/HTTPS") << frontend
+        [auth_service, api_service]
+        << Rel("Uses", technology="JSON/HTTPS")
+        << frontend
     )
 
     assert len(diagram.relationships) == 2
@@ -516,7 +520,11 @@ def test_relationship_many_to_one(diagram: Diagram):
     mobile_app = Element("mobile", "Mobile app")
     api_service = Element("api", "Backend API Service")
 
-    result = [frontend, mobile_app] >> Rel("Uses", "JSON/HTTPS") >> api_service
+    result = (
+        [frontend, mobile_app]
+        >> Rel("Uses", technology="JSON/HTTPS")
+        >> api_service
+    )
 
     assert len(diagram.relationships) == 2
     assert isinstance(result, list)
@@ -536,7 +544,11 @@ def test_relationship_many_to_one_reversed(diagram: Diagram):
     mobile_app = Element("mobile", "Mobile app")
     api_service = Element("api", "Backend API Service")
 
-    result = api_service << Rel("Uses", "JSON/HTTPS") << [frontend, mobile_app]
+    result = (
+        api_service
+        << Rel("Uses", technology="JSON/HTTPS")
+        << [frontend, mobile_app]
+    )
 
     assert len(diagram.relationships) == 2
     assert isinstance(result, list)
