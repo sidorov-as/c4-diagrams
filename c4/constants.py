@@ -1,5 +1,7 @@
 from c4.enums import (
+    JSON,
     PLANTUML_DIAGRAM_FORMATS,
+    PY,
     DiagramFormat,
     RendererEnum,
 )
@@ -51,3 +53,6 @@ for renderer, formats in sorted(DIAGRAM_FORMATS_BY_RENDERER.items()):
 FORMATS_BY_RENDERER_HELP_TEXT = "\n".join(_formats_by_renderer_parts)
 
 ALL_DIAGRAM_FORMATS = sorted({fmt.value for fmt in DiagramFormat})
+
+CONVERT_FROM_FORMATS = sorted({JSON.value})
+CONVERT_TO_FORMATS = sorted({PY.value})

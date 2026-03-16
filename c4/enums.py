@@ -32,3 +32,16 @@ PLANTUML_DIAGRAM_FORMATS = {
     TXT,
     UTXT,
 }
+
+
+class DiagramConvertionFormat(StrEnum):
+    JSON = "json"
+    PY = "py"
+
+
+JSON = DiagramConvertionFormat.JSON
+PY = DiagramConvertionFormat.PY
+
+
+class ConvertShortcut(StrEnum):
+    JSON_TO_PY = "json_to_py"
