@@ -126,7 +126,7 @@ def test_main_cli_error_returns_two(
         side_effect=CLIError("An error has occurred"),
     )
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         "c4: error: An error has occurred\n"
     )
 

@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import textwrap
 from pathlib import Path
 from types import ModuleType
@@ -13,6 +14,7 @@ from c4.cli.discover import Target
 from c4.cli.exceptions import (
     DiagramNotFoundError,
     ImportFromStringError,
+    MissingConverterDependency,
     MultipleDiagramsFoundError,
     TargetParseError,
 )
@@ -122,7 +124,7 @@ def test__resolve_dotted_attribute_missing_raises():
 def test__resolve_diagram_ref_success():
     module = ModuleType("m")
     module.diagram = Diagram()
-    target = Target(module_or_file="m", object_ref="diagram", is_file=False)
+    target = Target(module_or_file="m", object_ref="diagram", is_py_file=False)
 
     result = discover._resolve_diagram_ref(
         target,
@@ -135,7 +137,7 @@ def test__resolve_diagram_ref_success():
 def test__resolve_diagram_ref_no_object_ref_error():
     module = ModuleType("m")
     module.diagram = Diagram()
-    target = Target(module_or_file="m", object_ref="", is_file=False)
+    target = Target(module_or_file="m", object_ref="", is_py_file=False)
 
     with pytest.raises(ValueError, match="Diagram reference not provided"):
         discover._resolve_diagram_ref(
@@ -154,7 +156,7 @@ def test__resolve_diagram_ref_no_object_ref_error():
 def test__resolve_diagram_ref_missing_raises_module(attr_path: str):
     module = ModuleType("m")
     module.diagram = Diagram()
-    target = Target(module_or_file="m", object_ref=attr_path, is_file=False)
+    target = Target(module_or_file="m", object_ref=attr_path, is_py_file=False)
     expected_error = (
         f"Diagram reference '{attr_path}' was not found in module 'm'."
     )
@@ -175,7 +177,9 @@ def test__resolve_diagram_ref_missing_raises_file(attr_path: str):
     module.__file__ = "/path/to/diagram.py"
     module.diagram = Diagram()
     target = Target(
-        module_or_file="/path/to/diagram.py", object_ref=attr_path, is_file=True
+        module_or_file="/path/to/diagram.py",
+        object_ref=attr_path,
+        is_py_file=True,
     )
     expected_error = (
         f"Diagram reference '{attr_path}' was not found "
@@ -189,7 +193,9 @@ def test__resolve_diagram_ref_missing_raises_file(attr_path: str):
 def test__resolve_diagram_ref_wrong_type_raises_module():
     module = ModuleType("m")
     module.not_diagram = object()
-    target = Target(module_or_file="m", object_ref="not_diagram", is_file=False)
+    target = Target(
+        module_or_file="m", object_ref="not_diagram", is_py_file=False
+    )
     expected_error = (
         "Reference 'not_diagram' in module 'm' must be a "
         "Diagram instance; got object."
@@ -206,7 +212,7 @@ def test__resolve_diagram_ref_wrong_type_raises_file():
     target = Target(
         module_or_file="/path/to/diagram.py",
         object_ref="not_diagram",
-        is_file=True,
+        is_py_file=True,
     )
     expected_error = (
         "Reference 'not_diagram' in '/path/to/diagram.py' must be a "
@@ -361,7 +367,7 @@ def test__get_single_diagram_from_module_single_returns_instance(
         ),
     )
     module = discover._import_module_or_raise("diagram")
-    target = Target(module_or_file="diagram", object_ref=None, is_file=False)
+    target = Target(module_or_file="diagram", object_ref=None, is_py_file=False)
 
     result = discover._get_single_diagram_from_module(target, module)
 
@@ -380,7 +386,7 @@ def test__get_single_diagram_from_module_none_raises_module(
         ),
     )
     module = discover._import_module_or_raise("diagram")
-    target = Target(module_or_file="diagram", object_ref=None, is_file=False)
+    target = Target(module_or_file="diagram", object_ref=None, is_py_file=False)
     expected_error = (
         "No Diagram instances found in module 'diagram'. "
         "Define a Diagram at module level or "
@@ -403,7 +409,9 @@ def test__get_single_diagram_from_module_none_raises_file(
         ),
     )
     module = discover._import_module_or_raise("diagram")
-    target = Target(module_or_file="diagram.py", object_ref=None, is_file=True)
+    target = Target(
+        module_or_file="diagram.py", object_ref=None, is_py_file=True
+    )
     expected_error = (
         f"No Diagram instances found in {str(module_path)!r}. "
         "Define a Diagram at module level or "
@@ -431,7 +439,7 @@ def test__get_single_diagram_from_module_multiple_raises_module(
         ),
     )
     module = discover._import_module_or_raise("diagram")
-    target = Target(module_or_file="diagram", object_ref=None, is_file=False)
+    target = Target(module_or_file="diagram", object_ref=None, is_py_file=False)
     expected_error = (
         "Multiple diagrams found in module 'diagram': diagram1, diagram2. "
         "Either ensure the target contains exactly one Diagram, "
@@ -459,7 +467,9 @@ def test__get_single_diagram_from_module_multiple_raises_file(
         ),
     )
     module = discover._import_module_or_raise("diagram")
-    target = Target(module_or_file="diagram.py", object_ref=None, is_file=True)
+    target = Target(
+        module_or_file="diagram.py", object_ref=None, is_py_file=True
+    )
     expected_error = (
         "Multiple diagrams found in 'diagram.py': diagram1, diagram2. "
         "Either ensure the target contains exactly one Diagram, "
@@ -479,7 +489,7 @@ def test__load_target_module(
     mocked_import_module_or_raise = mocker.patch.object(
         discover, "_import_module_or_raise"
     )
-    target = Target(module_or_file="diagram", object_ref=None, is_file=False)
+    target = Target(module_or_file="diagram", object_ref=None, is_py_file=False)
 
     result = discover._load_target_module(target)
 
@@ -497,7 +507,9 @@ def test__load_target_module_is_file(
     mocked_import_module_or_raise = mocker.patch.object(
         discover, "_import_module_or_raise"
     )
-    target = Target(module_or_file="diagram.py", object_ref=None, is_file=True)
+    target = Target(
+        module_or_file="diagram.py", object_ref=None, is_py_file=True
+    )
 
     result = discover._load_target_module(target)
 
@@ -511,7 +523,8 @@ def test__load_target_module_is_file(
         "raw",
         "expected_module_or_file",
         "expected_object_ref",
-        "expected_is_file",
+        "expected_is_py_file",
+        "expected_is_json_file",
     ),
     [
         (
@@ -519,11 +532,13 @@ def test__load_target_module_is_file(
             "python.module",
             None,
             False,
+            False,
         ),
         (
             " python.module ",
             "python.module",
             None,
+            False,
             False,
         ),
         (
@@ -531,11 +546,13 @@ def test__load_target_module_is_file(
             "python.module",
             "diagram",
             False,
+            False,
         ),
         (
             " python.module:diagram ",
             "python.module",
             "diagram",
+            False,
             False,
         ),
         (
@@ -543,23 +560,41 @@ def test__load_target_module_is_file(
             "file.py",
             None,
             True,
+            False,
         ),
         (
             " file.py ",
             "file.py",
             None,
             True,
+            False,
         ),
         (
             "file.py:a.b.c",
             "file.py",
             "a.b.c",
             True,
+            False,
         ),
         (
             " file.py : a.b.c ",
             "file.py",
             "a.b.c",
+            True,
+            False,
+        ),
+        (
+            "file.json",
+            "file.json",
+            None,
+            False,
+            True,
+        ),
+        (
+            " file.json ",
+            "file.json",
+            None,
+            False,
             True,
         ),
     ],
@@ -572,19 +607,23 @@ def test__load_target_module_is_file(
         "file_strip",
         "file_with_object_ref",
         "file_with_object_ref_strip",
+        "file_json",
+        "file_json_strip",
     ],
 )
 def test__parse_target_success(
     raw: str,
     expected_module_or_file: str,
     expected_object_ref: str,
-    expected_is_file: bool,
+    expected_is_py_file: bool,
+    expected_is_json_file: bool,
 ):
     target = discover._parse_target(raw)
 
     assert target.module_or_file == expected_module_or_file
     assert target.object_ref == expected_object_ref
-    assert target.is_file == expected_is_file
+    assert target.is_py_file == expected_is_py_file
+    assert target.is_json_file == expected_is_json_file
 
 
 @pytest.mark.parametrize(
@@ -792,3 +831,44 @@ def test_resolve_diagram_file_target_ref_wrong_type_raises(
 
     with pytest.raises(ImportFromStringError):
         discover.resolve_diagram(f"{file_path}:diagram")
+
+
+def test_resolve_diagram__json_target(
+    tmp_path: Path,
+):
+    file_path = tmp_path / "diagram.json"
+    file_path.write_text(
+        """
+        {"type": "SystemContextDiagram", "title": "Example"}
+        """
+    )
+
+    result = discover.resolve_diagram(file_path)
+
+    assert isinstance(result, Diagram)
+    assert result.title == "Example"
+
+
+def test_resolve_diagram__json_target__missing_dependencies(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    # to prevent caching in _import_json_converter
+    sys.modules.pop("c4.converters.json.converter", None)
+    file_path = tmp_path / "diagram.json"
+    mocker.patch.dict("sys.modules", {"pydantic": None})
+
+    with pytest.raises(MissingConverterDependency):
+        discover.resolve_diagram(file_path)
+
+
+def test_resolve_diagram__json_target__diagram_file_not_found(
+    tmp_path: Path,
+):
+    file_path = tmp_path / "diagram.json"
+    expected_error = f"Diagram file not found: {file_path!s}"
+
+    with pytest.raises(ImportFromStringError, match=expected_error):
+        discover.resolve_diagram(file_path)
+
+    assert not file_path.exists()

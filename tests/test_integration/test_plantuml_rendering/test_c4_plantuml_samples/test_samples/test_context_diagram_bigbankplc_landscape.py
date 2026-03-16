@@ -93,9 +93,9 @@ def test_render_diagram(
         LayD(atm, customer)
         LayU(mail_system, customer)
 
-        layout_options = LayoutOptions().layout_with_legend()
+        layout_config = LayoutOptions().layout_with_legend().build()
 
-    diagram_code = diagram.as_plantuml(layout_options=layout_options)
+    diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
         snapshot="plantuml/samples/c4_context-diagram-sample-bigbankplc-landscape.puml",

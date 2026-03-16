@@ -5,7 +5,10 @@ from typing import Protocol
 
 import pytest
 
-pytest_plugins = ["pytester"]
+pytest_plugins = (
+    "pytester",
+    "tests.fixtures.converters.json",
+)
 
 SNAPSHOTS_DIR = Path(__file__).parent / "snapshots"
 BASE_DIR = SNAPSHOTS_DIR.parent.parent

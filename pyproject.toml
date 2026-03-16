@@ -29,6 +29,11 @@ Documentation = "https://sidorov-as.github.io/c4-diagrams/"
 [project.scripts]
 c4 = "c4.__main__:entrypoint"
 
+[project.optional-dependencies]
+converters = [
+    "pydantic>=2.12.5",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
@@ -43,7 +48,9 @@ dev = [
     "mkdocs-material>=9.7.1",
     "mkdocstrings[python]>=1.0.0",
     "mkdocs-include-markdown-plugin>=7.2.0",
+    "mkdocs-gen-files==0.6.0",
     "commitizen>=4.11.0",
+    "polyfactory>=3.3.0",
 ]
 
 [build-system]
@@ -67,6 +74,7 @@ packages = ["c4"]
 
 [tool.mypy]
 files = ["c4"]
+python_version = "3.10"
 disallow_untyped_defs = true
 disallow_any_unimported = true
 no_implicit_optional = true
@@ -74,6 +82,7 @@ check_untyped_defs = true
 warn_return_any = true
 warn_unused_ignores = true
 show_error_codes = true
+plugins = ['pydantic.mypy']
 
 [[tool.mypy.overrides]]
 module = "c4.compat.strenum"
@@ -83,12 +92,13 @@ ignore_errors = true
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 80
 fix = true
 exclude = [
     "tests/snapshots/",
     "tests/test_integration/test_cli/snapshots",
+    "docs/scripts/generate_diagram_spec_docs.py",
 ]
 
 [tool.ruff.lint]
@@ -140,13 +150,14 @@ ignore = [
 "c4/renderers/plantuml/renderer.py" = ["A001", "A002"]
 "c4/renderers/plantuml/backends.py" = ["A001", "A002"]
 "c4/compat/strenum.py" = ["E501", "UP031", "SIM102",]
+"tests/fixtures/converters/json.py" = ["RUF012"]
 
 [tool.ruff.format]
 preview = true
 
 [tool.coverage.report]
 skip_empty = true
-fail_under = 93
+fail_under = 99
 exclude_also = [
     "pragma: no cover",
     "raise NotImplementedError",

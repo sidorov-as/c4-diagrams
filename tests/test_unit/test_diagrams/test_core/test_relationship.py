@@ -591,3 +591,42 @@ def test_relationship_connect_empty_source_error(diagram: Diagram):
         )
 
     assert not diagram.relationships
+
+
+def test_relationship_type_get_descriptions():
+    descriptions = RelationshipType.get_descriptions()
+
+    assert sorted(descriptions) == sorted(RelationshipType)
+
+
+def test_relationship_get_participants(
+    diagram: Diagram,
+):
+    frontend = Element("frontend", "Web app")
+    backend = Element("backend", "API")
+    relationship = frontend >> "Uses" >> backend
+    expected_participants = (frontend, backend)
+
+    result = relationship.get_participants()
+
+    assert result == expected_participants
+
+
+def test_relationship_get_participants_no_from_element(
+    diagram: Diagram,
+):
+    backend = Element("backend", "API")
+    relationship = Relationship("Uses", to_element=backend)
+
+    with pytest.raises(ValueError, match="from_element not provided"):
+        relationship.get_participants()
+
+
+def test_relationship_get_participants_no_to_element(
+    diagram: Diagram,
+):
+    frontend = Element("frontend", "Web app")
+    relationship = Relationship("Uses", from_element=frontend)
+
+    with pytest.raises(ValueError, match="to_element not provided"):
+        relationship.get_participants()

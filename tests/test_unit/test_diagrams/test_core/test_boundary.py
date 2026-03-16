@@ -1,9 +1,5 @@
-import uuid
-
 import pytest
-from pytest_mock import MockerFixture
 
-from c4.diagrams import core
 from c4.diagrams.core import (
     Boundary,
     Diagram,
@@ -59,15 +55,15 @@ def test_current_boundary_without_context():
     assert boundary.alias == "example"
 
 
-def test_boundary_generate_alias(
-    mocker: MockerFixture,
-):
-    expected_uuid = uuid.UUID("12340000-0000-0000-0000-000000000000")
-    mocker.patch.object(core, "uuid4", return_value=expected_uuid)
+def test_boundary_generate_alias():
     with Diagram():
         boundary = Boundary(label="example")
+        boundary2 = Boundary(label="example")
+        boundary3 = Boundary(label="example", alias="boundary3")
 
-    assert boundary.alias == "example_1234"
+    assert boundary.alias == "example"
+    assert boundary2.alias == "example_1"
+    assert boundary3.alias == "boundary3"
 
 
 def test_boundary_attrs():

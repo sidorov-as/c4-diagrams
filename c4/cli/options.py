@@ -25,7 +25,14 @@ from c4.constants import (
     PLANTUML_SKINPARAM_DPI_TEMPLATE,
     STRUCTURIZR,
 )
-from c4.enums import DiagramFormat, RendererEnum
+from c4.enums import (
+    JSON,
+    PY,
+    ConvertShortcut,
+    DiagramConvertionFormat,
+    DiagramFormat,
+    RendererEnum,
+)
 from c4.renderers import BaseRenderer, PlantUMLRenderer
 from c4.renderers.plantuml import (
     LocalPlantUMLBackend,
@@ -42,7 +49,8 @@ class CLIOptions:
     Attributes:
         renderer: Selected renderer backend (e.g. PlantUML, Mermaid).
         target: Diagram target reference string
-            (e.g. "module", "module:diagram", "file.py", "file.py:diagram").
+                (e.g. "module", "module:diagram", "file.py", "file.py:diagram",
+                "file.json").
     """
 
     renderer: Literal[
@@ -174,6 +182,45 @@ class ExportCLIOptions(CLIOptions):
             return
 
         out = self.output.open("wb")
+        try:
+            yield out
+        finally:
+            out.close()
+
+
+@dataclass
+class ConvertCLIOptions:
+    """
+    CLI options for the `convert` command.
+
+    Attributes:
+        target: Diagram target reference string
+                (e.g. "module", "module:diagram", "file.py", "file.py:diagram",
+                "file.json").
+        from_format: Input diagram format.
+        to_format: Output diagram format.
+        output: Optional output path. If omitted, writes to stdout (bytes).
+
+    """
+
+    target: str
+    from_format: DiagramConvertionFormat
+    to_format: DiagramConvertionFormat
+    output: Path | None = None
+
+    @contextmanager
+    def open_output(self) -> Iterator[TextIO]:
+        """
+        Open an output stream for writing UTF-8 text.
+
+        - If output is None, yields sys.stdout (no closing is performed).
+        - Otherwise opens the file in text write mode and closes it on exit.
+        """
+        if self.output is None:
+            yield sys.stdout
+            return
+
+        out = self.output.open("w", encoding="utf-8")
         try:
             yield out
         finally:
@@ -457,3 +504,58 @@ def build_exporter(cli_options: ExportCLIOptions) -> BaseRenderer:
         return _build_plantuml_exporter(cli_options)
 
     raise CLIError(f"Unsupported renderer: {renderer.value!r}")
+
+
+def resolve_convert_formats(
+    args: argparse.Namespace,
+) -> tuple[DiagramConvertionFormat, DiagramConvertionFormat]:
+    """
+    Validate convert options and return normalized (from_format, to_format).
+    """
+    mode_shortcut = getattr(args, "mode_shortcut", None)
+    from_value = getattr(args, "from", None)
+    from_json = getattr(args, "from_json", False)
+    to_value = getattr(args, "to", None)
+    to_py = getattr(args, "to_py", False)
+
+    if mode_shortcut is not None:
+        if any([from_value, from_json, to_value, to_py]):
+            raise CLIError(
+                "--json-to-py cannot be used with "
+                "--from/--from-json/--to/--to-py"
+            )
+
+        if mode_shortcut == ConvertShortcut.JSON_TO_PY:
+            return JSON, PY
+
+        raise CLIError(f"Unsupported conversion shortcut: {mode_shortcut!r}")
+
+    if from_value:
+        from_format = DiagramConvertionFormat(from_value)
+    elif from_json:
+        from_format = JSON
+    else:
+        raise CLIError("one of the arguments --from --from-json is required")
+
+    if to_value:
+        to_format = DiagramConvertionFormat(to_value)
+    elif to_py:
+        to_format = PY
+    else:
+        raise CLIError("one of the arguments --to --to-py is required")
+
+    return from_format, to_format
+
+
+def build_convert_cli_options(args: argparse.Namespace) -> ConvertCLIOptions:
+    """
+    Convert parsed CLI args to ConvertCLIOptions.
+    """
+    from_format, to_format = resolve_convert_formats(args)
+
+    return ConvertCLIOptions(
+        from_format=from_format,
+        to_format=to_format,
+        target=args.target,
+        output=args.output,
+    )

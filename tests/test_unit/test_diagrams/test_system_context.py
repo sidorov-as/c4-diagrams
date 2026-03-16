@@ -1,7 +1,4 @@
-import uuid
-
 import pytest
-from pytest_mock import MockerFixture
 
 from c4 import (
     EnterpriseBoundary,
@@ -17,7 +14,6 @@ from c4 import (
     SystemQueue,
     SystemQueueExt,
 )
-from c4.diagrams import core
 from c4.diagrams.core import Boundary, Diagram, Element
 
 
@@ -85,16 +81,17 @@ def test_system_check_alias(
     [System, SystemExt],
 )
 def test_system_generate_alias(
-    mocker: MockerFixture,
     diagram_class: type[Diagram],
     system_class: type[Element],
 ):
-    expected_uuid = uuid.UUID("12340000-0000-0000-0000-000000000000")
-    mocker.patch.object(core, "uuid4", return_value=expected_uuid)
     with diagram_class():
         system = system_class(label="example")
+        system2 = system_class(label="example")
+        system3 = system_class(label="example", alias="system3")
 
-    assert system.alias == "example_1234"
+    assert system.alias == "example"
+    assert system2.alias == "example_1"
+    assert system3.alias == "system3"
 
 
 @pytest.mark.parametrize(

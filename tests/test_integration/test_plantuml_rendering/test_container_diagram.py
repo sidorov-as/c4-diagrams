@@ -105,7 +105,7 @@ def test_render_container_diagram(
 
         LayRight(reporting_service, audit_service)
 
-        layout_options = (
+        layout_config = (
             LayoutOptions()
             .add_element_tag(
                 "microService",
@@ -122,9 +122,9 @@ def test_render_container_diagram(
             )
             .show_person_outline()
             .show_legend()
-        )
+        ).build()
 
-    diagram_code = diagram.as_plantuml(layout_options=layout_options)
+    diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
         snapshot="plantuml/container_diagram.puml",

@@ -29,13 +29,14 @@ class TargetParseError(CLIError):
         - 'python.module:diagram'
         - 'file.py'
         - 'file.py:diagram'
+        - 'file.json'
     """
 
     def __init__(self, raw: str) -> None:
         super().__init__(
             f"Invalid target {raw!r}. "
             f"Expected 'module', 'module:diagram', 'file.py', "
-            f"or 'file.py:diagram'."
+            f"'file.py:diagram' or 'file.json'."
         )
 
 
@@ -63,7 +64,7 @@ class MultipleDiagramsFoundError(CLIError):
         self.target = target
         self.names = names
 
-        if target.is_file:
+        if target.is_py_file:
             module_repr = f"{target.module_or_file!r}"
         else:
             module_repr = f"module {target.module_or_file!r}"
@@ -85,3 +86,15 @@ class ImportFromStringError(CLIError):
     """
 
     pass
+
+
+class MissingConverterDependency(CLIError):
+    """
+    Raised when converter cannot be imported due to missing dependencies.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Converter dependency is not installed, "
+            "run `pip install c4-diagrams[converters]`"
+        )

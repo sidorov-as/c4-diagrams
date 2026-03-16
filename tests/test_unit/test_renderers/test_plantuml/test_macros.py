@@ -1,4 +1,5 @@
 import re
+from collections.abc import Callable
 from typing import Any, ClassVar
 
 import pytest
@@ -501,11 +502,12 @@ def test_plantuml_macro_without_args():
     ("element_class", "expected_macro"),
     [(key, value) for key, value in ELEMENT_TO_PLANTUML_MACRO_MAP.items()],
 )
-@pytest.mark.usefixtures("diagram")
 def test_element_plantuml_macro_get_macro(
     element_class: type[Element],
     expected_macro: str,
+    set_current_diagram: Callable[[type[Element]], ...],
 ):
+    set_current_diagram(element_class)
     element = element_class(label="example")
     macro = ElementPlantUMLMacro(element)
 
@@ -609,11 +611,12 @@ def test_element_plantuml_macro_get_macro_none():
         ),
     ],
 )
-@pytest.mark.usefixtures("diagram")
 def test_element_plantuml_macro_get_data(
     element_class: type[Element],
     override_kwargs: dict[str, Any],
+    set_current_diagram: Callable[[type[Element]], ...],
 ):
+    set_current_diagram(element_class)
     kwargs = {
         "alias": "element1",
         "label": "Element",
@@ -675,11 +678,12 @@ def test_element_plantuml_macro_get_data(
         (ComponentQueueExt, ElementWithTechnologyPlantUMLMacro),
     ],
 )
-@pytest.mark.usefixtures("diagram")
 def test_element_plantuml_macro_from_element(
     element_class: type[Element],
     expected_macro_class: str,
+    set_current_diagram: Callable[[type[Element]], ...],
 ):
+    set_current_diagram(element_class)
     element = element_class(label="example")
     macro = ElementPlantUMLMacro(element)
 
@@ -790,10 +794,12 @@ def test_element_plantuml_macro_render(
         (ComponentQueueExt, "ComponentQueue_Ext"),
     ],
 )
-@pytest.mark.usefixtures("diagram")
 def test_element_with_technology_plantuml_macro_render(
-    element_class: type[Element], expected_macro: str
+    element_class: type[Element],
+    expected_macro: str,
+    set_current_diagram: Callable[[type[Element]], ...],
 ):
+    set_current_diagram(element_class)
     kwargs = {
         "alias": "element1",
         "label": "Element",
@@ -894,12 +900,13 @@ def test_system_plantuml_macro_render(
         ),
     ],
 )
-@pytest.mark.usefixtures("diagram")
 def test_boundary_plantuml_macro_render(
     element_class: type[Element],
     override_kwargs: dict[str, Any],
     expected_macro: str,
+    set_current_diagram: Callable[[type[Element]], ...],
 ):
+    set_current_diagram(element_class)
     kwargs = {
         "alias": "element1",
         "label": "Element",
@@ -929,7 +936,7 @@ def test_boundary_plantuml_macro_render(
         ),
     ],
 )
-@pytest.mark.usefixtures("diagram")
+@pytest.mark.usefixtures("container_diagram")
 def test_container_plantuml_macro_render(
     element_class: type[Element],
     expected_macro: str,
@@ -965,7 +972,7 @@ def test_container_plantuml_macro_render(
         ),
     ],
 )
-@pytest.mark.usefixtures("diagram")
+@pytest.mark.usefixtures("component_diagram")
 def test_component_plantuml_macro_render(
     element_class: type[Element],
     expected_macro: str,
@@ -1024,7 +1031,7 @@ def test_relationship_plantuml_macro_get_data_no_from_element_error(
     macro = RelationshipPlantUMLMacro(relationship)
     expected_error = f"Empty `from_element` for relationship {relationship}"
 
-    with pytest.raises(ValueError, match=expected_error):
+    with pytest.raises(ValueError, match=re.escape(expected_error)):
         macro.get_data()
 
 
@@ -1046,7 +1053,7 @@ def test_relationship_plantuml_macro_get_data_no_to_element_error(
     macro = RelationshipPlantUMLMacro(relationship)
     expected_error = f"Empty `to_element` for relationship {relationship}"
 
-    with pytest.raises(ValueError, match=expected_error):
+    with pytest.raises(ValueError, match=re.escape(expected_error)):
         macro.get_data()
 
 
@@ -1292,7 +1299,7 @@ def test_layout_plantuml_macro_render(
         ),
     ],
 )
-@pytest.mark.usefixtures("diagram")
+@pytest.mark.usefixtures("deployment_diagram")
 def test_node_plantuml_macro_render(
     element_class: type[Element],
     expected_macro: str,
@@ -1314,7 +1321,7 @@ def test_node_plantuml_macro_render(
     assert result == expected_macro
 
 
-@pytest.mark.usefixtures("diagram")
+@pytest.mark.usefixtures("dynamic_diagram")
 def test_increment_plantuml_macro_render():
     macro = IncrementPlantUMLMacro(increment())
     expected_macro = "increment()"
@@ -1322,7 +1329,7 @@ def test_increment_plantuml_macro_render():
     assert macro.render() == expected_macro
 
 
-@pytest.mark.usefixtures("diagram")
+@pytest.mark.usefixtures("dynamic_diagram")
 def test_set_index_plantuml_macro_render():
     macro = SetIndexPlantUMLMacro(set_index(5))
     expected_macro = "setIndex(5)"

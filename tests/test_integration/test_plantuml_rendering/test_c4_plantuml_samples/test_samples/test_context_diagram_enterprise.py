@@ -80,9 +80,11 @@ def test_render_diagram(
 
         LayD(customer, braintree)
 
-        layout_options = LayoutOptions().layout_top_down(with_legend=True)
+        layout_config = (
+            LayoutOptions().layout_top_down(with_legend=True).build()
+        )
 
-    diagram_code = diagram.as_plantuml(layout_options=layout_options)
+    diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
         snapshot="plantuml/samples/c4_context-diagram-sample-enterprise.puml",

@@ -2,10 +2,12 @@ import re
 
 import pytest
 
+from c4 import ComponentDiagram, DynamicDiagram
 from c4.diagrams.core import (
     BaseDiagramElement,
     BaseIndex,
     Diagram,
+    DiagramType,
     Index,
     LastIndex,
     SetIndex,
@@ -242,7 +244,7 @@ def test_create_increment_outside_the_diagram_context():
 
 
 def test_increment_adds_itself_to_diagram():
-    with Diagram() as diagram:
+    with DynamicDiagram() as diagram:
         inc = increment()
 
     assert diagram.base_elements == [inc]
@@ -250,7 +252,7 @@ def test_increment_adds_itself_to_diagram():
 
 
 def test_increment_with_offset():
-    with Diagram() as diagram:
+    with DynamicDiagram() as diagram:
         inc = increment(5)
 
     assert diagram.base_elements == [inc]
@@ -265,7 +267,7 @@ def test_create_set_index_outside_the_diagram_context():
 
 
 def test_set_index_adds_itself_to_diagram():
-    with Diagram() as diagram:
+    with DynamicDiagram() as diagram:
         inc = set_index(1)
 
     assert diagram.base_elements == [inc]
@@ -284,6 +286,7 @@ def test_base_diagram_element_adds_itself_to_diagram():
         base_element = BaseDiagramElement()
 
     assert diagram.base_elements == [base_element]
+    assert base_element.diagram == diagram
 
 
 def test_base_diagram_element_add_property(diagram: Diagram):
@@ -388,3 +391,45 @@ def test_base_diagram_element_set_empty_property_header_error(diagram: Diagram):
 
     assert header_before == ["Property", "Value"]
     assert base_element.properties.header == ["Property", "Value"]
+
+
+def test_base_diagram_element_check_diagram_type(
+    component_diagram: ComponentDiagram,
+):
+    class Element(BaseDiagramElement):
+        allowed_diagram_types = (DiagramType.COMPONENT_DIAGRAM,)
+
+    element = Element()
+
+    assert component_diagram.base_elements == [element]
+
+
+def test_base_diagram_element_check_diagram_type_skip_validation(
+    component_diagram: ComponentDiagram,
+):
+    class Element(BaseDiagramElement):
+        allowed_diagram_types = None
+
+    element = Element()
+
+    assert component_diagram.base_elements == [element]
+
+
+def test_base_diagram_element_check_diagram_type_not_allowed(
+    component_diagram: ComponentDiagram,
+):
+    class Element(BaseDiagramElement):
+        allowed_diagram_types = (
+            DiagramType.SYSTEM_CONTEXT_DIAGRAM,
+            DiagramType.SYSTEM_LANDSCAPE_DIAGRAM,
+        )
+
+    expected_error = (
+        "Element is not allowed in ComponentDiagram. "
+        "Allowed diagram types: SystemContextDiagram, SystemLandscapeDiagram."
+    )
+
+    with pytest.raises(ValueError, match=expected_error):
+        Element()
+
+    assert not component_diagram.base_elements

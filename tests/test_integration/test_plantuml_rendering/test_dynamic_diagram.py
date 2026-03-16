@@ -146,11 +146,14 @@ def test_render_dynamic_diagram(
             >> audit_store
         )
 
-        layout_options = (
-            LayoutOptions().layout_top_down(with_legend=True).show_legend()
+        layout_config = (
+            LayoutOptions()
+            .layout_top_down(with_legend=True)
+            .show_legend()
+            .build()
         )
 
-    diagram_code = diagram.as_plantuml(layout_options=layout_options)
+    diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
         snapshot="plantuml/dynamic_diagram.puml",

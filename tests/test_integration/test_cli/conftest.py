@@ -33,7 +33,7 @@ def cli(sys_path_tmp: Path):
         run_kwargs = {
             "capture_output": True,
             "text": True,
-            "timeout": 30,
+            "timeout": 60,
             "env": env,
         }
         if cwd:

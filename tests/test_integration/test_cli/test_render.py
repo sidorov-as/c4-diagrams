@@ -153,7 +153,7 @@ def test_render__absolute_file_path__diagram_not_found(
         ),
     )
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         f"c4: error: No Diagram instances found in '{module_path!s}'. "
         f"Define a Diagram at module level or specify one "
         f"explicitly as '<target>:<name>'.\n"
@@ -182,7 +182,7 @@ def test_render__module__diagram_not_found(
         ),
     )
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         "c4: error: No Diagram instances found in module 'module'. "
         "Define a Diagram at module level or specify one "
         "explicitly as '<target>:<name>'.\n"
@@ -213,7 +213,7 @@ def test_render__absolute_file_path_with_ref__diagram_not_found(
         ),
     )
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         f"c4: error: Diagram reference 'diagram' was not found "
         f"in {str(module_path)!r}.\n"
     )
@@ -248,7 +248,7 @@ def test_render__module_with_ref__diagram_not_found(
         ),
     )
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         "c4: error: Diagram reference 'diagram' was not found "
         "in module 'module'.\n"
     )
@@ -278,11 +278,11 @@ def test_render__absolute_file_path_with_ref__invalid_ref(
         ),
     )
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         f"c4: error: Invalid target "
         f"'{module_path!s}:'. "
         f"Expected 'module', 'module:diagram', 'file.py', "
-        f"or 'file.py:diagram'.\n"
+        f"'file.py:diagram' or 'file.json'.\n"
     )
 
     result = cli([
@@ -315,11 +315,11 @@ def test_render__module_with_ref__invalid_ref(
         ),
     )
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         "c4: error: Invalid target "
         "'module:'. "
         "Expected 'module', 'module:diagram', 'file.py', "
-        "or 'file.py:diagram'.\n"
+        "'file.py:diagram' or 'file.json'.\n"
     )
 
     result = cli(["render", "module:", "-o", str(diagram_output)])
@@ -348,7 +348,7 @@ def test_render__absolute_file_path__multiple_diagrams(
         ),
     )
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         f"c4: error: Multiple diagrams found in '{module_path!s}': "
         f"diagram1, diagram2. "
         f"Either ensure the target contains exactly one Diagram, or "
@@ -381,7 +381,7 @@ def test_render__module__multiple_diagrams(
         ),
     )
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         "c4: error: Multiple diagrams found in module 'module': "
         "diagram1, diagram2. "
         "Either ensure the target contains exactly one Diagram, or "
@@ -405,7 +405,7 @@ def test_render__absolute_file_path__file_not_found(
     module_path = make_tmp_py_file("module.py")
     module_path.unlink()
     expected_error = (
-        "usage: c4 [-h] [-V] {render,export} ...\n"
+        "usage: c4 [-h] [-V] {render,export,convert} ...\n"
         f"c4: error: Python file not found: '{module_path!s}'.\n"
     )
 

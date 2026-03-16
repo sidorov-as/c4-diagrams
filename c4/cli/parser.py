@@ -4,14 +4,16 @@ import argparse
 import os
 import shutil
 import textwrap
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from c4 import PNG, __version__
-from c4.cli.commands import handle_export, handle_render
+from c4.cli.commands import handle_convert, handle_export, handle_render
 from c4.constants import (
     ALL_DIAGRAM_FORMATS,
+    CONVERT_FROM_FORMATS,
+    CONVERT_TO_FORMATS,
     DEFAULT_JAVA_BIN,
     DEFAULT_PLANTUML_BIN,
     DEFAULT_PLANTUML_SERVER_URL,
@@ -28,6 +30,7 @@ from c4.constants import (
     REMOTE_BACKEND,
     RENDERING_TIMEOUT_SECONDS_ENV_VAR,
 )
+from c4.enums import ConvertShortcut
 
 if TYPE_CHECKING:  # pragma: no cover
     from argparse import _SubParsersAction
@@ -221,7 +224,8 @@ def _build_render_parser(
     render_parser.add_argument(
         "target",
         help=(
-            "Diagram target: file.py, file.py:diagram, or module.path:diagram."
+            "Diagram target: Python file or module (file.py, file.py:diagram, "
+            "module.path, module.path:diagram) or a JSON file (file.json)."
         ),
     )
     render_parser.add_argument(
@@ -339,7 +343,8 @@ def _build_export_parser(
     export_parser.add_argument(
         "target",
         help=(
-            "Diagram target: file.py, file.py:diagram, or module.path:diagram."
+            "Diagram target: Python file or module (file.py, file.py:diagram, "
+            "module.path, module.path:diagram) or a JSON file (file.json)."
         ),
     )
     export_parser.add_argument(
@@ -377,6 +382,69 @@ def _build_export_parser(
     export_parser.set_defaults(func=handle_export)
 
 
+def _build_convert_parser(
+    subparser: _SubParsersAction,
+) -> None:
+    """
+    Register the `convert` subcommand.
+
+    This command converts diagrams between supported input and output formats.
+    """
+    convert_parser = subparser.add_parser(
+        "convert",
+        help="Converts a diagram from one representation to another.",
+    )
+    # To support linebreaks in help text
+    convert_parser.formatter_class = HelpFormatter
+
+    convert_parser.add_argument(
+        "target",
+        help="Diagram target.",
+    )
+
+    shortcut_group = convert_parser.add_mutually_exclusive_group()
+    shortcut_group.add_argument(
+        "--json-to-py",
+        action="store_const",
+        const=ConvertShortcut.JSON_TO_PY,
+        dest="mode_shortcut",
+        help="Shortcut for --from json --to py.",
+    )
+
+    from_group = convert_parser.add_mutually_exclusive_group()
+    from_group.add_argument(
+        "--from",
+        choices=CONVERT_FROM_FORMATS,
+        help="Input format.",
+    )
+    from_group.add_argument(
+        "--from-json",
+        action="store_true",
+        help="Convert from JSON diagram.",
+    )
+
+    to_group = convert_parser.add_mutually_exclusive_group()
+    to_group.add_argument(
+        "--to",
+        choices=CONVERT_TO_FORMATS,
+        help="Output format.",
+    )
+    to_group.add_argument(
+        "--to-py",
+        action="store_true",
+        help="Convert to Python DSL.",
+    )
+
+    convert_parser.add_argument(
+        "-o",
+        "--output",
+        type=_output_file_path,
+        help="Redirect output to a file.",
+    )
+
+    convert_parser.set_defaults(func=handle_convert)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     Build the top-level CLI parser for `c4`.
@@ -395,5 +463,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     _build_render_parser(command)
     _build_export_parser(command)
+    _build_convert_parser(command)
 
     return parser

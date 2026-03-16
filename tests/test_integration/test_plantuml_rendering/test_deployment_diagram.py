@@ -142,14 +142,15 @@ def test_render_deployment_diagram(
         )
         db >> RelRight("Replicates data to") >> db2
 
-        layout_options = (
+        layout_config = (
             LayoutOptions()
             .add_element_tag("fallback", bg_color="#c0c0c0")
             .add_rel_tag("fallback", text_color="#c0c0c0", line_color="#438DD5")
             .show_legend()
+            .build()
         )
 
-    diagram_code = diagram.as_plantuml(layout_options=layout_options)
+    diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
         snapshot="plantuml/deployment_diagram.puml",
@@ -309,15 +310,16 @@ def test_render_deployment_diagram_with_properties(
         )
         db >> RelRight("Replicates data to") >> db2
 
-        layout_options = (
+        layout_config = (
             LayoutOptions()
             .without_property_header()
             .add_element_tag("fallback", bg_color="#c0c0c0")
             .add_rel_tag("fallback", text_color="#c0c0c0", line_color="#438DD5")
             .show_legend()
+            .build()
         )
 
-    diagram_code = diagram.as_plantuml(layout_options=layout_options)
+    diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
         snapshot="plantuml/deployment_diagram_with_properties.puml",

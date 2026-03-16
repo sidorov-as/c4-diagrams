@@ -13,7 +13,9 @@ from c4.diagrams.core import (
     get_diagram,
 )
 from c4.enums import DiagramFormat
+from c4.renderers import RenderOptions
 from c4.renderers.plantuml.backends import BasePlantUMLBackend
+from c4.renderers.plantuml.layout_options import LayoutConfig
 
 
 class MockBasePlantUMLBackend(BasePlantUMLBackend):
@@ -81,13 +83,43 @@ def test_diagram_check_alias_duplicated():
     with Diagram() as diagram:
         user = Element(alias="p1", label="person")
         expected_error = re.escape(
-            "Duplicated alias 'p1': Element(alias='p1', label='person')"
+            "Duplicated alias 'p1': Element(alias='p1', label='person')."
         )
 
         with pytest.raises(ValueError, match=expected_error):
             Element(alias="p1", label="any other label")
 
     assert diagram.elements == [user]
+
+
+def test_diagram_check_alias_duplicated_generated():
+    expected_error = re.escape(
+        "Duplicated alias 'person_1': Element(alias='person_1', label='person')."
+    )
+
+    with Diagram() as diagram:
+        user = Element(label="person")
+        user2 = Element(label="person")  # alias - person_1
+
+        with pytest.raises(ValueError, match=expected_error):
+            Element(alias="person_1", label="any other label")
+
+    assert diagram.elements == [user, user2]
+    assert user.alias == "person"
+    assert user2.alias == "person_1"
+
+
+def test_diagram__unique_alias_generators_per_diagram():
+    with Diagram() as diagram:
+        user = Element(label="person")
+
+    with Diagram() as diagram2:
+        user1 = Element(label="person")
+
+    assert diagram.elements == [user]
+    assert user.alias == "person"
+    assert diagram2.elements == [user1]
+    assert user1.alias == "person"
 
 
 def test_diagram_check_alias_invalid_identifier():
@@ -189,3 +221,154 @@ def test_diagram_save_as_plantuml(tmp_path: Path, mocker: MockerFixture):
         diagram_output, renderer=expected_renderer
     )
     mocked_renderer_class.assert_called_once_with(**kwargs)
+
+
+def test_diagram_save_as_plantuml_provided_layout_config(
+    tmp_path: Path,
+    mocker: MockerFixture,
+):
+    mocked_renderer_class = mocker.patch("c4.renderers.PlantUMLRenderer")
+    expected_renderer = mocked_renderer_class.return_value
+    diagram = Diagram()
+    diagram_output = tmp_path / "diagram.puml"
+    mocked_save = mocker.patch.object(diagram, "save")
+    layout_config = LayoutConfig()
+    kwargs = {
+        "backend": MockBasePlantUMLBackend(),
+        "layout_config": layout_config,
+    }
+
+    diagram.save_as_plantuml(diagram_output, **kwargs)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+
+
+def test_diagram_save_as_plantuml_layout_config_from_render_options(
+    tmp_path: Path,
+    mocker: MockerFixture,
+):
+    mocked_renderer_class = mocker.patch("c4.renderers.PlantUMLRenderer")
+    expected_renderer = mocked_renderer_class.return_value
+    layout_config = LayoutConfig()
+    render_options = RenderOptions(plantuml=layout_config)
+    diagram = Diagram(render_options=render_options)
+    diagram_output = tmp_path / "diagram.puml"
+    mocked_save = mocker.patch.object(diagram, "save")
+
+    kwargs = {
+        "backend": MockBasePlantUMLBackend(),
+    }
+
+    diagram.save_as_plantuml(diagram_output, **kwargs)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(
+        **kwargs,
+        layout_config=layout_config,
+    )
+
+
+def test_diagram_save_as_plantuml_override_layout_config(
+    tmp_path: Path,
+    mocker: MockerFixture,
+):
+    mocked_renderer_class = mocker.patch("c4.renderers.PlantUMLRenderer")
+    expected_renderer = mocked_renderer_class.return_value
+    render_options = RenderOptions(plantuml=LayoutConfig())
+    diagram = Diagram(render_options=render_options)
+    diagram_output = tmp_path / "diagram.puml"
+    mocked_save = mocker.patch.object(diagram, "save")
+    kwargs = {
+        "backend": MockBasePlantUMLBackend(),
+        "layout_config": LayoutConfig(),
+    }
+
+    diagram.save_as_plantuml(diagram_output, **kwargs)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+    assert kwargs["layout_config"] is not render_options.plantuml
+
+
+def test_get_diagram():
+    with Diagram() as diagram:
+        result = get_diagram()
+
+    assert result is diagram
+
+
+def test_get_diagram__none():
+    with Diagram():
+        ...
+
+    result = get_diagram()
+
+    assert result is None
+
+
+@pytest.mark.parametrize(
+    ("title", "expected"),
+    [
+        ("example", "Diagram(title='example')"),
+        (None, "Diagram()"),
+    ],
+)
+def test_diagram_repr(title: str | None, expected: str):
+    diagram = Diagram(title=title)
+
+    assert repr(diagram) == expected
+
+
+def test_diagram_get_element_by_alias():
+    with Diagram(title="Sample diagram") as diagram:
+        user = Element(alias="user", label="person")
+
+    assert diagram.get_element_by_alias("user") is user
+
+
+def test_diagram_get_element_by_alias_none():
+    with Diagram(title="Sample diagram") as diagram:
+        _ = Element(label="person")
+
+    assert diagram.get_element_by_alias("unknown") is None
+
+
+def test_diagram_get_elements_by_label():
+    with Diagram(title="Sample diagram") as diagram:
+        user = Element(label="common-label")
+        user2 = Element(label="common-label")
+        bank = Boundary(label="common-label")
+
+        with bank:
+            _ = Element(label="frontend")
+            _ = Element(label="backend")
+
+    result = diagram.get_elements_by_label("common-label")
+
+    assert result == [user, user2]
+
+
+def test_diagram_get_elements_by_label_empty():
+    with Diagram(title="Sample diagram") as diagram:
+        _ = Element(label="label")
+        _ = Element(label="label")
+
+    result = diagram.get_elements_by_label("unknown")
+
+    assert result == []
+
+
+def test_diagram_render_options():
+    diagram = Diagram()
+    render_options = RenderOptions()
+
+    diagram.render_options = render_options
+
+    assert diagram.render_options == render_options

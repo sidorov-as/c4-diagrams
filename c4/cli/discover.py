@@ -7,16 +7,24 @@ import typing
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import IO, TYPE_CHECKING, Any, Protocol
 from uuid import uuid4
 
 from c4.cli.exceptions import (
     DiagramNotFoundError,
     ImportFromStringError,
+    MissingConverterDependency,
     MultipleDiagramsFoundError,
     TargetParseError,
 )
 from c4.diagrams.core import Diagram
+
+if TYPE_CHECKING:  # pragma: no cover
+
+    class DiagramFromJson(Protocol):
+        def __call__(
+            self, src: str | bytes | Path | IO[str] | IO[bytes]
+        ) -> Diagram: ...
 
 
 @dataclass(frozen=True)
@@ -28,16 +36,19 @@ class Target:
     - "python.module:diagram"
     - "file.py"
     - "file.py:diagram" (or dotted: "file.py:a.b.c")
+    - "file.json"
 
     Attributes:
         module_or_file: Module path ("python.module") or file path ("file.py").
         object_ref: Optional attribute reference (name or dotted path).
-        is_file: True if the target points to a Python file (endswith ".py").
+        is_py_file: True if the target points to a .py file.
+        is_json_file: True if the target points to a .json file.
     """
 
-    module_or_file: str  # "file.py" or "python.module"
+    module_or_file: str  # "file.json", "file.py" or "python.module"
     object_ref: str | None
-    is_file: bool
+    is_py_file: bool = False
+    is_json_file: bool = False
 
 
 def _import_module_or_raise(module_str: str) -> ModuleType:
@@ -120,7 +131,7 @@ def _resolve_diagram_ref(
 
     dotted_path = target.object_ref
 
-    if target.is_file:
+    if target.is_py_file:
         module_repr = f"{str(module.__file__)!r}"
     else:
         module_repr = f"module {module.__name__!r}"
@@ -219,7 +230,7 @@ def _get_single_diagram_from_module(
     """
     diagram_names = _list_diagram_globals(module)
 
-    if target.is_file:
+    if target.is_py_file:
         module_repr = f"{str(module.__file__)!r}"
     else:
         module_repr = f"module {module.__name__!r}"
@@ -252,7 +263,7 @@ def _load_target_module(target: Target) -> ModuleType:
     Returns:
         Loaded/imported module.
     """
-    if target.is_file:
+    if target.is_py_file:
         return _load_module_from_file(target.module_or_file)
 
     return _import_module_or_raise(target.module_or_file)
@@ -295,8 +306,18 @@ def _parse_target(raw: str | Path) -> Target:
     return Target(
         module_or_file=module_or_file,
         object_ref=object_ref,
-        is_file=module_or_file.endswith(".py"),
+        is_py_file=module_or_file.endswith(".py"),
+        is_json_file=module_or_file.endswith(".json"),
     )
+
+
+def _import_json_converter() -> DiagramFromJson | None:
+    try:
+        from c4.converters.json.converter import diagram_from_json
+    except ImportError:
+        return None
+
+    return diagram_from_json
 
 
 def resolve_diagram(raw_target: str | Path) -> Diagram:
@@ -327,8 +348,23 @@ def resolve_diagram(raw_target: str | Path) -> Diagram:
             (or no diagrams exist).
         MultipleDiagramsFoundError: If auto-detection finds more than
             one diagram.
+        MissingConverterDependency: If converter dependencies
+            are not installed.
     """
     target = _parse_target(raw_target)
+    if target.is_json_file:
+        diagram_from_json = _import_json_converter()
+        if diagram_from_json is None:
+            raise MissingConverterDependency()
+
+        json_file = Path(raw_target)
+        if not json_file.exists():
+            raise ImportFromStringError(
+                f"Diagram file not found: {json_file!s}."
+            )
+
+        return diagram_from_json(Path(raw_target))
+
     module = _load_target_module(target)
 
     if target.object_ref:

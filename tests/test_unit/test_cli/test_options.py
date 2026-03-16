@@ -2,7 +2,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 import pytest
 from pytest_mock import MockerFixture
@@ -12,6 +12,7 @@ from c4.cli.exceptions import CLIError
 from c4.cli.options import (
     DEFAULT_RENDERING_TIMEOUT_SECONDS,
     LOCAL_BACKEND,
+    ConvertCLIOptions,
     DiagramFormat,
     ExportCLIOptions,
     PlantUMLExportCLIOptions,
@@ -24,10 +25,12 @@ from c4.cli.options import (
     _build_plantuml_renderer,
     _get_renderer_name,
     _validate_output_format,
+    build_convert_cli_options,
     build_export_cli_options,
     build_exporter,
     build_render_cli_options,
     build_renderer,
+    resolve_convert_formats,
 )
 from c4.constants import (
     D2,
@@ -37,8 +40,50 @@ from c4.constants import (
     REMOTE_BACKEND,
     STRUCTURIZR,
 )
+from c4.enums import JSON, PY, ConvertShortcut, DiagramConvertionFormat
 from c4.renderers import PlantUMLRenderer
 from c4.renderers.plantuml import LocalPlantUMLBackend, RemotePlantUMLBackend
+
+
+class MakeConvertArgs(Protocol):
+    def __call__(
+        self,
+        *,
+        target: str = "diagram.json",
+        output: Path | None = None,
+        mode_shortcut: object = None,
+        from_value: object = None,
+        from_json: bool = False,
+        to_value: object = None,
+        to_py: bool = False,
+    ) -> argparse.Namespace: ...
+
+
+@pytest.fixture()
+def make_convert_args() -> MakeConvertArgs:
+    def _make_args(
+        *,
+        target: str = "diagram.json",
+        output: Path | None = None,
+        mode_shortcut: object = None,
+        from_value: object = None,
+        from_json: bool = False,
+        to_value: object = None,
+        to_py: bool = False,
+    ) -> argparse.Namespace:
+        return argparse.Namespace(
+            mode_shortcut=mode_shortcut,
+            **{
+                "target": target,
+                "output": output,
+                "from": from_value,
+                "from_json": from_json,
+                "to": to_value,
+                "to_py": to_py,
+            },
+        )
+
+    return _make_args
 
 
 def test_render_cli_options_open_output(
@@ -114,6 +159,43 @@ def test_export_cli_options_open_output__output_is_none(
     assert capsys.readouterr().out.encode() == payload
     assert out.closed is False
     assert out is sys.stdout.buffer
+
+
+def test_convert_cli_options_open_output(
+    tmp_path: Path,
+):
+    output = tmp_path / "out.txt"
+    cli_options = ConvertCLIOptions(
+        target="diagram.json",
+        from_format=JSON,
+        to_format=PY,
+        output=output,
+    )
+
+    with cli_options.open_output() as out:
+        out.write("hello")
+
+    assert output.read_text(encoding="utf-8") == "hello"
+    assert out.closed is True
+
+
+def test_convert_cli_options_open_output__output_is_none(
+    tmp_path,
+    capsys: pytest.CaptureFixture[str],
+):
+    cli_options = ConvertCLIOptions(
+        target="diagram.json",
+        from_format=JSON,
+        to_format=PY,
+        output=None,
+    )
+
+    with cli_options.open_output() as out:
+        out.write("hello")
+
+    assert capsys.readouterr().out == "hello"
+    assert out.closed is False
+    assert out is sys.stdout
 
 
 @pytest.mark.parametrize(
@@ -697,3 +779,148 @@ def test_build_exporter_unsupported_renderer(renderer: RendererEnum):
 
     with pytest.raises(CLIError, match=expected_error):
         build_exporter(cli_options)
+
+
+def test_resolve_convert_formats__json_to_py_shortcut(
+    make_convert_args: MakeConvertArgs,
+):
+    args = make_convert_args(mode_shortcut=ConvertShortcut.JSON_TO_PY)
+
+    result = resolve_convert_formats(args)
+
+    assert result == (JSON, PY)
+
+
+@pytest.mark.parametrize(
+    "from_value, from_json, to_value, to_py",
+    [
+        ("json", False, None, False),
+        (None, True, None, False),
+        (None, False, "py", False),
+        (None, False, None, True),
+    ],
+)
+def test_resolve_convert_formats__shortcut_conflict(
+    make_convert_args: MakeConvertArgs,
+    from_value: str | None,
+    from_json: bool,
+    to_value: str | None,
+    to_py: bool,
+):
+    args = make_convert_args(
+        mode_shortcut=ConvertShortcut.JSON_TO_PY,
+        from_value=from_value,
+        from_json=from_json,
+        to_value=to_value,
+        to_py=to_py,
+    )
+    expected_error = (
+        "--json-to-py cannot be used with --from/--from-json/--to/--to-py"
+    )
+
+    with pytest.raises(CLIError, match=expected_error):
+        resolve_convert_formats(args)
+
+
+def test_resolve_convert_formats__unsupported_shortcut(
+    make_convert_args: MakeConvertArgs,
+):
+    args = make_convert_args(mode_shortcut="unsupported")
+    expected_error = "Unsupported conversion shortcut: 'unsupported'"
+
+    with pytest.raises(CLIError, match=expected_error):
+        resolve_convert_formats(args)
+
+
+@pytest.mark.parametrize(
+    ("from_value", "from_json", "to_value", "to_py", "expected"),
+    [
+        ("json", False, "py", False, (JSON, PY)),
+        (None, True, "py", False, (JSON, PY)),
+        ("json", False, None, True, (JSON, PY)),
+        (
+            DiagramConvertionFormat.JSON,
+            False,
+            DiagramConvertionFormat.PY,
+            False,
+            (JSON, PY),
+        ),
+    ],
+)
+def test_resolve_convert_formats__explicit_options(
+    make_convert_args: MakeConvertArgs,
+    from_value: str | DiagramConvertionFormat | None,
+    from_json: bool,
+    to_value: str | DiagramConvertionFormat | None,
+    to_py: bool,
+    expected: tuple[DiagramConvertionFormat, DiagramConvertionFormat],
+):
+    args = make_convert_args(
+        from_value=from_value,
+        from_json=from_json,
+        to_value=to_value,
+        to_py=to_py,
+    )
+
+    result = resolve_convert_formats(args)
+
+    assert result == expected
+
+
+def test_resolve_convert_formats__missing_from(
+    make_convert_args: MakeConvertArgs,
+):
+    args = make_convert_args(to_value="py")
+    expected_error = "one of the arguments --from --from-json is required"
+
+    with pytest.raises(CLIError, match=expected_error):
+        resolve_convert_formats(args)
+
+
+def test_resolve_convert_formats__missing_to(
+    make_convert_args: MakeConvertArgs,
+):
+    args = make_convert_args(from_value="json")
+    expected_error = "one of the arguments --to --to-py is required"
+
+    with pytest.raises(CLIError, match=expected_error):
+        resolve_convert_formats(args)
+
+
+def test_resolve_convert_formats__invalid_from(
+    make_convert_args: MakeConvertArgs,
+):
+    args = make_convert_args(from_value="yaml", to_value="py")
+    expected_error = "'yaml' is not a valid DiagramConvertionFormat"
+
+    with pytest.raises(ValueError, match=expected_error):
+        resolve_convert_formats(args)
+
+
+def test_resolve_convert_formats__invalid_to(
+    make_convert_args: MakeConvertArgs,
+):
+    args = make_convert_args(from_value="json", to_value="yaml")
+    expected_error = "'yaml' is not a valid DiagramConvertionFormat"
+
+    with pytest.raises(ValueError, match=expected_error):
+        resolve_convert_formats(args)
+
+
+@pytest.mark.parametrize("output", [None, Path("/path/to/output.py")])
+def test_build_convert_cli_options(
+    make_convert_args: MakeConvertArgs,
+    output: Path | None,
+):
+    args = make_convert_args(
+        mode_shortcut=ConvertShortcut.JSON_TO_PY,
+        target="diagram.json",
+        output=output,
+    )
+
+    cli_options = build_convert_cli_options(args)
+
+    assert cli_options.target == "diagram.json"
+    assert cli_options.from_format == JSON
+    assert cli_options.to_format == PY
+    assert cli_options.output == output

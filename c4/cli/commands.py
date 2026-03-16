@@ -1,12 +1,17 @@
 import argparse
 
 from c4.cli.discover import resolve_diagram
+from c4.cli.exceptions import CLIError
 from c4.cli.options import (
+    build_convert_cli_options,
     build_export_cli_options,
     build_exporter,
     build_render_cli_options,
     build_renderer,
 )
+from c4.converters.exceptions import ConversionError
+from c4.converters.python.converter import diagram_to_python_code
+from c4.enums import DiagramConvertionFormat
 
 
 def handle_render(args: argparse.Namespace) -> int:
@@ -50,5 +55,32 @@ def handle_export(args: argparse.Namespace) -> int:
 
     with cli_options.open_output() as out:
         out.write(diagram_bytes)
+
+    return 0
+
+
+def handle_convert(args: argparse.Namespace) -> int:
+    """
+    Converts a diagram from one representation to another.
+    """
+    cli_options = build_convert_cli_options(args)
+    from_format = cli_options.from_format
+    to_format = cli_options.to_format
+
+    match from_format, to_format:
+        case DiagramConvertionFormat.JSON, DiagramConvertionFormat.PY:
+            try:
+                diagram = resolve_diagram(args.target)
+                diagram_source = diagram_to_python_code(diagram)
+            except ConversionError as exc:
+                raise CLIError(exc.message) from None
+        case _:
+            raise CLIError(
+                f"Unsupported conversion: "
+                f"{from_format.value} → {to_format.value}."
+            )
+
+    with cli_options.open_output() as out:
+        out.write(diagram_source)
 
     return 0
