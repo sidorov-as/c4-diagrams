@@ -38,6 +38,7 @@ BASE64_TO_PLANTUML = {
     for b, b2 in zip(
         ascii_uppercase + ascii_lowercase + digits + "+/=",
         digits + ascii_uppercase + ascii_lowercase + "-_=",
+        strict=True,
     )
 }
 
@@ -110,14 +111,16 @@ class BasePlantUMLBackend(ABC):
         if format is None:
             if not output_path.suffix:
                 raise ValueError(
-                    "format is None and output_path has no suffix (e.g. .svg)."
+                    "format is None and output_path has no extension."
                 )
             format = output_path.suffix.lstrip(".").lower()  # type: ignore[assignment]
 
         output_path = Path(output_path)
 
         if output_path.exists() and not overwrite:
-            raise FileExistsError(f"Output exists: {output_path}")
+            raise FileExistsError(
+                f"Output file already exists: {output_path!s}"
+            )
 
         content = self.to_bytes(diagram, format=format)  # type: ignore[arg-type]
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -228,7 +231,7 @@ class RemotePlantUMLBackend(BasePlantUMLBackend):
         return b"".join(BASE64_TO_PLANTUML[b] for b in b64_encoded)
 
 
-class _Empty: ...
+class _Empty: ...  # pragma: no cover
 
 
 empty = _Empty()

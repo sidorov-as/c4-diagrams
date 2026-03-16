@@ -69,11 +69,11 @@ class IndentedStringBuilder:
         self._lines.append("")
 
     @property
-    def level(self) -> int:
+    def lines(self) -> list[str]:
         """
-        Returns the current indentation level.
+        Returns a copy of the collected lines.
         """
-        return self._level
+        return list(self._lines)
 
     @contextmanager
     def indent(self) -> Iterator[int]:
@@ -84,7 +84,7 @@ class IndentedStringBuilder:
         try:
             yield self._level
         finally:
-            self._level -= 1
+            self.dedent()
 
     def dedent(self) -> None:
         """

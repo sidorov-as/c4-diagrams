@@ -28,6 +28,7 @@ class DiagramLayout(StrEnum):
 
 TagShape = Literal["EightSidedShape", "RoundedBoxShape", ""]
 LineStyle = Literal["DashedLine", "DottedLine", "BoldLine", "SolidLine", ""]
+Details = Literal["Small", "Normal", "None"]
 
 
 @dataclass
@@ -42,7 +43,7 @@ class BaseTag:
         tag_stereo: The stereotype name of the tag.
         legend_text: The text shown in the legend for this tag.
         legend_sprite: The sprite displayed in the legend.
-        sprite: The sprite icon associated with the element or relation.
+        sprite: The sprite icon associated with the element or relationship.
     """
 
     tag_stereo: str
@@ -62,7 +63,7 @@ class ElementTag(BaseTag):
     Attributes:
         bg_color: Background color of the element.
         font_color: Font color used for labels.
-        border_color: Color of the element's border.
+        border_color: Color of the element border.
         shadowing: Shadow style or toggle (e.g., "true", "false").
         shape: Optional shape used for rendering.
         technology: Technology label shown in the element.
@@ -90,7 +91,7 @@ class RelTag(BaseTag):
 
     Attributes:
         text_color: Color of the relationship label.
-        line_color: Color of the line itself.
+        line_color: Color of the relationship line.
         line_style: Line style (e.g., solid, dashed).
         line_thickness: Thickness of the line.
         technology: Technology label associated with the relationship.
@@ -338,7 +339,7 @@ class ShowLegend:
     """
 
     hide_stereotype: bool | None = None
-    details: str | None = None
+    details: Details | None = None
 
 
 @dataclass
@@ -505,13 +506,29 @@ class LayoutOptions:
         self._tags: list[BaseTag] = []
         self._styles: list[BaseStyle] = []
 
+    @property
+    def sketch_style_defaults(self) -> dict[str, Any]:
+        return self._set_sketch_style_defaults
+
+    @property
+    def legend_defaults(self) -> dict[str, Any]:
+        return self._show_legend_defaults
+
+    @property
+    def floating_legend_defaults(self) -> dict[str, Any]:
+        return self._show_floating_legend_defaults
+
+    @property
+    def person_sprite_defaults(self) -> dict[str, Any]:
+        return self._show_person_sprite_defaults
+
     def add_element_tag(
         self,
         tag_stereo: str,
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         technology: str = "",
@@ -540,12 +557,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = ElementTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -564,7 +583,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         technology: str = "",
@@ -593,12 +612,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = BoundaryTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -661,7 +682,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         technology: str = "",
@@ -690,12 +711,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = ComponentTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -714,7 +737,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         technology: str = "",
@@ -743,12 +766,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = ExternalComponentTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -767,7 +792,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         technology: str = "",
@@ -796,12 +821,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = ContainerTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -820,7 +847,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         technology: str = "",
@@ -849,12 +876,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = ExternalContainerTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -873,7 +902,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         technology: str = "",
@@ -902,12 +931,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = NodeTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -926,7 +957,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         type_: str = "",
@@ -955,12 +986,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = PersonTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             type_=type_,
@@ -979,7 +1012,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         type_: str = "",
@@ -1008,12 +1041,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = ExternalPersonTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             type_=type_,
@@ -1032,7 +1067,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         type_: str = "",
@@ -1061,12 +1096,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = SystemTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             type_=type_,
@@ -1085,7 +1122,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         type_: str = "",
@@ -1114,12 +1151,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         tag = ExternalSystemTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             type_=type_,
@@ -1138,7 +1177,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         sprite: str = "",
         technology: str = "",
@@ -1167,12 +1206,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         style = ElementStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1191,7 +1232,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         type_: str = "",
         sprite: str = "",
@@ -1222,12 +1263,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         style = BoundaryStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1270,7 +1313,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         type_: str = "",
         sprite: str = "",
@@ -1301,12 +1344,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         style = ContainerBoundaryStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1326,7 +1371,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         type_: str = "",
         sprite: str = "",
@@ -1357,12 +1402,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         style = SystemBoundaryStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1382,7 +1429,7 @@ class LayoutOptions:
         bg_color: str = "",
         font_color: str = "",
         border_color: str = "",
-        shadowing: str = "",
+        shadowing: bool | None = None,
         shape: TagShape = "",
         type_: str = "",
         sprite: str = "",
@@ -1413,12 +1460,14 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
+        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
+
         style = EnterpriseBoundaryStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing,
+            shadowing=shadowing_str,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1432,7 +1481,7 @@ class LayoutOptions:
 
         return self
 
-    def layout_top_down(self, with_legend: bool = False) -> Self:
+    def layout_top_down(self, *, with_legend: bool = False) -> Self:
         """
         Sets the diagram layout to top-down orientation.
 
@@ -1444,7 +1493,7 @@ class LayoutOptions:
         """
         return self._set_layout(DiagramLayout.LAYOUT_TOP_DOWN, with_legend)
 
-    def layout_left_right(self, with_legend: bool = False) -> Self:
+    def layout_left_right(self, *, with_legend: bool = False) -> Self:
         """
         Sets the diagram layout to left-right orientation.
 
@@ -1456,7 +1505,7 @@ class LayoutOptions:
         """
         return self._set_layout(DiagramLayout.LAYOUT_LEFT_RIGHT, with_legend)
 
-    def layout_landscape(self, with_legend: bool = False) -> Self:
+    def layout_landscape(self, *, with_legend: bool = False) -> Self:
         """
         Sets the diagram layout to PlantUML landscape mode.
 
@@ -1546,7 +1595,7 @@ class LayoutOptions:
     def show_legend(
         self,
         hide_stereotype: bool = True,
-        details: Literal["Small", "Normal", "None"] = "Small",
+        details: Details = "Small",
     ) -> Self:
         """
         Enables SHOW_LEGEND macro with custom options.
@@ -1572,7 +1621,7 @@ class LayoutOptions:
         self,
         alias: str | None = None,
         hide_stereotype: bool = True,
-        details: Literal["Small", "Normal", "None"] = "Small",
+        details: Details = "Small",
     ) -> Self:
         """
         Enables SHOW_FLOATING_LEGEND macro with custom options.
