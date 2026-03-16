@@ -1,12 +1,22 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from c4.diagrams.core import (
     Boundary,
     Diagram,
+    DiagramType,
     EmptyStr,
     Required,
     empty,
     not_provided,
+)
+
+AllowedDiagramTypes = tuple[DiagramType, ...] | None
+
+
+ALLOWED_DIAGRAM_TYPES: tuple[DiagramType, ...] = (
+    DiagramType.DEPLOYMENT_DIAGRAM,
 )
 
 
@@ -19,6 +29,8 @@ class DeploymentDiagram(Diagram):
     or cloud services.
     """
 
+    type: ClassVar[DiagramType] = DiagramType.DEPLOYMENT_DIAGRAM
+
 
 class Node(Boundary):
     """
@@ -29,6 +41,8 @@ class Node(Boundary):
 
     Nodes can be nested, and manage their own child elements.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
     def __init__(
         self,
@@ -71,6 +85,8 @@ class NodeLeft(Node):
     Typically used for directional positioning in deployment views.
     """
 
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
+
 
 class NodeRight(Node):
     """
@@ -78,6 +94,8 @@ class NodeRight(Node):
 
     Useful for controlling horizontal positioning in deployment diagrams.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
 
 class DeploymentNode(Node):
@@ -88,6 +106,8 @@ class DeploymentNode(Node):
     specific machine or environment (e.g., EC2 instance, on-prem server).
     """
 
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
+
 
 class DeploymentNodeLeft(DeploymentNode):
     """
@@ -96,6 +116,8 @@ class DeploymentNodeLeft(DeploymentNode):
     Inherits both deployment semantics and directional positioning.
     """
 
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
+
 
 class DeploymentNodeRight(DeploymentNode):
     """
@@ -103,6 +125,8 @@ class DeploymentNodeRight(DeploymentNode):
 
     Useful for organizing infrastructure visually with directional context.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
 
 __all__ = (

@@ -1,6 +1,9 @@
+from typing import ClassVar
+
 from c4.diagrams.core import (
     Boundary,
     Diagram,
+    DiagramType,
     Element,
     EmptyStr,
     Required,
@@ -14,11 +17,15 @@ class SystemContextDiagram(Diagram):
     Represents a [C4 System Context Diagram](https://c4model.com/diagrams/system-context).
     """
 
+    type: ClassVar[DiagramType] = DiagramType.SYSTEM_CONTEXT_DIAGRAM
+
 
 class SystemLandscapeDiagram(Diagram):
     """
     Represents a [C4 System Landscape Diagram](https://c4model.com/diagrams/system-landscape).
     """
+
+    type: ClassVar[DiagramType] = DiagramType.SYSTEM_LANDSCAPE_DIAGRAM
 
 
 class Person(Element):

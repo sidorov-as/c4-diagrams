@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from typing_extensions import override
 
 from c4.diagrams.core import (
     Diagram,
+    DiagramType,
     _TRelationship,
 )
 
@@ -12,6 +15,8 @@ class DynamicDiagram(Diagram):
     """
     Represents a [C4 Dynamic diagram](https://c4model.com/diagrams/dynamic).
     """
+
+    type: ClassVar[DiagramType] = DiagramType.DYNAMIC_DIAGRAM
 
     @override
     def add_relationship(self, relationship: _TRelationship) -> _TRelationship:

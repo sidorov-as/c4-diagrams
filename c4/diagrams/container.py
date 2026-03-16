@@ -1,6 +1,9 @@
+from typing import ClassVar
+
 from c4.diagrams.core import (
     Boundary,
     Diagram,
+    DiagramType,
     Element,
     ElementWithTechnology,
     EmptyStr,
@@ -9,11 +12,23 @@ from c4.diagrams.core import (
     not_provided,
 )
 
+AllowedDiagramTypes = tuple[DiagramType, ...] | None
+
+
+ALLOWED_DIAGRAM_TYPES: tuple[DiagramType, ...] = (
+    DiagramType.CONTAINER_DIAGRAM,
+    DiagramType.COMPONENT_DIAGRAM,
+    DiagramType.DYNAMIC_DIAGRAM,
+    DiagramType.DEPLOYMENT_DIAGRAM,
+)
+
 
 class ContainerDiagram(Diagram):
     """
     Represents a [C4 Container diagram](https://c4model.com/diagrams/container).
     """
+
+    type: ClassVar[DiagramType] = DiagramType.CONTAINER_DIAGRAM
 
 
 class Container(Element):
@@ -23,6 +38,8 @@ class Container(Element):
     A container can be a web application, API, worker, or any executable unit
     of deployment. It may optionally include technology and shape hints.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
     def __init__(
         self,
@@ -66,11 +83,15 @@ class ContainerDb(ElementWithTechnology):
     Represents a container specifically modeled as a database.
     """
 
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
+
 
 class ContainerQueue(ElementWithTechnology):
     """
     Represents a container modeled as a message queue or event broker.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
 
 class ContainerExt(Container):
@@ -78,11 +99,15 @@ class ContainerExt(Container):
     Represents an external container (outside the system boundary).
     """
 
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
+
 
 class ContainerDbExt(ContainerDb):
     """
     Represents an external database container.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
 
 class ContainerQueueExt(ContainerQueue):
@@ -90,11 +115,15 @@ class ContainerQueueExt(ContainerQueue):
     Represents an external message queue or broker.
     """
 
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
+
 
 class ContainerBoundary(Boundary):
     """
     Represents a boundary grouping containers within a system.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
     def __init__(
         self,

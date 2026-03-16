@@ -1,5 +1,8 @@
+from typing import ClassVar
+
 from c4.diagrams.core import (
     Diagram,
+    DiagramType,
     Element,
     ElementWithTechnology,
     EmptyStr,
@@ -8,11 +11,22 @@ from c4.diagrams.core import (
     not_provided,
 )
 
+AllowedDiagramTypes = tuple[DiagramType, ...] | None
+
+
+ALLOWED_DIAGRAM_TYPES: tuple[DiagramType, ...] = (
+    DiagramType.COMPONENT_DIAGRAM,
+    DiagramType.DYNAMIC_DIAGRAM,
+    DiagramType.DEPLOYMENT_DIAGRAM,
+)
+
 
 class ComponentDiagram(Diagram):
     """
     Represents a [C4 Component diagram](https://c4model.com/diagrams/component).
     """
+
+    type: ClassVar[DiagramType] = DiagramType.COMPONENT_DIAGRAM
 
 
 class Component(Element):
@@ -23,6 +37,8 @@ class Component(Element):
     that performs a specific function within a container. Includes metadata
     like technology, visual style, and links.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
     def __init__(
         self,
@@ -69,6 +85,8 @@ class ComponentDb(ElementWithTechnology):
     Used to depict data storage components in a component diagram.
     """
 
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
+
 
 class ComponentQueue(ElementWithTechnology):
     """
@@ -76,6 +94,8 @@ class ComponentQueue(ElementWithTechnology):
 
     Useful for showing message-based or asynchronous communication paths.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
 
 class ComponentExt(Component):
@@ -85,6 +105,8 @@ class ComponentExt(Component):
     Commonly used to show third-party libraries or external system components.
     """
 
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
+
 
 class ComponentDbExt(ComponentDb):
     """
@@ -93,6 +115,8 @@ class ComponentDbExt(ComponentDb):
     Used for visualizing data stores not maintained by the system.
     """
 
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
+
 
 class ComponentQueueExt(ComponentQueue):
     """
@@ -100,6 +124,8 @@ class ComponentQueueExt(ComponentQueue):
 
     Used to show external infrastructure for asynchronous communication.
     """
+
+    allowed_diagram_types: AllowedDiagramTypes = ALLOWED_DIAGRAM_TYPES
 
 
 __all__ = (
