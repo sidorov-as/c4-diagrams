@@ -37,7 +37,7 @@ def test_render_container_diagram(
                 "Customer Service",
                 "The point of access for customer information",
                 "Java, Spring Boot",
-                tags="microService",
+                tags=["microService"],
                 alias="customer_service",
             )
             message_bus = ContainerQueue(
@@ -50,35 +50,35 @@ def test_render_container_diagram(
                 "Reporting Service",
                 "Creates normalised data for reporting purposes",
                 "Ruby",
-                tags="microService",
+                tags=["microService"],
                 alias="reporting_service",
             )
             audit_service = Container(
                 "Audit Service",
                 "Provides organisation-wide auditing facilities",
                 "C#/.NET",
-                tags="microService",
+                tags=["microService"],
                 alias="audit_service",
             )
             customer_db = ContainerDb(
                 "Customer Database",
                 "Stores customer information",
                 "Oracle 12c",
-                tags="storage",
+                tags=["storage"],
                 alias="customer_db",
             )
             reporting_db = ContainerDb(
                 "Reporting Database",
                 "Stores a normalized version of all business data for ad hoc reporting purposes",
                 "MySQL",
-                tags="storage",
+                tags=["storage"],
                 alias="reporting_db",
             )
             audit_store = Container(
                 "Audit Store",
                 "Stores information about events that have happened",
                 "Event Store",
-                tags="storage",
+                tags=["storage"],
                 alias="audit_store",
             )
 

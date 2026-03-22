@@ -352,7 +352,7 @@ def test_diagram_get_elements_by_label():
 
     result = diagram.get_elements_by_label("common-label")
 
-    assert result == [user, user2]
+    assert result == [user, user2, bank]
 
 
 def test_diagram_get_elements_by_label_empty():

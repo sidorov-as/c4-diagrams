@@ -735,6 +735,7 @@ def test_python_codegen__generate(
 
 
         plantuml_layout_options = LayoutOptions().build()
+
         render_options = RenderOptions(
             plantuml=plantuml_layout_options,
         )
@@ -767,6 +768,7 @@ def test_python_codegen__generate_empty_diagram(
 
 
         plantuml_layout_options = LayoutOptions().build()
+
         render_options = RenderOptions(
             plantuml=plantuml_layout_options,
         )
@@ -848,6 +850,7 @@ def test_diagram_to_python_code(
 
 
         plantuml_layout_options = LayoutOptions().build()
+
         render_options = RenderOptions(
             plantuml=plantuml_layout_options,
         )

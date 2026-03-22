@@ -113,9 +113,6 @@ def test_layout_options_renderer__render_layout__renders_enabled_macros(
         hide_person_sprite=True,
         show_person_sprite="person-sprite-config",  # type: ignore[arg-type]
         show_person_outline=True,
-        show_element_descriptions=True,
-        show_foot_boxes=True,
-        show_index=True,
         legend_title="Legend title",
         hide_stereotype=True,
         without_property_header=True,
@@ -161,25 +158,6 @@ def test_layout_options_renderer__render_layout__renders_enabled_macros(
             render=mocker.Mock(return_value="SHOW_PERSON_OUTLINE")
         ),
     )
-    show_element_descriptions_macro = mocker.patch.object(
-        renderer_module,
-        "ShowElementDescriptionsPlantUMLMacro",
-        return_value=mocker.Mock(
-            render=mocker.Mock(return_value="SHOW_ELEMENT_DESCRIPTIONS")
-        ),
-    )
-    show_foot_boxes_macro = mocker.patch.object(
-        renderer_module,
-        "ShowFootBoxesPlantUMLMacro",
-        return_value=mocker.Mock(
-            render=mocker.Mock(return_value="SHOW_FOOT_BOXES")
-        ),
-    )
-    show_index_macro = mocker.patch.object(
-        renderer_module,
-        "ShowIndexPlantUMLMacro",
-        return_value=mocker.Mock(render=mocker.Mock(return_value="SHOW_INDEX")),
-    )
     update_legend_title_macro = mocker.patch.object(
         renderer_module,
         "UpdateLegendTitlePlantUMLMacro",
@@ -211,9 +189,6 @@ def test_layout_options_renderer__render_layout__renders_enabled_macros(
         "HIDE_PERSON_SPRITE\n"
         "SHOW_PERSON_SPRITE\n"
         "SHOW_PERSON_OUTLINE\n"
-        "SHOW_ELEMENT_DESCRIPTIONS\n"
-        "SHOW_FOOT_BOXES\n"
-        "SHOW_INDEX\n"
         "UPDATE_LEGEND_TITLE\n"
         "HIDE_STEREOTYPE\n"
         "WITHOUT_PROPERTY_HEADER"
@@ -224,9 +199,6 @@ def test_layout_options_renderer__render_layout__renders_enabled_macros(
     hide_person_sprite_macro.assert_called_once_with()
     show_person_sprite_macro.assert_called_once_with("person-sprite-config")
     show_person_outline_macro.assert_called_once_with()
-    show_element_descriptions_macro.assert_called_once_with()
-    show_foot_boxes_macro.assert_called_once_with()
-    show_index_macro.assert_called_once_with()
     update_legend_title_macro.assert_called_once_with("Legend title")
     hide_stereotype_macro.assert_called_once_with()
     without_property_header_macro.assert_called_once_with()

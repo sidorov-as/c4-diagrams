@@ -63,20 +63,20 @@ def test_render_deployment_diagram(
             with DeploymentNode(
                 "bigbank-db02",
                 type_="Ubuntu 16.04 LTS",
-                tags="fallback",
+                tags=["fallback"],
                 alias="bigbankdb02",
             ):
                 with DeploymentNode(
                     "Oracle - Secondary",
                     type_="Oracle 12c",
-                    tags="fallback",
+                    tags=["fallback"],
                     alias="oracle2",
                 ):
                     db2 = ContainerDb(
                         "Database",
                         "Stores user registration information, hashed authentication credentials, access logs, etc.",
                         "Relational Database Schema",
-                        tags="fallback",
+                        tags=["fallback"],
                         alias="db2",
                     )
 
@@ -136,7 +136,7 @@ def test_render_deployment_diagram(
         (
             api
             >> Rel(
-                "Reads from and writes to", technology="JDBC", tags="fallback"
+                "Reads from and writes to", technology="JDBC", tags=["fallback"]
             )
             >> db2
         )
@@ -221,7 +221,7 @@ def test_render_deployment_diagram_with_properties(
                 "The secondary database server.",
                 type_="Ubuntu 16.04 LTS",
                 alias="bigbankdb02",
-                tags="fallback",
+                tags=["fallback"],
             ) as bigbankdb02:
                 bigbankdb02.add_property("Location", "Reading")
 
@@ -230,14 +230,14 @@ def test_render_deployment_diagram_with_properties(
                     "A secondary, standby database server, used for failover purposes only.",
                     type_="Oracle 12c",
                     alias="oracle2",
-                    tags="fallback",
+                    tags=["fallback"],
                 ):
                     db2 = ContainerDb(
                         "Database",
                         "Stores user registration information, hashed authentication credentials, access logs, etc.",
                         "Relational Database Schema",
                         alias="db2",
-                        tags="fallback",
+                        tags=["fallback"],
                     )
 
             with DeploymentNodeRight(
@@ -304,7 +304,7 @@ def test_render_deployment_diagram_with_properties(
         (
             api
             >> Rel(
-                "Reads from and writes to", technology="JDBC", tags="fallback"
+                "Reads from and writes to", technology="JDBC", tags=["fallback"]
             )
             >> db2
         )

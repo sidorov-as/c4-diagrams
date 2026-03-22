@@ -925,9 +925,6 @@ def test__style_to_call__boundary(
         ({"hide_person_sprite": True}, "hide_person_sprite"),
         ({"show_person_portrait": True}, "show_person_portrait"),
         ({"show_person_outline": True}, "show_person_outline"),
-        ({"show_element_descriptions": True}, "show_element_descriptions"),
-        ({"show_foot_boxes": True}, "show_foot_boxes"),
-        ({"show_index": True}, "show_index"),
         ({"without_property_header": True}, "without_property_header"),
     ],
 )

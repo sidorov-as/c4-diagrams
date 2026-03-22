@@ -27,6 +27,7 @@ from c4 import (
 )
 from c4.diagrams.core import Diagram
 from c4.exceptions import PlantUMLBackendConfigurationError
+from c4.renderers import RenderOptions
 from c4.renderers.plantuml import LayoutOptions
 from c4.renderers.plantuml.backends import DiagramFormat
 from c4.renderers.plantuml.constants import (
@@ -72,7 +73,7 @@ def build_system_context_diagram() -> SystemContextDiagram:
                 alias="ecommerce",
             )
 
-            with SystemBoundary("Fulfillment"):
+            with SystemBoundary("Fulfillment", alias="fulfillment_boundary"):
                 fulfillment = System(
                     "Fulfillment System",
                     (
@@ -93,7 +94,7 @@ def build_system_context_diagram() -> SystemContextDiagram:
 
         braintree = System(
             "Braintree Payments",
-            ("Processes credit card payments on behalf of Widgets Limited."),
+            "Processes credit card payments on behalf of Widgets Limited.",
             alias="braintree",
         )
 
@@ -178,6 +179,29 @@ def test_plant_uml_renderer__get_renderer__passes_shared_configuration():
 
     assert result._includes == includes
     assert result._config is layout_config
+    assert result._plantuml_backend is backend
+    assert result._use_new_c4_style is True
+
+
+def test_plant_uml_renderer__get_renderer__diagram_render_options():
+    includes = ["!include custom.puml"]
+    layout_config = LayoutOptions().layout_top_down(with_legend=True).build()
+    diagram_layout_config = LayoutOptions().layout_landscape().build()
+    backend = object()
+    renderer = PlantUMLRenderer(
+        includes=includes,
+        layout_config=layout_config,
+        backend=backend,
+        use_new_c4_style=True,
+    )
+    diagram = SystemContextDiagram(
+        render_options=RenderOptions(plantuml=diagram_layout_config)
+    )
+
+    result = renderer.get_renderer(diagram)
+
+    assert result._includes == includes
+    assert result._config is diagram_layout_config
     assert result._plantuml_backend is backend
     assert result._use_new_c4_style is True
 

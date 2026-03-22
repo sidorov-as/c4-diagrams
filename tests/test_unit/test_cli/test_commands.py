@@ -179,3 +179,40 @@ def test_handle_convert__unsupported_conversion(
     spied_resolve_diagram.assert_not_called()
     spied_diagram_to_python_code.assert_not_called()
     assert not diagram_output.exists()
+
+
+def test_handle_convert__conversion_error(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    file_path = tmp_path / "diagram.json"
+    file_path.write_text(
+        """
+        {"type": "Invalid diagram type"}
+        """
+    )
+    diagram_output = tmp_path / "diagram.py"
+    args = argparse.Namespace(
+        target=str(file_path),
+        output=diagram_output,
+        **{
+            "from": "json",
+            "to": "py",
+        },
+    )
+    spied_build_convert_cli_options = mocker.spy(
+        commands, "build_convert_cli_options"
+    )
+    spied_resolve_diagram = mocker.spy(commands, "resolve_diagram")
+    spied_diagram_to_python_code = mocker.spy(
+        commands, "diagram_to_python_code"
+    )
+    expected_error = "JSON diagram schema validation failed"
+
+    with pytest.raises(CLIError, match=expected_error):
+        handle_convert(args)
+
+    spied_build_convert_cli_options.assert_called_once_with(args)
+    spied_resolve_diagram.assert_called_once_with(str(file_path))
+    spied_diagram_to_python_code.assert_not_called()
+    assert not diagram_output.exists()

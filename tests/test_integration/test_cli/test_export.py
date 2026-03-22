@@ -78,7 +78,16 @@ def test_export__module__success(
         ),
     )
 
-    result = cli(["export", "module", "-f", "txt", "-o", str(diagram_output)])
+    result = cli([
+        "export",
+        "module",
+        "-f",
+        "txt",
+        "-o",
+        str(diagram_output),
+        "--timeout",
+        "60",
+    ])
 
     assert result.exit_code == 0
     assert not result.stdout
@@ -678,6 +687,8 @@ def test_export_to_stdout(
         str(module_path),
         "-f",
         "txt",
+        "--timeout",
+        "60",
     ])
 
     assert result.exit_code == 0

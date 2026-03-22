@@ -117,10 +117,7 @@ from c4.renderers.plantuml.macros import (
     RelationshipPlantUMLMacro,
     SetIndexPlantUMLMacro,
     SetSketchStylePlantUMLMacro,
-    ShowElementDescriptionsPlantUMLMacro,
     ShowFloatingLegendPlantUMLMacro,
-    ShowFootBoxesPlantUMLMacro,
-    ShowIndexPlantUMLMacro,
     ShowLegendPlantUMLMacro,
     ShowPersonOutlinePlantUMLMacro,
     ShowPersonSpritePlantUMLMacro,
@@ -140,6 +137,7 @@ from c4.renderers.plantuml.macros import (
     quote,
     quote_and_escape,
     quote_and_lower,
+    str_or_empty,
 )
 
 
@@ -154,6 +152,21 @@ from c4.renderers.plantuml.macros import (
 )
 def test_quote_and_escape(value: str, expected: str):
     result = quote_and_escape(value)
+
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("", ""),
+        (None, ""),
+        (True, "True"),
+        (False, "False"),
+    ],
+)
+def test_str_or_empty(value: str, expected: str):
+    result = str_or_empty(value)
 
     assert result == expected
 
@@ -622,7 +635,7 @@ def test_element_plantuml_macro_get_data(
         "label": "Element",
         "description": "An element",
         "sprite": "$foo1",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
         **override_kwargs,
     }
@@ -700,7 +713,7 @@ def test_element_with_technology_plantuml_macro_get_data():
         "description": "An element",
         "technology": "tech",
         "sprite": "$foo1",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
     }
     element = ElementWithTechnology(**kwargs)
@@ -710,7 +723,7 @@ def test_element_with_technology_plantuml_macro_get_data():
         "label": "Element",
         "description": "An element",
         "sprite": "$foo1",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
         "type": "",
         "technology": "tech",
@@ -758,7 +771,7 @@ def test_element_plantuml_macro_render(
         "label": "Element",
         "description": "An element",
         "sprite": "$spriteValue",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
         "type_": "stereotype",
     }
@@ -770,7 +783,7 @@ def test_element_plantuml_macro_render(
         '"Element", '
         '"An element", '
         '$sprite="$spriteValue", '
-        '$tags="foo,bar", '
+        '$tags="foo+bar", '
         '$link="https://example.com", '
         '$type="stereotype"'
         ")"
@@ -806,7 +819,7 @@ def test_element_with_technology_plantuml_macro_render(
         "description": "An element",
         "technology": "tech",
         "sprite": "$spriteValue",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
     }
     element = element_class(**kwargs)
@@ -818,7 +831,7 @@ def test_element_with_technology_plantuml_macro_render(
         '"tech", '
         '"An element", '
         '$sprite="$spriteValue", '
-        '$tags="foo,bar", '
+        '$tags="foo+bar", '
         '$link="https://example.com"'
         ")"
     )
@@ -850,7 +863,7 @@ def test_system_plantuml_macro_render(
         "label": "Element",
         "description": "An element",
         "sprite": "$spriteValue",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
         "type_": "stereotype",
         "base_shape": "rectangle",
@@ -863,7 +876,7 @@ def test_system_plantuml_macro_render(
         '"Element", '
         '"An element", '
         '$sprite="$spriteValue", '
-        '$tags="foo,bar", '
+        '$tags="foo+bar", '
         '$link="https://example.com", '
         '$type="stereotype", '
         '$baseShape="rectangle"'
@@ -881,22 +894,22 @@ def test_system_plantuml_macro_render(
         (
             Boundary,
             {"type_": "stereotype"},
-            'Boundary(element1, "Element", $type="stereotype", $tags="foo,bar", $link="https://example.com", $descr="An element")',
+            'Boundary(element1, "Element", $type="stereotype", $tags="foo+bar", $link="https://example.com", $descr="An element")',
         ),
         (
             ContainerBoundary,
             {},
-            'Container_Boundary(element1, "Element", $tags="foo,bar", $link="https://example.com", $descr="An element")',
+            'Container_Boundary(element1, "Element", $tags="foo+bar", $link="https://example.com", $descr="An element")',
         ),
         (
             EnterpriseBoundary,
             {},
-            'Enterprise_Boundary(element1, "Element", $tags="foo,bar", $link="https://example.com", $descr="An element")',
+            'Enterprise_Boundary(element1, "Element", $tags="foo+bar", $link="https://example.com", $descr="An element")',
         ),
         (
             SystemBoundary,
-            {"type_": "stereotype"},
-            'System_Boundary(element1, "Element", $type="stereotype", $tags="foo,bar", $link="https://example.com", $descr="An element")',
+            {},
+            'System_Boundary(element1, "Element", $tags="foo+bar", $link="https://example.com", $descr="An element")',
         ),
     ],
 )
@@ -910,7 +923,7 @@ def test_boundary_plantuml_macro_render(
     kwargs = {
         "alias": "element1",
         "label": "Element",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
         "description": "An element",
         **override_kwargs,
@@ -928,11 +941,11 @@ def test_boundary_plantuml_macro_render(
     [
         (
             Container,
-            'Container(element1, "Element", "tech", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com", $baseShape="rectangle")',
+            'Container(element1, "Element", "tech", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com", $baseShape="rectangle")',
         ),
         (
             ContainerExt,
-            'Container_Ext(element1, "Element", "tech", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com", $baseShape="rectangle")',
+            'Container_Ext(element1, "Element", "tech", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com", $baseShape="rectangle")',
         ),
     ],
 )
@@ -944,7 +957,7 @@ def test_container_plantuml_macro_render(
     kwargs = {
         "alias": "element1",
         "label": "Element",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
         "description": "An element",
         "technology": "tech",
@@ -964,11 +977,11 @@ def test_container_plantuml_macro_render(
     [
         (
             Component,
-            'Component(element1, "Element", "tech", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com", $baseShape="rectangle")',
+            'Component(element1, "Element", "tech", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com", $baseShape="rectangle")',
         ),
         (
             ComponentExt,
-            'Component_Ext(element1, "Element", "tech", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com", $baseShape="rectangle")',
+            'Component_Ext(element1, "Element", "tech", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com", $baseShape="rectangle")',
         ),
     ],
 )
@@ -980,7 +993,7 @@ def test_component_plantuml_macro_render(
     kwargs = {
         "alias": "element1",
         "label": "Element",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
         "description": "An element",
         "technology": "tech",
@@ -1077,7 +1090,7 @@ def test_relationship_plantuml_macro_get_data(
         "technology": "technology",
         "description": "Description",
         "sprite": "$sprite",
-        "tags": "tag1,tag2",
+        "tags": ["tag1", "tag2"],
         "link": "https://example.com",
         "index": index,
     }
@@ -1115,7 +1128,7 @@ def test_relationship_plantuml_macro_render(
         "technology": "technology",
         "description": "Description",
         "sprite": "$sprite",
-        "tags": "tag1,tag2",
+        "tags": ["tag1", "tag2"],
         "link": "https://example.com",
     }
     signature = (
@@ -1123,7 +1136,7 @@ def test_relationship_plantuml_macro_render(
         '"technology", '
         '"Description", '
         '$sprite="$sprite", '
-        '$tags="tag1,tag2", '
+        '$tags="tag1+tag2", '
         '$link="https://example.com"'
         ")"
     )
@@ -1163,7 +1176,7 @@ def test_relationship_plantuml_macro_render_with_index(
         "technology": "technology",
         "description": "Description",
         "sprite": "$sprite",
-        "tags": "tag1,tag2",
+        "tags": ["tag1", "tag2"],
         "link": "https://example.com",
         "index": index,
     }
@@ -1172,7 +1185,7 @@ def test_relationship_plantuml_macro_render_with_index(
         '"technology", '
         '"Description", '
         '$sprite="$sprite", '
-        '$tags="tag1,tag2", '
+        '$tags="tag1+tag2", '
         '$link="https://example.com", '
         f"$index={index}"
         ")"
@@ -1275,27 +1288,27 @@ def test_layout_plantuml_macro_render(
     [
         (
             Node,
-            'Node(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com")',
+            'Node(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com")',
         ),
         (
             NodeLeft,
-            'Node_L(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com")',
+            'Node_L(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com")',
         ),
         (
             NodeRight,
-            'Node_R(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com")',
+            'Node_R(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com")',
         ),
         (
             DeploymentNode,
-            'Deployment_Node(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com")',
+            'Deployment_Node(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com")',
         ),
         (
             DeploymentNodeLeft,
-            'Deployment_Node_L(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com")',
+            'Deployment_Node_L(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com")',
         ),
         (
             DeploymentNodeRight,
-            'Deployment_Node_R(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo,bar", $link="https://example.com")',
+            'Deployment_Node_R(element1, "Element", "type", "An element", $sprite="$foo", $tags="foo+bar", $link="https://example.com")',
         ),
     ],
 )
@@ -1307,7 +1320,7 @@ def test_node_plantuml_macro_render(
     kwargs = {
         "alias": "element1",
         "label": "Element",
-        "tags": "foo,bar",
+        "tags": ["foo", "bar"],
         "link": "https://example.com",
         "description": "An element",
         "type_": "type",
@@ -1354,10 +1367,7 @@ def test_diagram_layout_plantuml_macro_render(
         (LayoutAsSketchPlantUMLMacro, "LAYOUT_AS_SKETCH()"),
         (HidePersonSpritePlantUMLMacro, "HIDE_PERSON_SPRITE()"),
         (ShowPersonOutlinePlantUMLMacro, "SHOW_PERSON_OUTLINE()"),
-        (ShowFootBoxesPlantUMLMacro, "SHOW_FOOT_BOXES()"),
-        (ShowIndexPlantUMLMacro, "SHOW_INDEX()"),
         (HideStereotypePlantUMLMacro, "HIDE_STEREOTYPE()"),
-        (ShowElementDescriptionsPlantUMLMacro, "SHOW_ELEMENT_DESCRIPTIONS()"),
         (WithoutPropertyHeaderPlantUMLMacro, "WithoutPropertyHeader()"),
     ],
 )

@@ -84,7 +84,7 @@ def test_create_relationship_with_elements():
     assert relationship.technology == ""
     assert relationship.description == ""
     assert relationship.sprite == ""
-    assert relationship.tags == ""
+    assert relationship.tags == []
     assert relationship.link == ""
     assert relationship.index is None
     assert relationship.relationship_type == RelationshipType.REL

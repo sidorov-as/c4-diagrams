@@ -759,9 +759,6 @@ def test_json_to_diagram_converter__set_render_options__plantuml(
         show_person_sprite=None,
         show_person_portrait=False,
         show_person_outline=False,
-        show_element_descriptions=False,
-        show_foot_boxes=False,
-        show_index=False,
         without_property_header=False,
         legend_title="System",
         tags=[

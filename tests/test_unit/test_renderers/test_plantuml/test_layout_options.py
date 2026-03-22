@@ -45,9 +45,6 @@ def test_layout_options_default():
         show_person_sprite=None,
         show_person_portrait=False,
         show_person_outline=False,
-        show_element_descriptions=False,
-        show_foot_boxes=False,
-        show_index=False,
         without_property_header=False,
         legend_title=None,
         tags=[],
@@ -223,63 +220,6 @@ def test_layout_options_show_person_outline_sets_flag(
 
     cfg = layout_options.build()
     assert cfg.show_person_outline is expected
-
-
-@pytest.mark.parametrize(
-    ("call_chain", "expected"),
-    [
-        (("show_element_descriptions",), True),
-        (("show_element_descriptions", "show_element_descriptions"), True),
-    ],
-)
-def test_layout_options_show_element_descriptions_sets_flag(
-    layout_options: LayoutOptions,
-    call_chain: tuple[str, ...],
-    expected: bool,
-) -> None:
-    for name in call_chain:
-        getattr(layout_options, name)()
-
-    cfg = layout_options.build()
-    assert cfg.show_element_descriptions is expected
-
-
-@pytest.mark.parametrize(
-    ("call_chain", "expected"),
-    [
-        (("show_foot_boxes",), True),
-        (("show_foot_boxes", "show_foot_boxes"), True),
-    ],
-)
-def test_layout_options_show_foot_boxes_sets_flag(
-    layout_options: LayoutOptions,
-    call_chain: tuple[str, ...],
-    expected: bool,
-) -> None:
-    for name in call_chain:
-        getattr(layout_options, name)()
-
-    cfg = layout_options.build()
-    assert cfg.show_foot_boxes is expected
-
-
-@pytest.mark.parametrize(
-    ("call_chain", "expected"),
-    [
-        (("show_index",), True),
-        (("show_index", "show_index"), True),
-    ],
-)
-def test_layout_options_show_index_sets_flag(
-    layout_options: LayoutOptions,
-    call_chain: tuple[str, ...],
-    expected: bool,
-) -> None:
-    for name in call_chain:
-        getattr(layout_options, name)()
-
-    cfg = layout_options.build()
-    assert cfg.show_index is expected
 
 
 @pytest.mark.parametrize(
