@@ -1,7 +1,7 @@
 # Renderers
 
-Renderers are responsible for converting a `Diagram` object into a textual representation
-(for example, PlantUML source code).
+Renderers are responsible for converting a [`Diagram`][c4.diagrams.core.Diagram]
+object into a textual representation (for example, PlantUML source code).
 
 !!! note
 
@@ -11,7 +11,7 @@ Renderers are responsible for converting a `Diagram` object into a textual repre
 
 ## Basic rendering
 
-Diagram can be rendered to a string using the `Diagram.render()` method.
+Diagram can be rendered to a string using the [`Diagram.render()`][c4.diagrams.core.Diagram.render] method.
 
 By default, a diagram uses its `default_renderer`, if one is configured.
 
@@ -36,8 +36,8 @@ print(diagram.render())
 
 ### What happens here?
 
-- `PlantUMLRenderer` is assigned as the diagram’s default renderer
-- `diagram.render()` uses this renderer implicitly
+- [`PlantUMLRenderer`][c4.renderers.plantuml.renderer.PlantUMLRenderer] is assigned as the diagram’s default renderer
+- [`diagram.render()`][c4.diagrams.core.Diagram.render] uses this renderer implicitly
 - The result is a **string** containing PlantUML source code
 
 <br/>
@@ -93,7 +93,7 @@ print(diagram.as_plantuml())
 
 ## Saving rendered diagrams to a file
 
-Rendered output can be written directly to a file using `Diagram.save()`.
+Rendered output can be written directly to a file using [`Diagram.save()`][c4.diagrams.core.Diagram.save].
 
 ```python
 from c4 import Person, Rel, System, SystemContextDiagram

@@ -1,0 +1,449 @@
+{
+  "type": "DeploymentDiagram",
+  "title": "Online Shop - Production Deployment",
+  "elements": [
+    {
+      "type": "Person",
+      "alias": "customer",
+      "label": "Customer",
+      "description": "Uses the online shop through a browser.",
+      "tags": [
+        "person"
+      ]
+    },
+    {
+      "type": "ContainerExt",
+      "alias": "payment_gateway",
+      "label": "Payment Gateway",
+      "description": "External service that processes card payments.",
+      "technology": "HTTPS API",
+      "tags": [
+        "external_service"
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "Node",
+      "alias": "aws_prod",
+      "label": "AWS Production Account",
+      "description": "Production cloud account for the online shop.",
+      "stereotype": "Cloud Account",
+      "tags": [
+        "cloud_account"
+      ],
+      "properties": {
+        "properties": [
+          [
+            "Environment",
+            "Production"
+          ],
+          [
+            "Region",
+            "eu-central-1"
+          ]
+        ]
+      },
+      "elements": [],
+      "relationships": [],
+      "boundaries": [
+        {
+          "type": "NodeLeft",
+          "alias": "public_subnet",
+          "label": "Public Subnet",
+          "description": "Internet-facing network segment.",
+          "stereotype": "Network Segment",
+          "tags": [
+            "public_network"
+          ],
+          "elements": [],
+          "relationships": [],
+          "boundaries": [
+            {
+              "type": "DeploymentNodeLeft",
+              "alias": "alb",
+              "label": "Application Load Balancer",
+              "description": "Terminates TLS and routes requests to the web tier.",
+              "stereotype": "Ingress",
+              "tags": [
+                "edge_node"
+              ],
+              "elements": [
+                {
+                  "type": "Container",
+                  "alias": "web_app",
+                  "label": "Web Application",
+                  "description": "Serves the storefront UI.",
+                  "technology": "Next.js",
+                  "tags": [
+                    "frontend"
+                  ]
+                }
+              ],
+              "relationships": [],
+              "boundaries": []
+            }
+          ]
+        },
+        {
+          "type": "NodeRight",
+          "alias": "private_subnet",
+          "label": "Private Subnet",
+          "description": "Internal network segment for application and data services.",
+          "stereotype": "Network Segment",
+          "tags": [
+            "private_network"
+          ],
+          "elements": [],
+          "relationships": [],
+          "boundaries": [
+            {
+              "type": "DeploymentNode",
+              "alias": "app_cluster",
+              "label": "Kubernetes Cluster",
+              "description": "Runs backend services and asynchronous workers.",
+              "stereotype": "Runtime Environment",
+              "tags": [
+                "runtime_node"
+              ],
+              "properties": {
+                "properties": [
+                  [
+                    "Platform",
+                    "EKS"
+                  ],
+                  [
+                    "Autoscaling",
+                    "Enabled"
+                  ]
+                ]
+              },
+              "elements": [
+                {
+                  "type": "Container",
+                  "alias": "backend_api",
+                  "label": "Backend API",
+                  "description": "Handles catalog, checkout, and order processing.",
+                  "technology": "Python / FastAPI",
+                  "tags": [
+                    "backend"
+                  ]
+                },
+                {
+                  "type": "ContainerQueue",
+                  "alias": "order_events",
+                  "label": "Order Events",
+                  "description": "Internal asynchronous event stream.",
+                  "technology": "Kafka",
+                  "tags": [
+                    "message_bus"
+                  ]
+                }
+              ],
+              "relationships": [],
+              "boundaries": []
+            },
+            {
+              "type": "DeploymentNodeRight",
+              "alias": "db_service",
+              "label": "Managed PostgreSQL",
+              "description": "Managed relational database service.",
+              "stereotype": "Data Platform",
+              "tags": [
+                "data_node"
+              ],
+              "properties": {
+                "properties": [
+                  [
+                    "Service",
+                    "RDS"
+                  ],
+                  [
+                    "Mode",
+                    "Multi-AZ"
+                  ]
+                ]
+              },
+              "elements": [
+                {
+                  "type": "ContainerDb",
+                  "alias": "orders_db",
+                  "label": "Orders Database",
+                  "description": "Stores orders, payments, and fulfillment data.",
+                  "technology": "PostgreSQL",
+                  "tags": [
+                    "database"
+                  ]
+                }
+              ],
+              "relationships": [],
+              "boundaries": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "alb",
+      "label": "Uses",
+      "technology": "HTTPS",
+      "tags": [
+        "encrypted_traffic"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "alb",
+      "to": "app_cluster",
+      "label": "Routes traffic to",
+      "technology": "HTTPS",
+      "tags": [
+        "encrypted_traffic"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "app_cluster",
+      "to": "db_service",
+      "label": "Reads and writes",
+      "technology": "TLS / SQL",
+      "tags": [
+        "encrypted_traffic"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "app_cluster",
+      "to": "payment_gateway",
+      "label": "Calls",
+      "technology": "HTTPS/JSON",
+      "tags": [
+        "encrypted_traffic"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "order_events",
+      "label": "Publishes events to",
+      "technology": "Kafka",
+      "tags": [
+        "async_flow"
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "type": "LAY_R",
+      "from": "customer",
+      "to": "alb"
+    },
+    {
+      "type": "LAY_R",
+      "from": "alb",
+      "to": "app_cluster"
+    },
+    {
+      "type": "LAY_D",
+      "from": "app_cluster",
+      "to": "db_service"
+    },
+    {
+      "type": "LAY_R",
+      "from": "app_cluster",
+      "to": "payment_gateway"
+    }
+  ],
+  "render_options": {
+    "plantuml": {
+      "layout": "LAYOUT_LEFT_RIGHT",
+      "layout_with_legend": true,
+      "legend_title": "Deployment Legend",
+      "hide_stereotype": false,
+      "hide_person_sprite": false,
+      "show_person_outline": true,
+      "show_person_sprite": {
+        "alias": "person"
+      },
+      "show_legend": {
+        "details": "Normal",
+        "hide_stereotype": false
+      },
+      "styles": [
+        {
+          "type": "RelStyle",
+          "line_color": "#546e7a",
+          "text_color": "#37474f"
+        }
+      ],
+      "tags": [
+        {
+          "type": "PersonTag",
+          "tag_stereo": "person",
+          "legend_text": "End user",
+          "bg_color": "#e8f5e9",
+          "border_color": "#66bb6a",
+          "font_color": "#1b5e20",
+          "border_style": "SolidLine",
+          "border_thickness": "2"
+        },
+        {
+          "type": "ExternalContainerTag",
+          "tag_stereo": "external_service",
+          "legend_text": "External service",
+          "bg_color": "#f3e5f5",
+          "border_color": "#ab47bc",
+          "font_color": "#4a148c",
+          "border_style": "DashedLine",
+          "border_thickness": "2"
+        },
+        {
+          "type": "ContainerTag",
+          "tag_stereo": "frontend",
+          "legend_text": "Frontend container",
+          "bg_color": "#e3f2fd",
+          "border_color": "#42a5f5",
+          "font_color": "#0d47a1",
+          "border_style": "SolidLine",
+          "border_thickness": "2"
+        },
+        {
+          "type": "ContainerTag",
+          "tag_stereo": "backend",
+          "legend_text": "Backend container",
+          "bg_color": "#ede7f6",
+          "border_color": "#7e57c2",
+          "font_color": "#311b92",
+          "border_style": "SolidLine",
+          "border_thickness": "2"
+        },
+        {
+          "type": "ContainerTag",
+          "tag_stereo": "database",
+          "legend_text": "Database container",
+          "bg_color": "#fff3e0",
+          "border_color": "#fb8c00",
+          "font_color": "#e65100",
+          "border_style": "SolidLine",
+          "border_thickness": "2"
+        },
+        {
+          "type": "ContainerTag",
+          "tag_stereo": "message_bus",
+          "legend_text": "Message queue / stream",
+          "bg_color": "#fce4ec",
+          "border_color": "#ec407a",
+          "font_color": "#880e4f",
+          "border_style": "SolidLine",
+          "border_thickness": "2"
+        },
+        {
+          "type": "NodeTag",
+          "tag_stereo": "cloud_account",
+          "legend_text": "Cloud account boundary",
+          "legend_sprite": "cloud",
+          "bg_color": "#eef6ff",
+          "border_color": "#64b5f6",
+          "font_color": "#0d47a1",
+          "technology": "Infrastructure",
+          "border_style": "SolidLine",
+          "border_thickness": "2",
+          "shape": "RoundedBoxShape",
+          "shadowing": true
+        },
+        {
+          "type": "NodeTag",
+          "tag_stereo": "public_network",
+          "legend_text": "Public network zone",
+          "legend_sprite": "network",
+          "bg_color": "#f1f8e9",
+          "border_color": "#8bc34a",
+          "font_color": "#33691e",
+          "technology": "DMZ",
+          "border_style": "SolidLine",
+          "border_thickness": "1",
+          "shape": "RoundedBoxShape"
+        },
+        {
+          "type": "NodeTag",
+          "tag_stereo": "private_network",
+          "legend_text": "Private network zone",
+          "legend_sprite": "network",
+          "bg_color": "#fbe9e7",
+          "border_color": "#ff8a65",
+          "font_color": "#bf360c",
+          "technology": "Internal",
+          "border_style": "SolidLine",
+          "border_thickness": "1",
+          "shape": "RoundedBoxShape"
+        },
+        {
+          "type": "NodeTag",
+          "tag_stereo": "edge_node",
+          "legend_text": "Ingress deployment node",
+          "legend_sprite": "router",
+          "bg_color": "#e1f5fe",
+          "border_color": "#29b6f6",
+          "font_color": "#01579b",
+          "technology": "Ingress",
+          "border_style": "BoldLine",
+          "border_thickness": "2",
+          "shape": "RoundedBoxShape"
+        },
+        {
+          "type": "NodeTag",
+          "tag_stereo": "runtime_node",
+          "legend_text": "Runtime deployment node",
+          "legend_sprite": "server",
+          "bg_color": "#e8f5e9",
+          "border_color": "#66bb6a",
+          "font_color": "#1b5e20",
+          "technology": "Runtime",
+          "border_style": "SolidLine",
+          "border_thickness": "2",
+          "shape": "RoundedBoxShape",
+          "shadowing": true
+        },
+        {
+          "type": "NodeTag",
+          "tag_stereo": "data_node",
+          "legend_text": "Data deployment node",
+          "legend_sprite": "database",
+          "bg_color": "#fff8e1",
+          "border_color": "#ffb300",
+          "font_color": "#ff6f00",
+          "technology": "Data Platform",
+          "border_style": "SolidLine",
+          "border_thickness": "2",
+          "shape": "RoundedBoxShape"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "encrypted_traffic",
+          "legend_text": "Encrypted communication",
+          "legend_sprite": "lock",
+          "line_color": "#1976d2",
+          "text_color": "#0d47a1",
+          "line_style": "SolidLine",
+          "line_thickness": "2",
+          "technology": "TLS"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "async_flow",
+          "legend_text": "Asynchronous event flow",
+          "legend_sprite": "queue",
+          "line_color": "#8e24aa",
+          "text_color": "#4a148c",
+          "line_style": "DashedLine",
+          "line_thickness": "2",
+          "technology": "Kafka"
+        }
+      ]
+    }
+  }
+}

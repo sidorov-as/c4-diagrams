@@ -7,7 +7,6 @@
 
 ## Diagrams
 
-
 [`Diagram`][c4.diagrams.core.Diagram] is a primary object representing a diagram.
 
 ```python
@@ -340,7 +339,7 @@ from c4 import (
 
 ## Examples
 
-You can find all the examples on the [examples](../examples/plantuml.md) page.
+You can find all the examples on the [examples](../examples/plantuml/plantuml.md) page.
 
 ### System context diagram
 

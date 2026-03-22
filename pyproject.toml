@@ -31,7 +31,7 @@ c4 = "c4.__main__:entrypoint"
 
 [project.optional-dependencies]
 converters = [
-    "pydantic>=2.12.5",
+    "pydantic>=2.1.0",
 ]
 
 [dependency-groups]

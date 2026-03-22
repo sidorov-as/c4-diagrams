@@ -1,6 +1,15 @@
+## Getting Started
+
+Diagrams can be defined using the [Python DSL](concepts/diagrams.md) or a [JSON representation](converters/json/json.md).
+
+### Python Example
+
+Create a diagram using the Python DSL:
+
 ```python
 # diagram.py
 from c4 import Person, Rel, System, SystemContextDiagram
+
 
 with SystemContextDiagram() as diagram:
     user = Person(label="User", description="System user")
@@ -55,6 +64,75 @@ This generates the diagram below:
   <figcaption>diagram.png</figcaption>
 </figure>
 
+### JSON Support
+
+Diagrams can also be defined in [JSON format](converters/json/json.md).
+
+The same diagram expressed in JSON:
+
+```json
+{
+    "type": "SystemContextDiagram",
+    "elements": [
+        {
+          "type": "Person",
+          "alias": "user",
+          "label": "User",
+          "description": "System user"
+        },
+        {
+          "type": "System",
+          "alias": "app",
+          "label": "Backend API",
+          "description": "Main application backend"
+        }
+    ],
+    "relationships": [
+        {
+            "type": "REL",
+            "from": "user",
+            "to": "app",
+            "label": "Uses HTTP API"
+        }
+    ]
+}
+```
+
+JSON diagrams are treated the same way as Python diagrams:
+
+- `c4 render diagram.json` — generate textual output (e.g. PlantUML)
+- `c4 export diagram.json` — generate rendered artifacts (e.g. PNG)
+- `c4 convert diagram.json` — convert to another representation (e.g. Python)
+
+
+<br/>
+
+To convert a JSON diagram into the Python DSL, run:
+
+```shell
+c4 convert diagram.json --json-to-py > diagram.py
+```
+
+This generates:
+
+```python
+# diagram.py
+from c4 import (
+    Person,
+    Rel,
+    System,
+    SystemContextDiagram,
+)
+
+
+with SystemContextDiagram():
+    user = Person('User', 'System user', alias='user')
+    app = System('Backend API', 'Main application backend', alias='app')
+    user >> Rel('Uses HTTP API') >> app
+```
+
+<br/>
+
 ## CLI Reference
 
 ### c4 render
@@ -72,9 +150,9 @@ c4 render [-h] [-o OUTPUT] \
 
 **Arguments:**
 
-| Name     | Type   | Description                                                             |
-|----------|--------|-------------------------------------------------------------------------|
-| `target` | string | Diagram target: `file.py`, `file.py:diagram`, or `module.path:diagram`. |
+| Name     | Type   | Description                                                                                                                                                         |
+|----------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `target` | string | Diagram target: Python file or module (`file.py`, `file.py:diagram`, `module.path`, `module.path:diagram`) or a [JSON file](converters/json/json.md) (`file.json`). |
 
 **Options**:
 
@@ -101,6 +179,10 @@ Export a diagram to a rendered artifact (e.g., PNG or SVG).
 
 The available formats depend on the selected `renderer`.
 
+!!! note
+
+    Requires [system dependencies](installation.md#system-dependencies).
+
 **Usage:**
 
 ```shell
@@ -118,9 +200,9 @@ c4 export [-h] [-o OUTPUT] [-f {eps,latex,png,svg,txt,utxt}] \
 
 **Arguments:**
 
-| Name     | Type   | Description                                                             |
-|----------|--------|-------------------------------------------------------------------------|
-| `target` | string | Diagram target: `file.py`, `file.py:diagram`, or `module.path:diagram`. |
+| Name     | Type   | Description                                                                                                                                                         |
+|----------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `target` | string | Diagram target: Python file or module (`file.py`, `file.py:diagram`, `module.path`, `module.path:diagram`) or a [JSON file](converters/json/json.md) (`file.json`). |
 
 **Options**:
 
@@ -146,3 +228,41 @@ These options apply when using the plantuml renderer.
 | <span style="white-space: nowrap;">`--java-bin`</span>                  | string (path or command)   | Java executable to use when running PlantUML via JAR.<br/>If not provided, the `JAVA_BIN` environment variable will be used.                                                                                          | `java`                                            |
 | <span style="white-space: nowrap;">`--plantuml-skinparam-dpi`</span>    | integer                    | Set PlantUML `skinparam dpi` value to control raster (PNG) resolution.<br/>This modifies diagram rendering and affects all output formats.<br/>Can also be set via the `PLANTUML_SKINPARAM_DPI` environment variable. | None                                              |
 | <span style="white-space: nowrap;">`--plantuml-use-new-c4-style`</span> | boolean                    | Activates the new C4-PlantUML style.                                                                                                                                                                                  | False                                             |
+
+
+### c4 convert
+
+Convert a diagram from one representation to another.
+
+!!! note
+
+    Requires [additional dependencies](installation.md#optional-dependencies).
+
+**Usage:**
+
+```shell
+c4 convert [-h] \
+           [--json-to-py] \
+           [--from {json} | --from-json] \
+           [--to {py} | --to-py] \
+           [-o OUTPUT] \
+           target
+```
+
+**Arguments:**
+
+| Name     | Type   | Description     |
+|----------|--------|-----------------|
+| `target` | string | Diagram target. |
+
+**Options:**
+
+| Name             | Type            | Description                                                                     | Default  |
+|------------------|-----------------|---------------------------------------------------------------------------------|----------|
+| `--from`         | choice (`json`) | Input format.                                                                   | —        |
+| `--to`           | choice (`py`)   | Output format.                                                                  | —        |
+| `--from-json`    | flag            | Convert from [JSON diagram](converters/json/json.md) (alias for `--from json`). | False    |
+| `--to-py`        | flag            | Convert to Python DSL (alias for `--to py`).                                    | False    |
+| `--json-to-py`   | flag            | Shortcut for `--from json --to py`.                                             | False    |
+| `-o`, `--output` | path            | Redirect output to a file.                                                      | `stdout` |
+| `-h`, `--help`   | flag            | Show this help message and exit.                                                | False    |

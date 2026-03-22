@@ -28,9 +28,20 @@ nav:
           - Renderers: renderers/plantuml/renderers.md
           - Styles and layout options: renderers/plantuml/styles-and-options.md
           - Macros: renderers/plantuml/macros.md
+      - Render options: renderers/render-options.md
+  - Converters:
+      - JSON:
+        - JSON to Diagram: converters/json/json.md
+        - 'Diagram Specs':
+            - System Context Diagram: converters/json/specs/system_context_diagram.md
+            - System Landscape Diagram: converters/json/specs/system_landscape_diagram.md
+            - Container Diagram: converters/json/specs/container_diagram.md
+            - Component Diagram: converters/json/specs/component_diagram.md
+            - Deployment Diagram: converters/json/specs/deployment_diagram.md
+            - Dynamic Diagram: converters/json/specs/dynamic_diagram.md
   - Examples:
-      - PlantUML: examples/plantuml.md
-  - API Documentation:
+      - PlantUML: examples/plantuml/plantuml.md
+  - API Reference:
       - Core:
           - Diagrams and components: api_docs/core.md
           - Relationships: api_docs/relationships.md
@@ -44,6 +55,7 @@ nav:
         - Dynamic Diagram: api_docs/dynamic.md
         - Deployment Diagram: api_docs/deployment.md
       - Rendering backends:
+          - Render options: api_docs/render-options.md
           - PlantUML:
               - Renderers: api_docs/plantuml/renderers.md
               - Macros: api_docs/plantuml/macros.md
@@ -77,14 +89,14 @@ theme:
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: blue
-      accent: deep orange
+      accent: blue
       toggle:
         icon: material/lightbulb
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: blue
-      accent: deep orange
+      accent: blue
       toggle:
         icon: material/lightbulb-outline
         name: Switch to light mode
@@ -137,3 +149,10 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - pymdownx.blocks.caption
+  - pymdownx.snippets:
+      base_path: docs
+  - markdown_include.include:
+      base_path: docs
+
+extra_css:
+  - assets/styles/extra.css

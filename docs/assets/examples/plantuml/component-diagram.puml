@@ -1,0 +1,60 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Component.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!endif
+
+AddComponentTag("Entrypoint", $bgColor="#e3f2fd", $fontColor="#0d47a1", $borderColor="#42a5f5", $shadowing="true", $shape=RoundedBoxShape(), $techn="FastAPI", $legendText="HTTP/API entrypoint component", $legendSprite="server", $borderStyle=BoldLine(), $borderThickness="2")
+AddComponentTag("CoreComponent", $bgColor="#e8f5e9", $fontColor="#1b5e20", $borderColor="#66bb6a", $shadowing="true", $shape=RoundedBoxShape(), $techn="Python", $legendText="Internal business component", $legendSprite="server", $borderStyle=SolidLine(), $borderThickness="2")
+AddComponentTag("Orders", $bgColor="#fff3e0", $fontColor="#e65100", $borderColor="#fb8c00", $shadowing="true", $shape=RoundedBoxShape(), $techn="Python", $legendText="Order management component", $legendSprite="server", $borderStyle=SolidLine(), $borderThickness="2")
+AddComponentTag("Payments", $bgColor="#ede7f6", $fontColor="#311b92", $borderColor="#7e57c2", $shadowing="true", $shape=RoundedBoxShape(), $techn="Python", $legendText="Payment-related component", $legendSprite="server", $borderStyle=SolidLine(), $borderThickness="2")
+AddComponentTag("ComponentDatabase", $bgColor="#fff8e1", $fontColor="#5d4037", $borderColor="#ffb300", $shape=RoundedBoxShape(), $techn="PostgreSQL", $legendText="Internal component database", $legendSprite="database", $borderStyle=SolidLine(), $borderThickness="1")
+AddExternalComponentTag("ExternalComponent", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $shape=RoundedBoxShape(), $techn="REST API", $legendText="External component dependency", $legendSprite="cloud", $borderStyle=DashedLine(), $borderThickness="1")
+AddComponentTag("AsyncComponent", $bgColor="#f3e5f5", $fontColor="#6a1b9a", $borderColor="#ab47bc", $shape=RoundedBoxShape(), $techn="Kafka", $legendText="Internal asynchronous component", $legendSprite="queue", $borderStyle=SolidLine(), $borderThickness="1")
+AddRelTag("SyncCall", $textColor="#1565c0", $lineColor="#1e88e5", $lineStyle=SolidLine(), $lineThickness="1", $techn="Python call")
+AddRelTag("ExternalCall", $textColor="#455a64", $lineColor="#78909c", $lineStyle=DashedLine(), $lineThickness="1", $techn="HTTPS/JSON")
+AddRelTag("DataAccess", $textColor="#6d4c41", $lineColor="#8d6e63", $lineStyle=DashedLine(), $lineThickness="1", $techn="SQL")
+AddRelTag("AsyncFlow", $textColor="#6a1b9a", $lineColor="#8e24aa", $lineStyle=DottedLine(), $lineThickness="2", $techn="Kafka")
+
+UpdateElementStyle("component", $shape=RoundedBoxShape(), $borderStyle=SolidLine())
+UpdateRelStyle($textColor="#37474f", $lineColor="#546e7a")
+
+LAYOUT_LEFT_RIGHT()
+LAYOUT_WITH_LEGEND()
+UpdateLegendTitle("Order Processing Component Legend")
+
+title Order Processing API - Component Diagram
+
+Component(order_controller, "Order Controller", "FastAPI", "HTTP entrypoint for order submission and status queries.", $tags="Entrypoint+CoreComponent")
+
+Component(order_app_service, "Order Application Service", "Python", "Coordinates validation, payment, and order creation.", $tags="CoreComponent+Orders")
+
+Component(inventory_checker, "Inventory Checker", "Python", "Verifies stock availability before an order is confirmed.", $tags="CoreComponent")
+
+Component(payment_adapter, "Payment Adapter", "Python", "Wraps external payment provider calls.", $tags="CoreComponent+Payments")
+
+ComponentDb(order_db, "Order Database", "PostgreSQL", "Stores orders, line items, and order status history.", $tags="ComponentDatabase")
+
+Component_Ext(payment_gateway_api, "Payment Gateway API", "REST API", "External provider API for payment authorization and capture.", $tags="ExternalComponent")
+
+ComponentQueue(order_events_bus, "Order Events Bus", "Kafka", "Publishes order-created and order-paid events.", $tags="AsyncComponent")
+
+Rel(order_controller, order_app_service, "Invokes", "Python call", $tags="SyncCall")
+Rel(order_app_service, inventory_checker, "Checks stock via", "Python call", $tags="SyncCall")
+Rel(order_app_service, payment_adapter, "Requests payment through", "Python call", $tags="SyncCall")
+Rel(payment_adapter, payment_gateway_api, "Authorizes payment via", "HTTPS/JSON", $tags="ExternalCall")
+Rel(order_app_service, order_db, "Reads and writes", "SQL", $tags="DataAccess")
+Rel(order_app_service, order_events_bus, "Publishes events to", "Kafka", $tags="AsyncFlow")
+
+Lay_R(order_controller, order_app_service)
+Lay_R(order_app_service, inventory_checker)
+Lay_D(order_app_service, order_db)
+Lay_R(inventory_checker, payment_adapter)
+Lay_R(payment_adapter, payment_gateway_api)
+Lay_D(payment_adapter, order_events_bus)
+
+SHOW_LEGEND($details=Normal())
+
+@enduml

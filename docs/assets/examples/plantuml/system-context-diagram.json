@@ -1,0 +1,169 @@
+{
+  "type": "SystemContextDiagram",
+  "title": "Retail Platform",
+  "elements": [
+    {
+      "type": "Person",
+      "label": "Customer",
+      "alias": "customer",
+      "description": "Places orders through the storefront.",
+      "tags": [
+        "Primary"
+      ]
+    },
+    {
+      "type": "PersonExt",
+      "label": "Support Agent",
+      "alias": "support_agent",
+      "description": "Handles issues in an external CRM.",
+      "tags": [
+        "External"
+      ]
+    },
+    {
+      "type": "SystemExt",
+      "label": "Payment Gateway",
+      "alias": "payment_gateway",
+      "description": "Processes card payments.",
+      "tags": [
+        "External"
+      ]
+    },
+    {
+      "type": "SystemExt",
+      "label": "CRM Platform",
+      "alias": "crm_platform",
+      "description": "External CRM used by support agents.",
+      "tags": [
+        "External"
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "EnterpriseBoundary",
+      "label": "Acme Corp",
+      "alias": "acme_enterprise",
+      "description": "Internal systems owned by Acme.",
+      "tags": [
+        "Enterprise"
+      ],
+      "elements": [
+        {
+          "type": "System",
+          "label": "Retail Platform",
+          "alias": "retail_platform",
+          "description": "Core platform for catalog, checkout, and order management.",
+          "tags": [
+            "Core"
+          ],
+          "link": "https://retail.example.com"
+        }
+      ],
+      "boundaries": [],
+      "relationships": []
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "retail_platform",
+      "label": "Browses and places orders",
+      "technology": "HTTPS",
+      "tags": [
+        "Synchronous"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "retail_platform",
+      "to": "payment_gateway",
+      "label": "Charges card",
+      "technology": "REST API",
+      "tags": [
+        "Synchronous"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "support_agent",
+      "to": "crm_platform",
+      "label": "Manages customer issues",
+      "technology": "Web UI",
+      "tags": [
+        "Manual"
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "type": "LAY_R",
+      "from": "customer",
+      "to": "retail_platform"
+    },
+    {
+      "type": "LAY_R",
+      "from": "retail_platform",
+      "to": "payment_gateway"
+    },
+    {
+      "type": "LAY_D",
+      "from": "support_agent",
+      "to": "crm_platform"
+    }
+  ],
+  "render_options": {
+    "plantuml": {
+      "layout": "LAYOUT_LEFT_RIGHT",
+      "layout_with_legend": true,
+      "show_legend": {
+        "details": "Normal",
+        "hide_stereotype": false
+      },
+      "legend_title": "System Context",
+      "hide_stereotype": false,
+      "tags": [
+        {
+          "type": "PersonTag",
+          "tag_stereo": "Primary",
+          "legend_text": "Primary user",
+          "sprite": "person"
+        },
+        {
+          "type": "ExternalPersonTag",
+          "tag_stereo": "External",
+          "legend_text": "External person",
+          "sprite": "person"
+        },
+        {
+          "type": "SystemTag",
+          "tag_stereo": "Core",
+          "legend_text": "Core internal system",
+          "sprite": "server"
+        },
+        {
+          "type": "ExternalSystemTag",
+          "tag_stereo": "External",
+          "legend_text": "External dependency",
+          "sprite": "cloud"
+        },
+        {
+          "type": "BoundaryTag",
+          "tag_stereo": "Enterprise",
+          "legend_text": "Enterprise boundary"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "Synchronous",
+          "legend_text": "Synchronous integration"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "Manual",
+          "legend_text": "Manual interaction"
+        }
+      ]
+    }
+  }
+}

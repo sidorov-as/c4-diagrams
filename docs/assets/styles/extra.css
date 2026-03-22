@@ -1,0 +1,27 @@
+
+code.doc-symbol-json {
+    color: var(--doc-symbol-function-fg-color);
+    background-color: var(--doc-symbol-function-bg-color);
+}
+
+code.doc-symbol-json::after {
+    content: 'json';
+}
+
+/* Prevent line breaks inside inline code in tables */
+.code-nowrap + .md-typeset__scrollwrap {
+    table {
+        code {
+            white-space: nowrap;
+        }
+    }
+}
+
+/* Prevent line breaks inside inline code in admonition tables */
+.code-nowrap + p + .md-typeset__scrollwrap {
+    table {
+        code {
+            white-space: nowrap;
+        }
+    }
+}

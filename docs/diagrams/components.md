@@ -84,9 +84,9 @@ with ComponentDiagram(
     ma >> Rel("Uses", "JSON/HTTPS") >> sign
     ma >> Rel("Uses", "JSON/HTTPS") >> accounts
 
-    layout_options = LayoutOptions().layout_with_legend()
+    layout_config = LayoutOptions().layout_with_legend().build()
 
-diagram_code = diagram.as_plantuml(layout_options=layout_options)
+diagram_code = diagram.as_plantuml(layout_config=layout_config)
 ```
 
 <details>

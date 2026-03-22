@@ -1,0 +1,338 @@
+{
+  "type": "ComponentDiagram",
+  "title": "Order Processing API - Component Diagram",
+  "elements": [
+    {
+      "type": "Component",
+      "label": "Order Controller",
+      "alias": "order_controller",
+      "description": "HTTP entrypoint for order submission and status queries.",
+      "technology": "FastAPI",
+      "tags": [
+        "Entrypoint",
+        "CoreComponent"
+      ]
+    },
+    {
+      "type": "Component",
+      "label": "Order Application Service",
+      "alias": "order_app_service",
+      "description": "Coordinates validation, payment, and order creation.",
+      "technology": "Python",
+      "tags": [
+        "CoreComponent",
+        "Orders"
+      ]
+    },
+    {
+      "type": "Component",
+      "label": "Inventory Checker",
+      "alias": "inventory_checker",
+      "description": "Verifies stock availability before an order is confirmed.",
+      "technology": "Python",
+      "tags": [
+        "CoreComponent"
+      ]
+    },
+    {
+      "type": "Component",
+      "label": "Payment Adapter",
+      "alias": "payment_adapter",
+      "description": "Wraps external payment provider calls.",
+      "technology": "Python",
+      "tags": [
+        "CoreComponent",
+        "Payments"
+      ]
+    },
+    {
+      "type": "ComponentDb",
+      "label": "Order Database",
+      "alias": "order_db",
+      "description": "Stores orders, line items, and order status history.",
+      "technology": "PostgreSQL",
+      "tags": [
+        "ComponentDatabase"
+      ]
+    },
+    {
+      "type": "ComponentExt",
+      "label": "Payment Gateway API",
+      "alias": "payment_gateway_api",
+      "description": "External provider API for payment authorization and capture.",
+      "technology": "REST API",
+      "tags": [
+        "ExternalComponent"
+      ]
+    },
+    {
+      "type": "ComponentQueue",
+      "label": "Order Events Bus",
+      "alias": "order_events_bus",
+      "description": "Publishes order-created and order-paid events.",
+      "technology": "Kafka",
+      "tags": [
+        "AsyncComponent"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "order_controller",
+      "to": "order_app_service",
+      "label": "Invokes",
+      "technology": "Python call",
+      "tags": [
+        "SyncCall"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "order_app_service",
+      "to": "inventory_checker",
+      "label": "Checks stock via",
+      "technology": "Python call",
+      "tags": [
+        "SyncCall"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "order_app_service",
+      "to": "payment_adapter",
+      "label": "Requests payment through",
+      "technology": "Python call",
+      "tags": [
+        "SyncCall"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "payment_adapter",
+      "to": "payment_gateway_api",
+      "label": "Authorizes payment via",
+      "technology": "HTTPS/JSON",
+      "tags": [
+        "ExternalCall"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "order_app_service",
+      "to": "order_db",
+      "label": "Reads and writes",
+      "technology": "SQL",
+      "tags": [
+        "DataAccess"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "order_app_service",
+      "to": "order_events_bus",
+      "label": "Publishes events to",
+      "technology": "Kafka",
+      "tags": [
+        "AsyncFlow"
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "type": "LAY_R",
+      "from": "order_controller",
+      "to": "order_app_service"
+    },
+    {
+      "type": "LAY_R",
+      "from": "order_app_service",
+      "to": "inventory_checker"
+    },
+    {
+      "type": "LAY_D",
+      "from": "order_app_service",
+      "to": "order_db"
+    },
+    {
+      "type": "LAY_R",
+      "from": "inventory_checker",
+      "to": "payment_adapter"
+    },
+    {
+      "type": "LAY_R",
+      "from": "payment_adapter",
+      "to": "payment_gateway_api"
+    },
+    {
+      "type": "LAY_D",
+      "from": "payment_adapter",
+      "to": "order_events_bus"
+    }
+  ],
+  "render_options": {
+    "plantuml": {
+      "layout": "LAYOUT_LEFT_RIGHT",
+      "layout_with_legend": true,
+      "legend_title": "Order Processing Component Legend",
+      "show_legend": {
+        "details": "Normal",
+        "hide_stereotype": false
+      },
+      "tags": [
+        {
+          "type": "ComponentTag",
+          "tag_stereo": "Entrypoint",
+          "legend_text": "HTTP/API entrypoint component",
+          "legend_sprite": "server",
+          "bg_color": "#e3f2fd",
+          "font_color": "#0d47a1",
+          "border_color": "#42a5f5",
+          "border_style": "BoldLine",
+          "border_thickness": "2",
+          "shadowing": true,
+          "shape": "RoundedBoxShape",
+          "technology": "FastAPI"
+        },
+        {
+          "type": "ComponentTag",
+          "tag_stereo": "CoreComponent",
+          "legend_text": "Internal business component",
+          "legend_sprite": "server",
+          "bg_color": "#e8f5e9",
+          "font_color": "#1b5e20",
+          "border_color": "#66bb6a",
+          "border_style": "SolidLine",
+          "border_thickness": "2",
+          "shadowing": true,
+          "shape": "RoundedBoxShape",
+          "technology": "Python"
+        },
+        {
+          "type": "ComponentTag",
+          "tag_stereo": "Orders",
+          "legend_text": "Order management component",
+          "legend_sprite": "server",
+          "bg_color": "#fff3e0",
+          "font_color": "#e65100",
+          "border_color": "#fb8c00",
+          "border_style": "SolidLine",
+          "border_thickness": "2",
+          "shadowing": true,
+          "shape": "RoundedBoxShape",
+          "technology": "Python"
+        },
+        {
+          "type": "ComponentTag",
+          "tag_stereo": "Payments",
+          "legend_text": "Payment-related component",
+          "legend_sprite": "server",
+          "bg_color": "#ede7f6",
+          "font_color": "#311b92",
+          "border_color": "#7e57c2",
+          "border_style": "SolidLine",
+          "border_thickness": "2",
+          "shadowing": true,
+          "shape": "RoundedBoxShape",
+          "technology": "Python"
+        },
+        {
+          "type": "ComponentTag",
+          "tag_stereo": "ComponentDatabase",
+          "legend_text": "Internal component database",
+          "legend_sprite": "database",
+          "bg_color": "#fff8e1",
+          "font_color": "#5d4037",
+          "border_color": "#ffb300",
+          "border_style": "SolidLine",
+          "border_thickness": "1",
+          "shadowing": false,
+          "shape": "RoundedBoxShape",
+          "technology": "PostgreSQL"
+        },
+        {
+          "type": "ExternalComponentTag",
+          "tag_stereo": "ExternalComponent",
+          "legend_text": "External component dependency",
+          "legend_sprite": "cloud",
+          "bg_color": "#f5f5f5",
+          "font_color": "#424242",
+          "border_color": "#9e9e9e",
+          "border_style": "DashedLine",
+          "border_thickness": "1",
+          "shadowing": false,
+          "shape": "RoundedBoxShape",
+          "technology": "REST API"
+        },
+        {
+          "type": "ComponentTag",
+          "tag_stereo": "AsyncComponent",
+          "legend_text": "Internal asynchronous component",
+          "legend_sprite": "queue",
+          "bg_color": "#f3e5f5",
+          "font_color": "#6a1b9a",
+          "border_color": "#ab47bc",
+          "border_style": "SolidLine",
+          "border_thickness": "1",
+          "shadowing": false,
+          "shape": "RoundedBoxShape",
+          "technology": "Kafka"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "SyncCall",
+          "legend_text": "Synchronous internal call",
+          "line_color": "#1e88e5",
+          "text_color": "#1565c0",
+          "line_style": "SolidLine",
+          "line_thickness": "1",
+          "technology": "Python call"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "ExternalCall",
+          "legend_text": "External service call",
+          "line_color": "#78909c",
+          "text_color": "#455a64",
+          "line_style": "DashedLine",
+          "line_thickness": "1",
+          "technology": "HTTPS/JSON"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "DataAccess",
+          "legend_text": "Database access",
+          "line_color": "#8d6e63",
+          "text_color": "#6d4c41",
+          "line_style": "DashedLine",
+          "line_thickness": "1",
+          "technology": "SQL"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "AsyncFlow",
+          "legend_text": "Asynchronous event flow",
+          "legend_sprite": "queue",
+          "line_color": "#8e24aa",
+          "text_color": "#6a1b9a",
+          "line_style": "DottedLine",
+          "line_thickness": "2",
+          "technology": "Kafka"
+        }
+      ],
+      "styles": [
+        {
+          "type": "ElementStyle",
+          "element_name": "component",
+          "shape": "RoundedBoxShape",
+          "border_style": "SolidLine"
+        },
+        {
+          "type": "RelStyle",
+          "line_color": "#546e7a",
+          "text_color": "#37474f"
+        }
+      ]
+    }
+  }
+}

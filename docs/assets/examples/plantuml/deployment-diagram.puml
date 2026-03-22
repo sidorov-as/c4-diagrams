@@ -1,0 +1,71 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Deployment.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+!endif
+
+AddPersonTag("person", $bgColor="#e8f5e9", $fontColor="#1b5e20", $borderColor="#66bb6a", $legendText="End user", $borderStyle=SolidLine(), $borderThickness="2")
+AddExternalContainerTag("external_service", $bgColor="#f3e5f5", $fontColor="#4a148c", $borderColor="#ab47bc", $legendText="External service", $borderStyle=DashedLine(), $borderThickness="2")
+AddContainerTag("frontend", $bgColor="#e3f2fd", $fontColor="#0d47a1", $borderColor="#42a5f5", $legendText="Frontend container", $borderStyle=SolidLine(), $borderThickness="2")
+AddContainerTag("backend", $bgColor="#ede7f6", $fontColor="#311b92", $borderColor="#7e57c2", $legendText="Backend container", $borderStyle=SolidLine(), $borderThickness="2")
+AddContainerTag("database", $bgColor="#fff3e0", $fontColor="#e65100", $borderColor="#fb8c00", $legendText="Database container", $borderStyle=SolidLine(), $borderThickness="2")
+AddContainerTag("message_bus", $bgColor="#fce4ec", $fontColor="#880e4f", $borderColor="#ec407a", $legendText="Message queue / stream", $borderStyle=SolidLine(), $borderThickness="2")
+AddNodeTag("cloud_account", $bgColor="#eef6ff", $fontColor="#0d47a1", $borderColor="#64b5f6", $shadowing="true", $shape=RoundedBoxShape(), $techn="Infrastructure", $legendText="Cloud account boundary", $legendSprite="cloud", $borderStyle=SolidLine(), $borderThickness="2")
+AddNodeTag("public_network", $bgColor="#f1f8e9", $fontColor="#33691e", $borderColor="#8bc34a", $shape=RoundedBoxShape(), $techn="DMZ", $legendText="Public network zone", $legendSprite="network", $borderStyle=SolidLine(), $borderThickness="1")
+AddNodeTag("private_network", $bgColor="#fbe9e7", $fontColor="#bf360c", $borderColor="#ff8a65", $shape=RoundedBoxShape(), $techn="Internal", $legendText="Private network zone", $legendSprite="network", $borderStyle=SolidLine(), $borderThickness="1")
+AddNodeTag("edge_node", $bgColor="#e1f5fe", $fontColor="#01579b", $borderColor="#29b6f6", $shape=RoundedBoxShape(), $techn="Ingress", $legendText="Ingress deployment node", $legendSprite="router", $borderStyle=BoldLine(), $borderThickness="2")
+AddNodeTag("runtime_node", $bgColor="#e8f5e9", $fontColor="#1b5e20", $borderColor="#66bb6a", $shadowing="true", $shape=RoundedBoxShape(), $techn="Runtime", $legendText="Runtime deployment node", $legendSprite="server", $borderStyle=SolidLine(), $borderThickness="2")
+AddNodeTag("data_node", $bgColor="#fff8e1", $fontColor="#ff6f00", $borderColor="#ffb300", $shape=RoundedBoxShape(), $techn="Data Platform", $legendText="Data deployment node", $legendSprite="database", $borderStyle=SolidLine(), $borderThickness="2")
+AddRelTag("encrypted_traffic", $textColor="#0d47a1", $lineColor="#1976d2", $lineStyle=SolidLine(), $lineThickness="2", $techn="TLS")
+AddRelTag("async_flow", $textColor="#4a148c", $lineColor="#8e24aa", $lineStyle=DashedLine(), $lineThickness="2", $techn="Kafka")
+
+UpdateRelStyle($textColor="#37474f", $lineColor="#546e7a")
+
+LAYOUT_LEFT_RIGHT()
+LAYOUT_WITH_LEGEND()
+SHOW_PERSON_SPRITE("person")
+SHOW_PERSON_OUTLINE()
+UpdateLegendTitle("Deployment Legend")
+
+title Online Shop - Production Deployment
+
+Person(customer, "Customer", "Uses the online shop through a browser.", $tags="person")
+
+Container_Ext(payment_gateway, "Payment Gateway", "HTTPS API", "External service that processes card payments.", $tags="external_service")
+
+Node(aws_prod, "AWS Production Account", "Cloud Account", "Production cloud account for the online shop.", $tags="cloud_account") {
+    Node_L(public_subnet, "Public Subnet", "Network Segment", "Internet-facing network segment.", $tags="public_network") {
+        Deployment_Node_L(alb, "Application Load Balancer", "Ingress", "Terminates TLS and routes requests to the web tier.", $tags="edge_node") {
+            Container(web_app, "Web Application", "Next.js", "Serves the storefront UI.", $tags="frontend")
+        }
+    }
+
+    Node_R(private_subnet, "Private Subnet", "Network Segment", "Internal network segment for application and data services.", $tags="private_network") {
+        Deployment_Node(app_cluster, "Kubernetes Cluster", "Runtime Environment", "Runs backend services and asynchronous workers.", $tags="runtime_node") {
+            Container(backend_api, "Backend API", "Python / FastAPI", "Handles catalog, checkout, and order processing.", $tags="backend")
+
+            ContainerQueue(order_events, "Order Events", "Kafka", "Internal asynchronous event stream.", $tags="message_bus")
+        }
+
+        Deployment_Node_R(db_service, "Managed PostgreSQL", "Data Platform", "Managed relational database service.", $tags="data_node") {
+            ContainerDb(orders_db, "Orders Database", "PostgreSQL", "Stores orders, payments, and fulfillment data.", $tags="database")
+        }
+    }
+}
+
+Rel(customer, alb, "Uses", "HTTPS", $tags="encrypted_traffic")
+Rel(alb, app_cluster, "Routes traffic to", "HTTPS", $tags="encrypted_traffic")
+Rel(app_cluster, db_service, "Reads and writes", "TLS / SQL", $tags="encrypted_traffic")
+Rel(app_cluster, payment_gateway, "Calls", "HTTPS/JSON", $tags="encrypted_traffic")
+Rel(backend_api, order_events, "Publishes events to", "Kafka", $tags="async_flow")
+
+Lay_R(customer, alb)
+Lay_R(alb, app_cluster)
+Lay_D(app_cluster, db_service)
+Lay_R(app_cluster, payment_gateway)
+
+SHOW_LEGEND($details=Normal())
+
+@enduml

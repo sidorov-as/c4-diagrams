@@ -1,0 +1,45 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Dynamic.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
+!endif
+
+AddPersonTag("customer", $bgColor="#08427B", $fontColor="#FFFFFF", $borderColor="#052E56", $legendText="Customer actor")
+AddSystemTag("core", $bgColor="#1168BD", $fontColor="#FFFFFF", $borderColor="#0B4884", $legendText="Core internal system")
+AddExternalSystemTag("external", $bgColor="#999999", $fontColor="#FFFFFF", $borderColor="#6B6B6B", $legendText="External system")
+AddRelTag("payment_call", $textColor="#0B4884", $lineColor="#0B4884", $lineStyle=BoldLine())
+AddRelTag("fulfillment_call", $textColor="#1B5E20", $lineColor="#1B5E20")
+AddRelTag("response", $textColor="#6B6B6B", $lineColor="#6B6B6B", $lineStyle=DottedLine())
+
+UpdateElementStyle("person", $fontColor="#FFFFFF")
+UpdateElementStyle("system", $fontColor="#FFFFFF")
+UpdateRelStyle($textColor="#222222", $lineColor="#444444")
+
+LAYOUT_LEFT_RIGHT()
+UpdateLegendTitle("Dynamic Flow Legend")
+
+title Order Fulfillment Flow
+
+Person(customer, "Customer", "Places orders in the online store.", $tags="person+customer")
+
+System(online_store, "Online Store", "Customer-facing commerce platform.", $tags="system+core", $type="Software System")
+
+System_Ext(payment_gateway, "Payment Gateway", "External provider that authorizes card payments.", $tags="system+external", $type="External System")
+
+System_Ext(warehouse_system, "Warehouse System", "External warehouse platform that reserves and ships items.", $tags="system+external+fulfillment", $type="External System")
+
+Rel(customer, online_store, "Places order", "HTTPS", $tags="request", $index=1)
+Rel(online_store, payment_gateway, "Authorizes payment", "REST API", $tags="payment_call+request", $index=2)
+Rel_Back(payment_gateway, online_store, "Returns authorization result", "HTTPS", $tags="payment_call+response", $index=3)
+Rel(online_store, warehouse_system, "Sends fulfillment request", "AMQP", $tags="fulfillment_call", $index=4)
+Rel_Back(warehouse_system, online_store, "Confirms reservation", "AMQP", $tags="fulfillment_call+response", $index=5)
+
+Lay_R(customer, online_store)
+Lay_R(online_store, payment_gateway)
+Lay_D(payment_gateway, warehouse_system)
+
+SHOW_LEGEND($details=Normal())
+
+@enduml

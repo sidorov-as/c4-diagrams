@@ -44,7 +44,7 @@ from c4.renderers.plantuml import LayoutOptions
 
 renderer = PlantUMLRenderer(
     backend=LocalPlantUMLBackend(),
-    layout_options=LayoutOptions().layout_top_down(with_legend=True)
+    layout_config=LayoutOptions().layout_top_down(with_legend=True).build()
 )
 
 with DynamicDiagram() as diagram:

@@ -15,6 +15,17 @@ check: ## Run code quality tools.
 	@echo "🚀 Checking for obsolete dependencies: Running deptry"
 	@uv run deptry .
 
+
+.PHONY: format
+format: ## Run the Ruff formatter.
+	@echo "🚀 Running the Ruff formatter"
+	@uv run ruff format .
+
+.PHONY: generate-diagram-specs
+generate-diagram-specs: ## Generate diagram specs.
+	@echo "🚀 Generate diagram specs"
+	@uv run python docs/scripts/generate_diagram_spec_docs.py
+
 .PHONY: test
 test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"

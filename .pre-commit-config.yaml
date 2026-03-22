@@ -26,5 +26,14 @@ repos:
     rev: "v0.14.10"
     hooks:
       - id: ruff-check
-        args: [ --exit-non-zero-on-fix ]
+        args: [--fix, --exit-non-zero-on-fix ]
       - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: generate-diagram-specs
+        name: Generate Diagram Specs
+        entry: python docs/scripts/generate_diagram_spec_docs.py
+        language: system
+        pass_filenames: false
+        files: ^c4/converters/json/schemas\.py$

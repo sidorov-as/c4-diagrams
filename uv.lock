@@ -86,7 +86,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pydantic", marker = "extra == 'converters'", specifier = ">=2.12.5" },
+    { name = "pydantic", marker = "extra == 'converters'", specifier = ">=2.1.0" },
     { name = "typing-extensions", specifier = ">=4.15.0" },
 ]
 provides-extras = ["converters"]

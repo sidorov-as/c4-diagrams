@@ -1,0 +1,202 @@
+{
+  "type": "DynamicDiagram",
+  "title": "Order Fulfillment Flow",
+  "elements": [
+    {
+      "type": "Person",
+      "label": "Customer",
+      "alias": "customer",
+      "description": "Places orders in the online store.",
+      "tags": [
+        "person",
+        "customer"
+      ]
+    },
+    {
+      "type": "System",
+      "label": "Online Store",
+      "alias": "online_store",
+      "description": "Customer-facing commerce platform.",
+      "stereotype": "Software System",
+      "tags": [
+        "system",
+        "core"
+      ]
+    },
+    {
+      "type": "SystemExt",
+      "label": "Payment Gateway",
+      "alias": "payment_gateway",
+      "description": "External provider that authorizes card payments.",
+      "stereotype": "External System",
+      "tags": [
+        "system",
+        "external"
+      ]
+    },
+    {
+      "type": "SystemExt",
+      "label": "Warehouse System",
+      "alias": "warehouse_system",
+      "description": "External warehouse platform that reserves and ships items.",
+      "stereotype": "External System",
+      "tags": [
+        "system",
+        "external",
+        "fulfillment"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "online_store",
+      "label": "Places order",
+      "technology": "HTTPS",
+      "index": "1",
+      "tags": [
+        "request"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "online_store",
+      "to": "payment_gateway",
+      "label": "Authorizes payment",
+      "technology": "REST API",
+      "index": "2",
+      "tags": [
+        "payment_call",
+        "request"
+      ]
+    },
+    {
+      "type": "REL_BACK",
+      "from": "payment_gateway",
+      "to": "online_store",
+      "label": "Returns authorization result",
+      "technology": "HTTPS",
+      "index": "3",
+      "tags": [
+        "payment_call",
+        "response"
+      ]
+    },
+    {
+      "type": "REL",
+      "from": "online_store",
+      "to": "warehouse_system",
+      "label": "Sends fulfillment request",
+      "technology": "AMQP",
+      "index": "4",
+      "tags": [
+        "fulfillment_call"
+      ]
+    },
+    {
+      "type": "REL_BACK",
+      "from": "warehouse_system",
+      "to": "online_store",
+      "label": "Confirms reservation",
+      "technology": "AMQP",
+      "index": "5",
+      "tags": [
+        "fulfillment_call",
+        "response"
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "type": "LAY_R",
+      "from": "customer",
+      "to": "online_store"
+    },
+    {
+      "type": "LAY_R",
+      "from": "online_store",
+      "to": "payment_gateway"
+    },
+    {
+      "type": "LAY_D",
+      "from": "payment_gateway",
+      "to": "warehouse_system"
+    }
+  ],
+  "render_options": {
+    "plantuml": {
+      "layout": "LAYOUT_LEFT_RIGHT",
+      "legend_title": "Dynamic Flow Legend",
+      "show_legend": {
+        "details": "Normal"
+      },
+      "tags": [
+        {
+          "type": "PersonTag",
+          "tag_stereo": "customer",
+          "legend_text": "Customer actor",
+          "bg_color": "#08427B",
+          "font_color": "#FFFFFF",
+          "border_color": "#052E56"
+        },
+        {
+          "type": "SystemTag",
+          "tag_stereo": "core",
+          "legend_text": "Core internal system",
+          "bg_color": "#1168BD",
+          "font_color": "#FFFFFF",
+          "border_color": "#0B4884"
+        },
+        {
+          "type": "ExternalSystemTag",
+          "tag_stereo": "external",
+          "legend_text": "External system",
+          "bg_color": "#999999",
+          "font_color": "#FFFFFF",
+          "border_color": "#6B6B6B"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "payment_call",
+          "legend_text": "Payment interaction",
+          "text_color": "#0B4884",
+          "line_color": "#0B4884",
+          "line_style": "BoldLine"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "fulfillment_call",
+          "legend_text": "Fulfillment interaction",
+          "text_color": "#1B5E20",
+          "line_color": "#1B5E20"
+        },
+        {
+          "type": "RelTag",
+          "tag_stereo": "response",
+          "legend_text": "Response message",
+          "text_color": "#6B6B6B",
+          "line_color": "#6B6B6B",
+          "line_style": "DottedLine"
+        }
+      ],
+      "styles": [
+        {
+          "type": "ElementStyle",
+          "element_name": "person",
+          "font_color": "#FFFFFF"
+        },
+        {
+          "type": "ElementStyle",
+          "element_name": "system",
+          "font_color": "#FFFFFF"
+        },
+        {
+          "type": "RelStyle",
+          "text_color": "#222222",
+          "line_color": "#444444"
+        }
+      ]
+    }
+  }
+}

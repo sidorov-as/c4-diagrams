@@ -48,3 +48,11 @@ for additional information.
             - hide_stereotype
             - hide_person_sprite
             - show_person_portrait
+
+
+::: c4.renderers.plantuml.layout_options.LayoutConfig
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false

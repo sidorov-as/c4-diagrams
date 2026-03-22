@@ -105,7 +105,7 @@ with ContainerDiagram() as diagram:
 
     LayRight(reporting_service, audit_service)
 
-    layout_options = (
+    layout_config = (
         LayoutOptions()
         .add_element_tag(
             "microService",
@@ -122,9 +122,10 @@ with ContainerDiagram() as diagram:
         )
         .show_person_outline()
         .show_legend()
+        .build()
     )
 
-diagram_code = diagram.as_plantuml(layout_options=layout_options)
+diagram_code = diagram.as_plantuml(layout_config=layout_config)
 ```
 
 <details>

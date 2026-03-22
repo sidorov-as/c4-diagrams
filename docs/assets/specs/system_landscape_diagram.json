@@ -1,0 +1,5448 @@
+{
+  "title": "SystemLandscapeDiagram",
+  "type": "object",
+  "properties": {
+    "elements": {
+      "description": "Top-level elements.",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/PersonSchema"
+          },
+          {
+            "$ref": "#/$defs/PersonExtSchema"
+          },
+          {
+            "$ref": "#/$defs/SystemSchema"
+          },
+          {
+            "$ref": "#/$defs/SystemExtSchema"
+          },
+          {
+            "$ref": "#/$defs/SystemDbSchema"
+          },
+          {
+            "$ref": "#/$defs/SystemDbExtSchema"
+          },
+          {
+            "$ref": "#/$defs/SystemQueueSchema"
+          },
+          {
+            "$ref": "#/$defs/SystemQueueExtSchema"
+          }
+        ]
+      },
+      "title": "Elements",
+      "type": "array"
+    },
+    "boundaries": {
+      "description": "Top-level boundaries.",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/EnterpriseBoundarySchema"
+          },
+          {
+            "$ref": "#/$defs/SystemBoundarySchema"
+          }
+        ]
+      },
+      "title": "Boundaries",
+      "type": "array"
+    },
+    "relationships": {
+      "description": "Top-level relationships.",
+      "items": {
+        "$ref": "#/$defs/RelationshipSchema"
+      },
+      "title": "Relationships",
+      "type": "array"
+    },
+    "type": {
+      "const": "SystemLandscapeDiagram",
+      "description": "Type of the diagram.",
+      "title": "Type",
+      "type": "string"
+    },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional diagram title.",
+      "title": "Title"
+    },
+    "layouts": {
+      "description": "Relative layout constraints between elements.",
+      "items": {
+        "$ref": "#/$defs/LayoutSchema"
+      },
+      "title": "Layouts",
+      "type": "array"
+    },
+    "render_options": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RenderOptionsSchema"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional renderer-specific options"
+    }
+  },
+  "required": [
+    "type"
+  ],
+  "examples": [
+    {
+      "type": "SystemLandscapeDiagram",
+      "elements": [
+        {
+          "alias": "user",
+          "label": "User",
+          "type": "Person"
+        },
+        {
+          "alias": "app",
+          "label": "My App",
+          "type": "System"
+        }
+      ],
+      "relationships": [
+        {
+          "from": "user",
+          "label": "Uses",
+          "technology": "HTTPS",
+          "to": "app",
+          "type": "REL"
+        }
+      ]
+    },
+    {
+      "type": "SystemLandscapeDiagram",
+      "title": "Retail Platform",
+      "elements": [
+        {
+          "alias": "customer",
+          "description": "Places orders through the storefront.",
+          "label": "Customer",
+          "tags": [
+            "Primary"
+          ],
+          "type": "Person"
+        },
+        {
+          "alias": "support_agent",
+          "description": "Handles issues in an external CRM.",
+          "label": "Support Agent",
+          "tags": [
+            "External"
+          ],
+          "type": "PersonExt"
+        },
+        {
+          "alias": "payment_gateway",
+          "description": "Processes card payments.",
+          "label": "Payment Gateway",
+          "tags": [
+            "External"
+          ],
+          "type": "SystemExt"
+        },
+        {
+          "alias": "crm_platform",
+          "description": "External CRM used by support agents.",
+          "label": "CRM Platform",
+          "tags": [
+            "External"
+          ],
+          "type": "SystemExt"
+        }
+      ],
+      "boundaries": [
+        {
+          "alias": "acme_enterprise",
+          "boundaries": [],
+          "description": "Internal systems owned by Acme.",
+          "elements": [
+            {
+              "alias": "retail_platform",
+              "description": "Core platform for catalog, checkout, and order management.",
+              "label": "Retail Platform",
+              "link": "https://retail.example.com",
+              "tags": [
+                "Core"
+              ],
+              "type": "System"
+            }
+          ],
+          "label": "Acme Corp",
+          "relationships": [],
+          "tags": [
+            "Enterprise"
+          ],
+          "type": "EnterpriseBoundary"
+        }
+      ],
+      "relationships": [
+        {
+          "from": "customer",
+          "label": "Browses and places orders",
+          "tags": [
+            "Synchronous"
+          ],
+          "technology": "HTTPS",
+          "to": "retail_platform",
+          "type": "REL"
+        },
+        {
+          "from": "retail_platform",
+          "label": "Charges card",
+          "tags": [
+            "Synchronous"
+          ],
+          "technology": "REST API",
+          "to": "payment_gateway",
+          "type": "REL"
+        },
+        {
+          "from": "support_agent",
+          "label": "Manages customer issues",
+          "tags": [
+            "Manual"
+          ],
+          "technology": "Web UI",
+          "to": "crm_platform",
+          "type": "REL"
+        }
+      ],
+      "layouts": [
+        {
+          "from": "customer",
+          "to": "retail_platform",
+          "type": "LAY_R"
+        },
+        {
+          "from": "retail_platform",
+          "to": "payment_gateway",
+          "type": "LAY_R"
+        },
+        {
+          "from": "support_agent",
+          "to": "crm_platform",
+          "type": "LAY_D"
+        }
+      ],
+      "render_options": {
+        "plantuml": {
+          "hide_stereotype": false,
+          "layout": "LAYOUT_LEFT_RIGHT",
+          "layout_with_legend": true,
+          "legend_title": "System Context",
+          "show_legend": {
+            "details": "Normal",
+            "hide_stereotype": false
+          },
+          "tags": [
+            {
+              "legend_text": "Primary user",
+              "sprite": "person",
+              "tag_stereo": "Primary",
+              "type": "PersonTag"
+            },
+            {
+              "legend_text": "External person",
+              "sprite": "person",
+              "tag_stereo": "External",
+              "type": "ExternalPersonTag"
+            },
+            {
+              "legend_text": "Core internal system",
+              "sprite": "server",
+              "tag_stereo": "Core",
+              "type": "SystemTag"
+            },
+            {
+              "legend_text": "External dependency",
+              "sprite": "cloud",
+              "tag_stereo": "External",
+              "type": "ExternalSystemTag"
+            },
+            {
+              "legend_text": "Enterprise boundary",
+              "tag_stereo": "Enterprise",
+              "type": "BoundaryTag"
+            },
+            {
+              "legend_text": "Synchronous integration",
+              "tag_stereo": "Synchronous",
+              "type": "RelTag"
+            },
+            {
+              "legend_text": "Manual interaction",
+              "tag_stereo": "Manual",
+              "type": "RelTag"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "BoundaryStyleSchema": {
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "BoundaryStyle",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "element_name": {
+          "description": "C4 element type to style (e.g. 'person', 'system', 'container'). This applies to all elements of the given type, not a specific instance.",
+          "title": "Element Name",
+          "type": "string"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font/text color.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line color.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon applied to the element.",
+          "title": "Sprite"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend label for this styled element.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend sprite for this styled element.",
+          "title": "Legend Sprite"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "element_name"
+      ],
+      "title": "BoundaryStyleSchema",
+      "type": "object"
+    },
+    "BoundaryTagSchema": {
+      "properties": {
+        "type": {
+          "const": "BoundaryTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the element.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used for labels.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the element border.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the element border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "BoundaryTagSchema",
+      "type": "object"
+    },
+    "ComponentTagSchema": {
+      "properties": {
+        "type": {
+          "const": "ComponentTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the element.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used for labels.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the element border.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the element border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "ComponentTagSchema",
+      "type": "object"
+    },
+    "ContainerBoundaryStyleSchema": {
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "ContainerBoundaryStyle",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "element_name": {
+          "description": "C4 element type to style (e.g. 'person', 'system', 'container'). This applies to all elements of the given type, not a specific instance.",
+          "title": "Element Name",
+          "type": "string"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font/text color.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line color.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon applied to the element.",
+          "title": "Sprite"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend label for this styled element.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend sprite for this styled element.",
+          "title": "Legend Sprite"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "element_name"
+      ],
+      "title": "ContainerBoundaryStyleSchema",
+      "type": "object"
+    },
+    "ContainerTagSchema": {
+      "properties": {
+        "type": {
+          "const": "ContainerTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the element.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used for labels.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the element border.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the element border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "ContainerTagSchema",
+      "type": "object"
+    },
+    "DiagramElementPropertiesSchema": {
+      "properties": {
+        "show_header": {
+          "default": true,
+          "description": "Whether to display the header row.",
+          "title": "Show Header",
+          "type": "boolean"
+        },
+        "header": {
+          "default": [
+            "Property",
+            "Value"
+          ],
+          "description": "Header columns.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Header",
+          "type": "array"
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": "List of rows (each row is a list of string values).",
+          "title": "Properties"
+        }
+      },
+      "required": [
+        "properties"
+      ],
+      "title": "DiagramElementPropertiesSchema",
+      "type": "object"
+    },
+    "DiagramLayout": {
+      "description": "Defines layout direction options for a PlantUML diagram.\n\nThis enum controls how diagram elements are arranged visually using\npredefined PlantUML layout macros.\n\nMembers:\n    - LAYOUT_TOP_DOWN: Arrange elements vertically from top to bottom.\n    - LAYOUT_LEFT_RIGHT: Arrange elements horizontally from left to right.\n    - LAYOUT_LANDSCAPE: Apply PlantUML's landscape layout orientation.",
+      "enum": [
+        "LAYOUT_TOP_DOWN",
+        "LAYOUT_LEFT_RIGHT",
+        "LAYOUT_LANDSCAPE"
+      ],
+      "title": "DiagramLayout",
+      "type": "string"
+    },
+    "ElementStyleSchema": {
+      "properties": {
+        "type": {
+          "const": "ElementStyle",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "element_name": {
+          "description": "C4 element type to style (e.g. 'person', 'system', 'container'). This applies to all elements of the given type, not a specific instance.",
+          "title": "Element Name",
+          "type": "string"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font/text color.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line color.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon applied to the element.",
+          "title": "Sprite"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend label for this styled element.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend sprite for this styled element.",
+          "title": "Legend Sprite"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "element_name"
+      ],
+      "title": "ElementStyleSchema",
+      "type": "object"
+    },
+    "ElementTagSchema": {
+      "properties": {
+        "type": {
+          "const": "ElementTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the element.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used for labels.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the element border.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the element border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "ElementTagSchema",
+      "type": "object"
+    },
+    "EnterpriseBoundarySchema": {
+      "examples": [
+        {
+          "alias": "acme",
+          "boundaries": [
+            {
+              "alias": "commerce_domain",
+              "boundaries": [],
+              "elements": [],
+              "label": "Commerce Domain",
+              "relationships": [],
+              "type": "SystemBoundary"
+            }
+          ],
+          "description": "Enterprise boundary containing internal platforms.",
+          "elements": [
+            {
+              "alias": "customer_portal",
+              "description": "Entry point for customers.",
+              "label": "Customer Portal",
+              "type": "System"
+            },
+            {
+              "alias": "shared_identity",
+              "description": "Central authentication service.",
+              "label": "Shared Identity",
+              "type": "System"
+            }
+          ],
+          "label": "Acme Corp",
+          "link": "https://acme.example.com",
+          "properties": {
+            "properties": [
+              [
+                "Region",
+                "EU"
+              ],
+              [
+                "Department",
+                "Digital"
+              ]
+            ]
+          },
+          "relationships": [
+            {
+              "from": "customer_portal",
+              "label": "Authenticates via",
+              "technology": "OIDC",
+              "to": "shared_identity",
+              "type": "REL"
+            }
+          ],
+          "tags": [
+            "enterprise"
+          ],
+          "type": "EnterpriseBoundary"
+        }
+      ],
+      "properties": {
+        "relationships": {
+          "description": "Relationships declared inside the boundary.",
+          "items": {
+            "$ref": "#/$defs/RelationshipSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "type": {
+          "const": "EnterpriseBoundary",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "elements": {
+          "description": "Elements may be nested arbitrarily.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/PersonSchema"
+              },
+              {
+                "$ref": "#/$defs/PersonExtSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemExtSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemDbSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemDbExtSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemQueueSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemQueueExtSchema"
+              }
+            ]
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "boundaries": {
+          "description": "Boundaries may be nested arbitrarily.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EnterpriseBoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/SystemBoundarySchema"
+              }
+            ]
+          },
+          "title": "Boundaries",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "EnterpriseBoundary",
+      "type": "object"
+    },
+    "EnterpriseBoundaryStyleSchema": {
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "EnterpriseBoundaryStyle",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "element_name": {
+          "description": "C4 element type to style (e.g. 'person', 'system', 'container'). This applies to all elements of the given type, not a specific instance.",
+          "title": "Element Name",
+          "type": "string"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font/text color.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line color.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon applied to the element.",
+          "title": "Sprite"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend label for this styled element.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend sprite for this styled element.",
+          "title": "Legend Sprite"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "element_name"
+      ],
+      "title": "EnterpriseBoundaryStyleSchema",
+      "type": "object"
+    },
+    "ExternalComponentTagSchema": {
+      "properties": {
+        "type": {
+          "const": "ExternalComponentTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the element.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used for labels.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the element border.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the element border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "ExternalComponentTagSchema",
+      "type": "object"
+    },
+    "ExternalContainerTagSchema": {
+      "properties": {
+        "type": {
+          "const": "ExternalContainerTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the element.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used for labels.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the element border.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the element border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "ExternalContainerTagSchema",
+      "type": "object"
+    },
+    "ExternalPersonTagSchema": {
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "ExternalPersonTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the person symbol.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used in the label.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border color of the person symbol.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the person border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "ExternalPersonTagSchema",
+      "type": "object"
+    },
+    "ExternalSystemTagSchema": {
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "ExternalSystemTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the system element.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used in system labels.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border color of the system element.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the system border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "ExternalSystemTagSchema",
+      "type": "object"
+    },
+    "LayoutSchema": {
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/LayoutType",
+          "description": "Type of the layout."
+        },
+        "from": {
+          "description": "The source element alias (or unique label).",
+          "minLength": 1,
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "description": "The destination element alias (or unique label).",
+          "minLength": 1,
+          "title": "To",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "from",
+        "to"
+      ],
+      "title": "Layout",
+      "type": "object"
+    },
+    "LayoutType": {
+      "description": "Enum representing layout modifiers for diagram elements.",
+      "enum": [
+        "LAY_D",
+        "LAY_DOWN",
+        "LAY_U",
+        "LAY_UP",
+        "LAY_R",
+        "LAY_RIGHT",
+        "LAY_L",
+        "LAY_LEFT"
+      ],
+      "title": "LayoutType",
+      "type": "string"
+    },
+    "NodeTagSchema": {
+      "properties": {
+        "type": {
+          "const": "NodeTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the element.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used for labels.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the element border.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the element border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "NodeTagSchema",
+      "type": "object"
+    },
+    "PersonExtSchema": {
+      "examples": [
+        {
+          "alias": "auditor",
+          "description": "External compliance reviewer.",
+          "label": "Auditor",
+          "link": "https://partner.example.com",
+          "properties": {
+            "properties": [
+              [
+                "Organization",
+                "Compliance Partner"
+              ],
+              [
+                "Access",
+                "Read-only"
+              ]
+            ]
+          },
+          "sprite": "user",
+          "stereotype": "External User",
+          "tags": [
+            "person",
+            "external"
+          ],
+          "type": "PersonExt"
+        }
+      ],
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "PersonExt",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite/icon reference.",
+          "title": "Sprite"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "PersonExt",
+      "type": "object"
+    },
+    "PersonSchema": {
+      "examples": [
+        {
+          "alias": "store_manager",
+          "description": "Manages product catalog and promotions.",
+          "label": "Store Manager",
+          "link": "https://intranet.example.com",
+          "properties": {
+            "properties": [
+              [
+                "Department",
+                "Retail Ops"
+              ],
+              [
+                "Role",
+                "Manager"
+              ]
+            ]
+          },
+          "sprite": "user",
+          "stereotype": "Business User",
+          "tags": [
+            "person",
+            "internal"
+          ],
+          "type": "Person"
+        }
+      ],
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "Person",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite/icon reference.",
+          "title": "Sprite"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "Person",
+      "type": "object"
+    },
+    "PersonTagSchema": {
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "PersonTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the person symbol.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used in the label.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border color of the person symbol.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the person border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "PersonTagSchema",
+      "type": "object"
+    },
+    "PlantUMLLayoutOptionsSchema": {
+      "properties": {
+        "layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramLayout"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Layout direction."
+        },
+        "layout_with_legend": {
+          "default": false,
+          "description": "Whether to apply the LAYOUT_WITH_LEGEND macro.",
+          "title": "Layout With Legend",
+          "type": "boolean"
+        },
+        "layout_as_sketch": {
+          "default": false,
+          "description": "Whether to apply the LAYOUT_AS_SKETCH macro.",
+          "title": "Layout As Sketch",
+          "type": "boolean"
+        },
+        "set_sketch_style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SetSketchStyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sketch-style visual customization."
+        },
+        "show_legend": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ShowLegendSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Configuration for the SHOW_LEGEND macro."
+        },
+        "show_floating_legend": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ShowFloatingLegendSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Configuration for the SHOW_FLOATING_LEGEND macro."
+        },
+        "hide_stereotype": {
+          "default": false,
+          "description": "Whether to hide stereotype labels globally.",
+          "title": "Hide Stereotype",
+          "type": "boolean"
+        },
+        "hide_person_sprite": {
+          "default": false,
+          "description": "Whether to hide person sprites globally.",
+          "title": "Hide Person Sprite",
+          "type": "boolean"
+        },
+        "show_person_sprite": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ShowPersonSpriteSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Configuration for the SHOW_PERSON_SPRITE macro."
+        },
+        "show_person_portrait": {
+          "default": false,
+          "description": "Whether to enable person portraits.",
+          "title": "Show Person Portrait",
+          "type": "boolean"
+        },
+        "show_person_outline": {
+          "default": false,
+          "description": "Whether to enable person outlines.",
+          "title": "Show Person Outline",
+          "type": "boolean"
+        },
+        "without_property_header": {
+          "default": false,
+          "description": "If true, omit the header row and render the second column in bold.",
+          "title": "Without Property Header",
+          "type": "boolean"
+        },
+        "legend_title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional title displayed above the legend.",
+          "title": "Legend Title"
+        },
+        "tags": {
+          "description": "List of tag macro configurations.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "BoundaryTag": "#/$defs/BoundaryTagSchema",
+                "ComponentTag": "#/$defs/ComponentTagSchema",
+                "ContainerTag": "#/$defs/ContainerTagSchema",
+                "ElementTag": "#/$defs/ElementTagSchema",
+                "ExternalComponentTag": "#/$defs/ExternalComponentTagSchema",
+                "ExternalContainerTag": "#/$defs/ExternalContainerTagSchema",
+                "ExternalPersonTag": "#/$defs/ExternalPersonTagSchema",
+                "ExternalSystemTag": "#/$defs/ExternalSystemTagSchema",
+                "NodeTag": "#/$defs/NodeTagSchema",
+                "PersonTag": "#/$defs/PersonTagSchema",
+                "RelTag": "#/$defs/RelTagSchema",
+                "SystemTag": "#/$defs/SystemTagSchema"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ElementTagSchema"
+              },
+              {
+                "$ref": "#/$defs/BoundaryTagSchema"
+              },
+              {
+                "$ref": "#/$defs/ComponentTagSchema"
+              },
+              {
+                "$ref": "#/$defs/ExternalComponentTagSchema"
+              },
+              {
+                "$ref": "#/$defs/ContainerTagSchema"
+              },
+              {
+                "$ref": "#/$defs/ExternalContainerTagSchema"
+              },
+              {
+                "$ref": "#/$defs/NodeTagSchema"
+              },
+              {
+                "$ref": "#/$defs/RelTagSchema"
+              },
+              {
+                "$ref": "#/$defs/PersonTagSchema"
+              },
+              {
+                "$ref": "#/$defs/ExternalPersonTagSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemTagSchema"
+              },
+              {
+                "$ref": "#/$defs/ExternalSystemTagSchema"
+              }
+            ]
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "styles": {
+          "description": "List of style update macro configurations.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "BoundaryStyle": "#/$defs/BoundaryStyleSchema",
+                "ContainerBoundaryStyle": "#/$defs/ContainerBoundaryStyleSchema",
+                "ElementStyle": "#/$defs/ElementStyleSchema",
+                "EnterpriseBoundaryStyle": "#/$defs/EnterpriseBoundaryStyleSchema",
+                "RelStyle": "#/$defs/RelStyleSchema",
+                "SystemBoundaryStyle": "#/$defs/SystemBoundaryStyleSchema"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ElementStyleSchema"
+              },
+              {
+                "$ref": "#/$defs/BoundaryStyleSchema"
+              },
+              {
+                "$ref": "#/$defs/ContainerBoundaryStyleSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemBoundaryStyleSchema"
+              },
+              {
+                "$ref": "#/$defs/EnterpriseBoundaryStyleSchema"
+              },
+              {
+                "$ref": "#/$defs/RelStyleSchema"
+              }
+            ]
+          },
+          "title": "Styles",
+          "type": "array"
+        }
+      },
+      "title": "PlantUMLLayoutOptionsSchema",
+      "type": "object"
+    },
+    "RelStyleSchema": {
+      "properties": {
+        "type": {
+          "const": "RelStyle",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "text_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the relationship label text.",
+          "title": "Text Color"
+        },
+        "line_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the relationship line.",
+          "title": "Line Color"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "RelStyleSchema",
+      "type": "object"
+    },
+    "RelTagSchema": {
+      "properties": {
+        "type": {
+          "const": "RelTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "text_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the relationship label text.",
+          "title": "Text Color"
+        },
+        "line_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the relationship line.",
+          "title": "Line Color"
+        },
+        "line_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Relationship line style macro.",
+          "title": "Line Style"
+        },
+        "line_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the relationship line.",
+          "title": "Line Thickness"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label associated with the relationship.",
+          "title": "Technology"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "RelTagSchema",
+      "type": "object"
+    },
+    "RelationshipSchema": {
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/RelationshipType",
+          "description": "Type of the relationship."
+        },
+        "from": {
+          "description": "The source element alias (or unique label).",
+          "minLength": 1,
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "description": "The destination element alias (or unique label).",
+          "minLength": 1,
+          "title": "To",
+          "type": "string"
+        },
+        "label": {
+          "description": "The label shown on the relationship edge.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Additional details about the relationship.",
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The technology used in the communication.",
+          "title": "Technology"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite/icon to represent the relationship.",
+          "title": "Sprite"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL link associated with the relationship.",
+          "title": "Link"
+        }
+      },
+      "required": [
+        "type",
+        "from",
+        "to",
+        "label"
+      ],
+      "title": "Relationship",
+      "type": "object"
+    },
+    "RelationshipType": {
+      "description": "Enum representing different types of relationships between\ndiagram elements.",
+      "enum": [
+        "REL",
+        "BI_REL",
+        "REL_BACK",
+        "REL_NEIGHBOR",
+        "BI_REL_NEIGHBOR",
+        "REL_BACK_NEIGHBOR",
+        "REL_D",
+        "REL_DOWN",
+        "BI_REL_D",
+        "BI_REL_DOWN",
+        "REL_U",
+        "REL_UP",
+        "BI_REL_U",
+        "BI_REL_UP",
+        "REL_L",
+        "REL_LEFT",
+        "BI_REL_L",
+        "BI_REL_LEFT",
+        "REL_R",
+        "REL_RIGHT",
+        "BI_REL_R",
+        "BI_REL_RIGHT"
+      ],
+      "title": "RelationshipType",
+      "type": "string"
+    },
+    "RenderOptionsSchema": {
+      "properties": {
+        "plantuml": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlantUMLLayoutOptionsSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "PlantUML-specific render options."
+        }
+      },
+      "title": "RenderOptionsSchema",
+      "type": "object"
+    },
+    "SetSketchStyleSchema": {
+      "properties": {
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the diagram.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color for all diagram text.",
+          "title": "Font Color"
+        },
+        "warning_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color used for warning messages in the footer.",
+          "title": "Warning Color"
+        },
+        "font_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font family name to use.",
+          "title": "Font Name"
+        },
+        "footer_warning": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional warning message shown in the footer.",
+          "title": "Footer Warning"
+        },
+        "footer_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional footer text message.",
+          "title": "Footer Text"
+        }
+      },
+      "title": "SetSketchStyleSchema",
+      "type": "object"
+    },
+    "ShowFloatingLegendSchema": {
+      "properties": {
+        "hide_stereotype": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether to hide stereotype labels in the legend.",
+          "title": "Hide Stereotype"
+        },
+        "details": {
+          "default": "Small",
+          "description": "Legend detail level.",
+          "enum": [
+            "Small",
+            "Normal",
+            "None"
+          ],
+          "title": "Details",
+          "type": "string"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional alias for the floating legend box.",
+          "title": "Alias"
+        }
+      },
+      "title": "ShowFloatingLegendSchema",
+      "type": "object"
+    },
+    "ShowLegendSchema": {
+      "properties": {
+        "hide_stereotype": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether to hide stereotype labels in the legend.",
+          "title": "Hide Stereotype"
+        },
+        "details": {
+          "default": "Small",
+          "description": "Legend detail level.",
+          "enum": [
+            "Small",
+            "Normal",
+            "None"
+          ],
+          "title": "Details",
+          "type": "string"
+        }
+      },
+      "title": "ShowLegendSchema",
+      "type": "object"
+    },
+    "ShowPersonSpriteSchema": {
+      "properties": {
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite alias used for the person icon.",
+          "title": "Alias"
+        }
+      },
+      "title": "ShowPersonSpriteSchema",
+      "type": "object"
+    },
+    "SystemBoundarySchema": {
+      "examples": [
+        {
+          "alias": "commerce_platform",
+          "boundaries": [],
+          "description": "Boundary for the commerce system and its internal components.",
+          "elements": [
+            {
+              "alias": "web_storefront",
+              "description": "Frontend for browsing and checkout.",
+              "label": "Web Storefront",
+              "type": "System"
+            },
+            {
+              "alias": "orders_db",
+              "description": "Stores orders and payment state.",
+              "label": "Orders DB",
+              "type": "SystemDb"
+            }
+          ],
+          "label": "Commerce Platform",
+          "link": "https://docs.example.com/commerce",
+          "properties": {
+            "properties": [
+              [
+                "Owner",
+                "Commerce Team"
+              ],
+              [
+                "Environment",
+                "Production"
+              ]
+            ]
+          },
+          "relationships": [
+            {
+              "from": "web_storefront",
+              "label": "Reads and writes orders",
+              "technology": "SQL",
+              "to": "orders_db",
+              "type": "REL"
+            }
+          ],
+          "tags": [
+            "system_boundary"
+          ],
+          "type": "SystemBoundary"
+        }
+      ],
+      "properties": {
+        "relationships": {
+          "description": "Relationships declared inside the boundary.",
+          "items": {
+            "$ref": "#/$defs/RelationshipSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "type": {
+          "const": "SystemBoundary",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "elements": {
+          "description": "Elements may be nested arbitrarily.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/PersonSchema"
+              },
+              {
+                "$ref": "#/$defs/PersonExtSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemExtSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemDbSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemDbExtSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemQueueSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemQueueExtSchema"
+              }
+            ]
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "boundaries": {
+          "description": "Boundaries may be nested arbitrarily.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EnterpriseBoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/SystemBoundarySchema"
+              }
+            ]
+          },
+          "title": "Boundaries",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemBoundary",
+      "type": "object"
+    },
+    "SystemBoundaryStyleSchema": {
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "SystemBoundaryStyle",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "element_name": {
+          "description": "C4 element type to style (e.g. 'person', 'system', 'container'). This applies to all elements of the given type, not a specific instance.",
+          "title": "Element Name",
+          "type": "string"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font/text color.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line color.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon applied to the element.",
+          "title": "Sprite"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technology label shown on the element.",
+          "title": "Technology"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend label for this styled element.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Legend sprite for this styled element.",
+          "title": "Legend Sprite"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "element_name"
+      ],
+      "title": "SystemBoundaryStyleSchema",
+      "type": "object"
+    },
+    "SystemDbExtSchema": {
+      "examples": [
+        {
+          "alias": "credit_bureau_db",
+          "description": "External database with risk assessment data.",
+          "label": "Credit Bureau DB",
+          "link": "https://partner.example.com/risk",
+          "properties": {
+            "properties": [
+              [
+                "Provider",
+                "RiskCo"
+              ],
+              [
+                "Access",
+                "Read-only"
+              ]
+            ]
+          },
+          "sprite": "database",
+          "stereotype": "External Database",
+          "tags": [
+            "database",
+            "external"
+          ],
+          "type": "SystemDbExt"
+        }
+      ],
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "SystemDbExt",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite/icon reference.",
+          "title": "Sprite"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemDbExt",
+      "type": "object"
+    },
+    "SystemDbSchema": {
+      "examples": [
+        {
+          "alias": "customer_profile_db",
+          "description": "Stores customer preferences and account metadata.",
+          "label": "Customer Profile DB",
+          "link": "https://db.example.com/customer-profile",
+          "properties": {
+            "properties": [
+              [
+                "Engine",
+                "PostgreSQL"
+              ],
+              [
+                "Backup",
+                "Daily"
+              ]
+            ]
+          },
+          "sprite": "database",
+          "stereotype": "Database",
+          "tags": [
+            "database",
+            "internal"
+          ],
+          "type": "SystemDb"
+        }
+      ],
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "SystemDb",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite/icon reference.",
+          "title": "Sprite"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemDb",
+      "type": "object"
+    },
+    "SystemExtSchema": {
+      "examples": [
+        {
+          "alias": "shipping_provider",
+          "description": "External logistics platform for shipment booking and tracking.",
+          "label": "Shipping Provider",
+          "link": "https://shipping.example.com",
+          "properties": {
+            "properties": [
+              [
+                "Protocol",
+                "REST"
+              ],
+              [
+                "SLA",
+                "99.9%"
+              ]
+            ]
+          },
+          "sprite": "truck",
+          "stereotype": "External System",
+          "tags": [
+            "system",
+            "external"
+          ],
+          "type": "SystemExt"
+        }
+      ],
+      "properties": {
+        "base_shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional base shape override (supported by some element classes).",
+          "title": "Base Shape"
+        },
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "SystemExt",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite/icon reference.",
+          "title": "Sprite"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemExt",
+      "type": "object"
+    },
+    "SystemQueueExtSchema": {
+      "examples": [
+        {
+          "alias": "partner_events_topic",
+          "description": "External event topic carrying delivery status updates.",
+          "label": "Partner Events Topic",
+          "link": "https://partner.example.com/events",
+          "properties": {
+            "properties": [
+              [
+                "Broker",
+                "Kafka"
+              ],
+              [
+                "Format",
+                "Avro"
+              ]
+            ]
+          },
+          "sprite": "queue",
+          "stereotype": "External Queue",
+          "tags": [
+            "queue",
+            "external"
+          ],
+          "type": "SystemQueueExt"
+        }
+      ],
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "SystemQueueExt",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite/icon reference.",
+          "title": "Sprite"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemQueueExt",
+      "type": "object"
+    },
+    "SystemQueueSchema": {
+      "examples": [
+        {
+          "alias": "order_events_stream",
+          "description": "Internal stream of order lifecycle events.",
+          "label": "Order Events Stream",
+          "link": "https://kafka.example.com/topics/order-events",
+          "properties": {
+            "properties": [
+              [
+                "Retention",
+                "7 days"
+              ],
+              [
+                "Partitions",
+                "12"
+              ]
+            ]
+          },
+          "sprite": "queue",
+          "stereotype": "Queue",
+          "tags": [
+            "queue",
+            "internal"
+          ],
+          "type": "SystemQueue"
+        }
+      ],
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "SystemQueue",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite/icon reference.",
+          "title": "Sprite"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemQueue",
+      "type": "object"
+    },
+    "SystemSchema": {
+      "examples": [
+        {
+          "alias": "inventory_service",
+          "description": "Tracks stock levels and reservation state.",
+          "label": "Inventory Service",
+          "link": "https://inventory.example.com",
+          "properties": {
+            "properties": [
+              [
+                "Language",
+                "Python"
+              ],
+              [
+                "Team",
+                "Supply Chain"
+              ]
+            ]
+          },
+          "sprite": "server",
+          "stereotype": "Software System",
+          "tags": [
+            "system",
+            "internal"
+          ],
+          "type": "System"
+        }
+      ],
+      "properties": {
+        "base_shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional base shape override (supported by some element classes).",
+          "title": "Base Shape"
+        },
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "System",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional sprite/icon reference.",
+          "title": "Sprite"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "System",
+      "type": "object"
+    },
+    "SystemTagSchema": {
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "SystemTag",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "tag_stereo": {
+          "description": "Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component.",
+          "title": "Tag Stereo",
+          "type": "string"
+        },
+        "legend_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text shown in the diagram legend for this tag.",
+          "title": "Legend Text"
+        },
+        "legend_sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite displayed in the legend for this tag.",
+          "title": "Legend Sprite"
+        },
+        "sprite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sprite icon associated with the element or relationship.",
+          "title": "Sprite"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color of the system element.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font color used in system labels.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border color of the system element.",
+          "title": "Border Color"
+        },
+        "shadowing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "description": "Shadow style/toggle.",
+          "title": "Shadowing"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "enum": [
+                "EightSidedShape",
+                "RoundedBoxShape",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional shape macro used for rendering.",
+          "title": "Shape"
+        },
+        "border_style": {
+          "anyOf": [
+            {
+              "enum": [
+                "DashedLine",
+                "DottedLine",
+                "BoldLine",
+                "SolidLine",
+                ""
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line style macro.",
+          "title": "Border Style"
+        },
+        "border_thickness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Thickness of the system border line.",
+          "title": "Border Thickness"
+        }
+      },
+      "required": [
+        "type",
+        "tag_stereo"
+      ],
+      "title": "SystemTagSchema",
+      "type": "object"
+    }
+  }
+}

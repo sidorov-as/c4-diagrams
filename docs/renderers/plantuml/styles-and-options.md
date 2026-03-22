@@ -14,17 +14,20 @@ builder:
 ```python
 from c4.renderers.plantuml import LayoutOptions
 
-layout_options = (
+layout_config = (
     LayoutOptions()
     .layout_landscape()   # Horizontal layout
     .show_legend()        # Display legend
+    .build()
 )
 ```
 
-You can pass `layout_options` to [`PlantUMLRenderer`][c4.renderers.plantuml.renderer.PlantUMLRenderer].
+You can pass `layout_config` to [`PlantUMLRenderer`][c4.renderers.plantuml.renderer.PlantUMLRenderer].
 
 See the [Layout Options reference][c4.renderers.plantuml.layout_options.LayoutOptions] section for the complete list of
 available methods and configuration options.
+
+Layout configuration can also be set via [RenderOptions](../render-options.md).
 
 ## C4 Visual Styles
 
@@ -59,11 +62,11 @@ with ComponentDiagram() as diagram:
     admin >> RelRight("Uses", technology="HTTPS") >> web_app
     twitter_facade >> RelRight("Gets tweets from", technology="HTTPS") >> twitter
 
-    layout_options = LayoutOptions().layout_landscape().show_legend()
+    layout_config = LayoutOptions().layout_landscape().show_legend().build()
 
     renderer = PlantUMLRenderer(
         backend=LocalPlantUMLBackend(),
-        layout_options=layout_options,
+        layout_config=layout_config,
     )
 
 
@@ -107,11 +110,11 @@ with ComponentDiagram() as diagram:
     admin >> RelRight("Uses", technology="HTTPS") >> web_app
     twitter_facade >> RelRight("Gets tweets from", technology="HTTPS") >> twitter
 
-    layout_options = LayoutOptions().layout_landscape().show_legend()
+    layout_config = LayoutOptions().layout_landscape().show_legend().build()
 
     renderer = PlantUMLRenderer(
         backend=LocalPlantUMLBackend(),
-        layout_options=layout_options,
+        layout_config=layout_config,
         use_new_c4_style=True,
     )
 
