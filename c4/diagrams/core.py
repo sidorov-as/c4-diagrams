@@ -1479,7 +1479,7 @@ class Diagram:
 
         Args:
             **kwargs: Optional keyword arguments passed to the
-            [PlantUML renderer][c4.renderers.PlantUMLRenderer].
+                [PlantUML renderer][c4.renderers.PlantUMLRenderer].
 
         Returns:
             The rendered PlantUML code.
@@ -1545,7 +1545,7 @@ class Diagram:
         Args:
             path: Target file path.
             **kwargs: Optional kwargs passed to the
-            [PlantUML renderer][c4.renderers.PlantUMLRenderer].
+                [PlantUML renderer][c4.renderers.PlantUMLRenderer].
         """
         renderer = self._build_plantuml_renderer(**kwargs)
 
