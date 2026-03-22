@@ -12,8 +12,8 @@ from c4 import Person, Rel, System, SystemContextDiagram
 
 
 with SystemContextDiagram() as diagram:
-    user = Person(label="User", description="System user")
-    backend = System(label="Backend API", description="Main application backend")
+    user = Person("User", "System user")
+    backend = System("Backend API", "Main application backend")
 
     user >> Rel("Uses HTTP API") >> backend
 ```

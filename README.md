@@ -38,11 +38,16 @@ and relationships — allowing you to describe software architecture in Python a
 Currently supported and planned backends:
 
 - [**PlantUML**](https://github.com/plantuml-stdlib/C4-PlantUML)
-  - local rendering via `plantuml` CLI or `plantuml.jar`
-  - remote rendering via PlantUML server
+
+    - local rendering via `plantuml` CLI or `plantuml.jar`
+    - remote rendering via PlantUML server
+
 - [**Mermaid**](https://mermaid.js.org/syntax/c4.html) — WIP
-- [**Structurizr**](https://structurizr.com/) — WIP
-- [**D2**](https://d2lang.com/) — WIP
+
+The following backends are being explored but are not currently planned:
+
+- [**Structurizr**](https://structurizr.com/)
+- [**D2**](https://d2lang.com/)
 
 ## Getting started
 

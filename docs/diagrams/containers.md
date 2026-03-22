@@ -11,6 +11,21 @@ across it. It also shows the major technology choices and how the containers com
 simple, high-level technology focussed diagram that is useful for software developers and support/operations staff
 alike.
 
+
+???+ warning "Containers with nested elements"
+
+    In C4-PlantUML, containers can act as boundaries and contain nested elements.
+
+    In **c4-diagrams**, containers and boundaries are intentionally modeled as **separate concepts**
+    to ensure consistent behavior across different renderers.
+
+    Because of this, containers cannot contain nested elements in the portable DSL.
+
+    Support for this pattern may be introduced in the future as a **renderer-specific extension**
+    (see [issue #12](https://github.com/sidorov-as/c4-diagrams/issues/12)).
+
+    For now, use [`ContainerBoundary`][c4.diagrams.container.ContainerBoundary].
+
 ## Example
 
 The following example demonstrates how to define a **container diagram** using the Python DSL.
