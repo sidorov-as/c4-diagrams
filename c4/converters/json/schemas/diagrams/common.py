@@ -102,7 +102,11 @@ class ElementBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
         None, description="Optional sprite/icon reference."
     )
     tags: list[str] = Field(
-        default_factory=list, description="Optional tags for grouping/styling."
+        default_factory=list,
+        description=(
+            "Optional tags for grouping/styling. "
+            "These tags can be referenced by `tag_stereo` in tag definitions."
+        ),
     )
     link: str | None = Field(
         None, description="Optional URL associated with the element."
@@ -158,7 +162,11 @@ class RelationshipSchema(BaseSchemaItem[Relationship]):
         None, description="Optional sprite/icon to represent the relationship."
     )
     tags: list[str] = Field(
-        default_factory=list, description="Optional tags for grouping/styling."
+        default_factory=list,
+        description=(
+            "Optional tags for grouping/styling. "
+            "These tags can be referenced by `tag_stereo` in tag definitions."
+        ),
     )
     link: str | None = Field(
         None, description="Optional URL link associated with the relationship."
@@ -220,7 +228,11 @@ class BoundaryBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
         None, description="Optional description text."
     )
     tags: list[str] = Field(
-        default_factory=list, description="Optional tags for grouping/styling."
+        default_factory=list,
+        description=(
+            "Optional tags for grouping/styling. "
+            "These tags can be referenced by `tag_stereo` in tag definitions."
+        ),
     )
     link: str | None = Field(
         None, description="Optional URL associated with the element."
@@ -238,12 +250,21 @@ class BoundaryBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
 
     def _to_diagram_element_kwargs(self) -> dict[str, Any]:
         kwargs = self.model_dump(
-            mode="python", exclude={"elements", "boundaries", "relationships"}
+            mode="python",
+            exclude={
+                "elements",
+                "boundaries",
+                "relationships",
+                "alias",
+            },
         )
-        kwargs["tags"] = ",".join(kwargs["tags"])
         for key, value in kwargs.items():
             value = value or ""
             kwargs[key] = value
+
+        # Keep alias only if provided (avoid injecting None).
+        if self.alias:
+            kwargs["alias"] = self.alias
 
         return kwargs
 

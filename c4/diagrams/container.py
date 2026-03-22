@@ -47,7 +47,7 @@ class Container(Element):
         description: str = "",
         technology: str = "",
         sprite: str = "",
-        tags: str = "",
+        tags: list[str] | None = None,
         link: str = "",
         base_shape: str = "",
         alias: str | EmptyStr = empty,
@@ -60,7 +60,7 @@ class Container(Element):
             description: Optional description of the container's purpose.
             technology: The technology stack used by the container.
             sprite: Optional sprite identifier for visual representation.
-            tags: Comma-separated tags for filtering or styling.
+            tags: Optional tags for styling or grouping.
             link: Optional URL for external documentation or navigation.
             base_shape: Optional base shape override for rendering.
             alias: Unique identifier for the container.
@@ -129,7 +129,7 @@ class ContainerBoundary(Boundary):
         self,
         label: str | Required = not_provided,
         description: str = "",
-        tags: str = "",
+        tags: list[str] | None = None,
         link: str = "",
         alias: str | EmptyStr = empty,
     ) -> None:
@@ -139,7 +139,7 @@ class ContainerBoundary(Boundary):
         Args:
             label: Displayed label of the boundary. Defaults to `empty`.
             description: Optional human-readable description of the boundary.
-            tags: Optional comma-separated tags for styling or filtering.
+            tags: Optional tags for styling or grouping.
             link: URL associated with the boundary for navigation or
                 documentation.
             alias: Unique identifier for the boundary.

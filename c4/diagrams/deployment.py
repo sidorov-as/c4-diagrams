@@ -50,7 +50,7 @@ class Node(Boundary):
         description: str = "",
         type_: str = "",
         sprite: str = "",
-        tags: str = "",
+        tags: list[str] | None = None,
         link: str = "",
         alias: str | EmptyStr = empty,
     ) -> None:
@@ -62,7 +62,7 @@ class Node(Boundary):
             description: Optional description shown in the rendered diagram.
             type_: Optional classifier for the node (e.g., "database").
             sprite: Optional sprite name to visually represent the node.
-            tags: Comma-separated list of tags for styling or filtering.
+            tags: Optional tags for styling or grouping.
             link: Optional hyperlink associated with the node.
             alias: Optional identifier for the node.
         """

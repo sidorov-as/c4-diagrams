@@ -94,7 +94,13 @@ class BaseTagSchema(LayoutOptionsModel):
         description="Discriminator identifying the element type.",
     )
 
-    tag_stereo: str = Field(description="Stereotype name of the tag.")
+    tag_stereo: str = Field(
+        description=(
+            "Stereotype name of the tag. "
+            "Must match one of the tags declared in the `tags` field "
+            "of a diagram component."
+        )
+    )
     legend_text: str | None = Field(
         None, description="Text shown in the diagram legend for this tag."
     )
@@ -372,7 +378,13 @@ class ElementStyleSchema(BaseStyleSchema):
         description="Discriminator identifying the element type.",
     )
 
-    element_name: str = Field(description="Name of the element to style.")
+    element_name: str = Field(
+        description=(
+            "C4 element type to style (e.g. 'person', 'system', 'container')."
+            " This applies to all elements of the given type, not "
+            "a specific instance."
+        )
+    )
     bg_color: str | None = Field(None, description="Background color.")
     font_color: str | None = Field(None, description="Font/text color.")
     border_color: str | None = Field(None, description="Border line color.")
@@ -614,20 +626,6 @@ class PlantUMLLayoutOptionsSchema(BaseSchemaItem):
     )
     show_person_outline: bool = Field(
         default=False, description="Whether to enable person outlines."
-    )
-    show_element_descriptions: bool = Field(
-        default=False,
-        description=(
-            "Whether to display element descriptions in sequence diagrams."
-        ),
-    )
-    show_foot_boxes: bool = Field(
-        default=False,
-        description="Whether to display foot boxes in sequence diagrams.",
-    )
-    show_index: bool = Field(
-        default=False,
-        description="Whether to display index numbers in sequence diagrams.",
     )
     without_property_header: bool = Field(
         default=False,

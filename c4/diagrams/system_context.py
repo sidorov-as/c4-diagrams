@@ -50,7 +50,7 @@ class System(Element):
         label: str | Required = not_provided,
         description: str = "",
         sprite: str = "",
-        tags: str = "",
+        tags: list[str] | None = None,
         link: str = "",
         type_: str = "",
         base_shape: str = "",
@@ -63,7 +63,7 @@ class System(Element):
             label: Human-readable name.
             description: Optional description for the system.
             sprite: Optional icon or sprite.
-            tags: Comma-separated tags.
+            tags: Optional tags for styling or grouping.
             link: Optional hyperlink associated with the element.
             type_: Custom type/stereotype string.
             base_shape: Optional override for visual shape.
@@ -125,7 +125,7 @@ class EnterpriseBoundary(Boundary):
         self,
         label: str | Required = not_provided,
         description: str = "",
-        tags: str = "",
+        tags: list[str] | None = None,
         link: str = "",
         alias: str | EmptyStr = empty,
     ) -> None:
@@ -135,7 +135,7 @@ class EnterpriseBoundary(Boundary):
         Args:
             label: Display name.
             description: Optional description.
-            tags: Optional comma-separated tags.
+            tags: Optional tags for styling or grouping.
             link: Optional hyperlink.
             alias: Unique identifier for the boundary.
         """
@@ -154,6 +154,32 @@ class SystemBoundary(Boundary):
 
     Used to group containers or components that belong to a single system.
     """
+
+    def __init__(
+        self,
+        label: str | Required = not_provided,
+        description: str = "",
+        tags: list[str] | None = None,
+        link: str = "",
+        alias: str | EmptyStr = empty,
+    ) -> None:
+        """
+        Initialize the system boundary element.
+
+        Args:
+            label: Display name.
+            description: Optional description.
+            tags: Optional tags for styling or grouping.
+            link: Optional hyperlink.
+            alias: Unique identifier for the boundary.
+        """
+        super().__init__(
+            label=label,
+            alias=alias,
+            description=description,
+            tags=tags,
+            link=link,
+        )
 
 
 __all__ = (

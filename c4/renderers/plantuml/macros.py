@@ -87,6 +87,7 @@ from c4.renderers.plantuml.layout_options import (
 )
 
 _TDiagramElement = TypeVar("_TDiagramElement")
+T = TypeVar("T")
 
 
 ELEMENT_TO_PLANTUML_MACRO_MAP = {
@@ -196,16 +197,30 @@ class Argument:
         )
 
 
-def quote_and_escape(value: str) -> str:
-    r"""
-    Quote a string and escape newline and quote characters.
-
-    Replaces all `\n` characters with `\\n` and `"` with `\"`,
-    then wraps the result in double quotes.
+def compose(*funcs: Callable[[Any], Any]) -> Callable[[Any], Any]:
     """
-    value = value.replace("\n", "\\n").replace('"', '\\"')
+    Compose functions left-to-right.
 
-    return f'"{value}"'
+    Example:
+        formatter = compose(str, str.lower, quote)
+        formatter(True) == '"true"'
+    """
+
+    def composed(value: Any) -> Any:
+        for func in funcs:
+            value = func(value)
+        return value
+
+    return composed
+
+
+def escape(value: str) -> str:
+    r"""
+    Escape newline and quote characters.
+
+    Replaces all `\n` characters with `\\n` and `"` with `\"`.
+    """
+    return value.replace("\n", "\\n").replace('"', '\\"')
 
 
 def quote(value: str) -> str:
@@ -215,18 +230,26 @@ def quote(value: str) -> str:
     return f'"{value}"'
 
 
-def quote_and_lower(value: str) -> str:
+def str_or_empty(value: str | None) -> str:
     """
-    Wrap a string in double quotes without escaping and convert to lowercase.
+    Return the string value or an empty string if the input is falsy.
     """
-    return f'"{value}"'.lower()
+    if value is None:
+        return ""
 
-
-def force_str(value: Any) -> str:
-    """
-    Converts the given value to a string.
-    """
     return str(value)
+
+
+def join_and_quote(sep: str) -> Callable[[Any], str]:
+    """
+    Create a formatter that joins strings with a separator and
+    wraps the result in quotes.
+    """
+
+    def formatter(items: list[str]) -> str:
+        return quote(f"{sep}".join(items))
+
+    return formatter
 
 
 def macro_call(value: str) -> str:
@@ -234,6 +257,16 @@ def macro_call(value: str) -> str:
     Formats the given string as a PlantUML macro call.
     """
     return f"{value}()"
+
+
+bool_to_quoted_lower_or_empty: Callable[[Any], str] = compose(
+    str_or_empty,
+    str.lower,
+    quote,
+)
+quote_and_lower: Callable[[Any], str] = compose(quote, str.lower)
+force_str: Callable[[Any], str] = compose(str)
+quote_and_escape: Callable[[Any], str] = compose(escape, quote)
 
 
 class PlantUMLMacro(Generic[_TDiagramElement]):
@@ -426,7 +459,7 @@ class ElementPlantUMLMacro(PlantUMLMacro[Element]):
         Argument(name="label", format=quote_and_escape),
         Argument(name="descr", source="description", format=quote_and_escape),
         Argument.keyword(name="sprite", format=quote),
-        Argument.keyword(name="tags", format=quote),
+        Argument.keyword(name="tags", format=join_and_quote(sep="+")),
         Argument.keyword(name="link", format=quote),
         Argument.keyword(name="type", format=quote),
     ]
@@ -503,7 +536,7 @@ class ElementWithTechnologyPlantUMLMacro(ElementPlantUMLMacro):
             format=quote_and_escape,
         ),
         Argument.keyword(name="sprite", format=quote),
-        Argument.keyword(name="tags", format=quote),
+        Argument.keyword(name="tags", format=join_and_quote(sep="+")),
         Argument.keyword(name="link", format=quote),
     ]
 
@@ -518,7 +551,7 @@ class SystemPlantUMLMacro(ElementPlantUMLMacro):
         Argument(name="label", format=quote_and_escape),
         Argument(name="descr", source="description", format=quote_and_escape),
         Argument.keyword(name="sprite", format=quote),
-        Argument.keyword(name="tags", format=quote),
+        Argument.keyword(name="tags", format=join_and_quote(sep="+")),
         Argument.keyword(name="link", format=quote),
         Argument.keyword(name="type", format=quote),
         Argument.keyword(name="baseShape", source="base_shape", format=quote),
@@ -534,7 +567,7 @@ class BoundaryPlantUMLMacro(ElementPlantUMLMacro):
         Argument(name="alias"),
         Argument(name="label", format=quote_and_escape),
         Argument.keyword(name="type", format=quote),
-        Argument.keyword(name="tags", format=quote),
+        Argument.keyword(name="tags", format=join_and_quote(sep="+")),
         Argument.keyword(name="link", format=quote),
         Argument.keyword(
             name="descr", source="description", format=quote_and_escape
@@ -553,7 +586,7 @@ class ContainerPlantUMLMacro(ElementPlantUMLMacro):
         Argument(name="techn", source="technology", format=quote_and_escape),
         Argument(name="descr", source="description", format=quote_and_escape),
         Argument.keyword(name="sprite", format=quote),
-        Argument.keyword(name="tags", format=quote),
+        Argument.keyword(name="tags", format=join_and_quote(sep="+")),
         Argument.keyword(name="link", format=quote),
         Argument.keyword(name="baseShape", source="base_shape", format=quote),
     ]
@@ -570,7 +603,7 @@ class ComponentPlantUMLMacro(ElementPlantUMLMacro):
         Argument(name="techn", source="technology", format=quote_and_escape),
         Argument(name="descr", source="description", format=quote_and_escape),
         Argument.keyword(name="sprite", format=quote),
-        Argument.keyword(name="tags", format=quote),
+        Argument.keyword(name="tags", format=join_and_quote(sep="+")),
         Argument.keyword(name="link", format=quote),
         Argument.keyword(name="baseShape", source="base_shape", format=quote),
     ]
@@ -588,7 +621,7 @@ class RelationshipPlantUMLMacro(PlantUMLMacro[Relationship]):
         Argument(name="techn", source="technology", format=quote_and_escape),
         Argument(name="descr", source="description", format=quote_and_escape),
         Argument.keyword(name="sprite", format=quote),
-        Argument.keyword(name="tags", format=quote),
+        Argument.keyword(name="tags", format=join_and_quote(sep="+")),
         Argument.keyword(name="link", format=quote),
         Argument.keyword(name="index", format=force_str),
     ]
@@ -677,7 +710,7 @@ class NodePlantUMLMacro(BoundaryPlantUMLMacro):
         Argument(name="type", format=quote),
         Argument(name="descr", source="description", format=quote_and_escape),
         Argument.keyword(name="sprite", format=quote),
-        Argument.keyword(name="tags", format=quote),
+        Argument.keyword(name="tags", format=join_and_quote(sep="+")),
         Argument.keyword(name="link", format=quote),
     ]
 
@@ -763,36 +796,12 @@ class ShowPersonOutlinePlantUMLMacro(PlantUMLMacroWithoutArgs):
     macro: ClassVar[str | None] = "SHOW_PERSON_OUTLINE"
 
 
-class ShowFootBoxesPlantUMLMacro(PlantUMLMacroWithoutArgs):
-    """
-    PlantUML macro renderer for `SHOW_FOOT_BOXES`.
-    """
-
-    macro: ClassVar[str | None] = "SHOW_FOOT_BOXES"
-
-
-class ShowIndexPlantUMLMacro(PlantUMLMacroWithoutArgs):
-    """
-    PlantUML macro renderer for `SHOW_INDEX`.
-    """
-
-    macro: ClassVar[str | None] = "SHOW_INDEX"
-
-
 class HideStereotypePlantUMLMacro(PlantUMLMacroWithoutArgs):
     """
     PlantUML macro renderer for `HIDE_STEREOTYPE`.
     """
 
     macro: ClassVar[str | None] = "HIDE_STEREOTYPE"
-
-
-class ShowElementDescriptionsPlantUMLMacro(PlantUMLMacroWithoutArgs):
-    """
-    PlantUML macro renderer for `SHOW_ELEMENT_DESCRIPTIONS`.
-    """
-
-    macro: ClassVar[str | None] = "SHOW_ELEMENT_DESCRIPTIONS"
 
 
 class WithoutPropertyHeaderPlantUMLMacro(PlantUMLMacroWithoutArgs):
@@ -1097,7 +1106,7 @@ class ElementTagArgsMixin:
         Argument.keyword(
             name="shadowing",
             source="shadowing",
-            format=quote_and_escape,
+            format=bool_to_quoted_lower_or_empty,
         ),
         Argument.keyword(
             name="shape",
@@ -1273,7 +1282,7 @@ class PersonTagArgsMixin:
         Argument.keyword(
             name="shadowing",
             source="shadowing",
-            format=quote_and_escape,
+            format=bool_to_quoted_lower_or_empty,
         ),
         Argument.keyword(
             name="shape",
@@ -1363,7 +1372,7 @@ class SystemTagArgsMixin:
         Argument.keyword(
             name="shadowing",
             source="shadowing",
-            format=quote_and_escape,
+            format=bool_to_quoted_lower_or_empty,
         ),
         Argument.keyword(
             name="shape",
@@ -1570,7 +1579,7 @@ class UpdateElementStylePlantUMLMacro(StylePlantUMLMacro[ElementStyle]):
         Argument.keyword(
             name="shadowing",
             source="shadowing",
-            format=quote_and_escape,
+            format=bool_to_quoted_lower_or_empty,
         ),
         Argument.keyword(
             name="shape",
@@ -1658,7 +1667,7 @@ class BoundaryStyleArgsMixin:
         Argument.keyword(
             name="shadowing",
             source="shadowing",
-            format=quote_and_escape,
+            format=bool_to_quoted_lower_or_empty,
         ),
         Argument.keyword(
             name="shape",

@@ -34,9 +34,6 @@ _BOOL_CALLS: tuple[tuple[str, str], ...] = (
     ("hide_person_sprite", "hide_person_sprite"),
     ("show_person_portrait", "show_person_portrait"),
     ("show_person_outline", "show_person_outline"),
-    ("show_element_descriptions", "show_element_descriptions"),
-    ("show_foot_boxes", "show_foot_boxes"),
-    ("show_index", "show_index"),
     ("without_property_header", "without_property_header"),
 )
 

@@ -123,7 +123,6 @@ class SystemSchema(ElementBase[System], WithType, WithBaseShape):
                     "label": "Inventory Service",
                     "alias": "inventory_service",
                     "description": "Tracks stock levels and reservation state.",
-                    "base_shape": "RoundedBox",
                     "stereotype": "Software System",
                     "sprite": "server",
                     "tags": ["system", "internal"],
@@ -163,7 +162,6 @@ class SystemExtSchema(ElementBase[SystemExt], WithType, WithBaseShape):
                         "External logistics platform for shipment "
                         "booking and tracking."
                     ),
-                    "base_shape": "RoundedBox",
                     "stereotype": "External System",
                     "sprite": "truck",
                     "tags": ["system", "external"],
@@ -343,7 +341,6 @@ AnyElement = (
 class SystemContextBoundaryBase(
     BoundaryBase,
     WithBoundaryRelationship,
-    WithType,
     Generic[TDiagramElement],
 ):
     elements: list[AnyElement] = Field(
@@ -492,10 +489,6 @@ class SystemBoundarySchema(SystemContextBoundaryBase[SystemBoundary]):
 AnyBoundary = EnterpriseBoundarySchema | SystemBoundarySchema
 
 
-# TODO: перегенерировал JSON-схемы, нужно обновить примеры
-#  возможно стоит сразу добавить Literal для Style-тегов и element_name
-
-
 SYSTEM_CONTEXT_DIAGRAM_MINIMAL_EXAMPLE: dict[str, Any] = {
     "type": "SystemContextDiagram",
     "elements": [
@@ -532,22 +525,18 @@ SYSTEM_CONTEXT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
             "tags": ["External"],
         },
         {
-            "type": "System",
-            "label": "Retail Platform",
-            "alias": "retail_platform",
-            "description": (
-                "Core platform for catalog, checkout, and order management."
-            ),
-            "tags": ["Core"],
-            "link": "https://retail.example.com",
-        },
-        {
             "type": "SystemExt",
             "label": "Payment Gateway",
             "alias": "payment_gateway",
             "description": "Processes card payments.",
             "tags": ["External"],
-            "base_shape": "RoundedBox",
+        },
+        {
+            "type": "SystemExt",
+            "label": "CRM Platform",
+            "alias": "crm_platform",
+            "description": "External CRM used by support agents.",
+            "tags": ["External"],
         },
     ],
     "boundaries": [
@@ -562,11 +551,16 @@ SYSTEM_CONTEXT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
                     "type": "System",
                     "label": "Retail Platform",
                     "alias": "retail_platform",
-                    "description": "Core commerce system.",
+                    "description": (
+                        "Core platform for catalog, checkout, and "
+                        "order management."
+                    ),
                     "tags": ["Core"],
+                    "link": "https://retail.example.com",
                 }
             ],
             "boundaries": [],
+            "relationships": [],
         }
     ],
     "relationships": [
@@ -576,6 +570,7 @@ SYSTEM_CONTEXT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
             "to": "retail_platform",
             "label": "Browses and places orders",
             "technology": "HTTPS",
+            "tags": ["Synchronous"],
         },
         {
             "type": "REL",
@@ -583,21 +578,28 @@ SYSTEM_CONTEXT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
             "to": "payment_gateway",
             "label": "Charges card",
             "technology": "REST API",
+            "tags": ["Synchronous"],
+        },
+        {
+            "type": "REL",
+            "from": "support_agent",
+            "to": "crm_platform",
+            "label": "Manages customer issues",
+            "technology": "Web UI",
+            "tags": ["Manual"],
         },
     ],
     "layouts": [
         {"type": "LAY_R", "from": "customer", "to": "retail_platform"},
         {"type": "LAY_R", "from": "retail_platform", "to": "payment_gateway"},
+        {"type": "LAY_D", "from": "support_agent", "to": "crm_platform"},
     ],
     "render_options": {
         "plantuml": {
             "layout": "LAYOUT_LEFT_RIGHT",
             "layout_with_legend": True,
-            "show_legend": {
-                "details": "Normal",
-                "hide_stereotype": False,
-            },
-            "legend_title": "System",
+            "show_legend": {"details": "Normal", "hide_stereotype": False},
+            "legend_title": "System Context",
             "hide_stereotype": False,
             "tags": [
                 {
@@ -628,6 +630,16 @@ SYSTEM_CONTEXT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
                     "type": "BoundaryTag",
                     "tag_stereo": "Enterprise",
                     "legend_text": "Enterprise boundary",
+                },
+                {
+                    "type": "RelTag",
+                    "tag_stereo": "Synchronous",
+                    "legend_text": "Synchronous integration",
+                },
+                {
+                    "type": "RelTag",
+                    "tag_stereo": "Manual",
+                    "legend_text": "Manual interaction",
                 },
             ],
         }

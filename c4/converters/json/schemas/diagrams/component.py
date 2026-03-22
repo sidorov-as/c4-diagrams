@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, ClassVar, Literal
 
 from pydantic import ConfigDict, Field
@@ -10,17 +12,21 @@ from c4 import (
     ComponentExt,
     ComponentQueue,
     ComponentQueueExt,
+    ContainerBoundary,
+    EnterpriseBoundary,
+    SystemBoundary,
 )
 from c4.converters.json.schemas.diagrams.common import (
     BaseDiagramSchema,
+    BoundaryBase,
     ElementBase,
     RelationshipSchema,
     TypeDiagram,
     WithBaseShape,
+    WithBoundaryRelationship,
     WithTechnology,
 )
 from c4.converters.json.schemas.diagrams.container import (
-    ContainerBoundarySchema,
     ContainerDbExtSchema,
     ContainerDbSchema,
     ContainerExtSchema,
@@ -29,10 +35,8 @@ from c4.converters.json.schemas.diagrams.container import (
     ContainerSchema,
 )
 from c4.converters.json.schemas.diagrams.system_context import (
-    EnterpriseBoundarySchema,
     PersonExtSchema,
     PersonSchema,
-    SystemBoundarySchema,
     SystemDbExtSchema,
     SystemDbSchema,
     SystemExtSchema,
@@ -298,6 +302,235 @@ class ComponentQueueExtSchema(ElementBase[ComponentQueueExt], WithTechnology):
     )
 
 
+class ContainerBoundarySchema(
+    BoundaryBase[ContainerBoundary],
+    WithBoundaryRelationship,
+):
+    """
+    This schema describes the
+    [`ContainerBoundary`][c4.diagrams.container.ContainerBoundary]
+    diagram component.
+    """
+
+    type: Literal["ContainerBoundary"] = Field(
+        ...,
+        description="Discriminator identifying the element type.",
+        frozen=True,
+    )
+    elements: list[AnyElement] = Field(
+        default_factory=list, description="Elements may be nested arbitrarily."
+    )
+    boundaries: list[AnyBoundary] = Field(
+        default_factory=list,
+        description="Boundaries may be nested arbitrarily.",
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "type": "ContainerBoundary",
+                    "label": "Checkout Subsystem",
+                    "alias": "checkout_boundary",
+                    "description": "Groups checkout-related containers.",
+                    "tags": ["container_boundary"],
+                    "link": "https://docs.example.com/checkout",
+                    "properties": {
+                        "properties": [
+                            ["Owner", "Checkout Team"],
+                            ["Domain", "Commerce"],
+                        ]
+                    },
+                    "elements": [
+                        {
+                            "type": "Container",
+                            "label": "Checkout API",
+                            "alias": "checkout_api",
+                            "description": (
+                                "Handles cart and checkout operations."
+                            ),
+                            "technology": "FastAPI",
+                        },
+                        {
+                            "type": "ContainerDb",
+                            "label": "Checkout DB",
+                            "alias": "checkout_db",
+                            "description": (
+                                "Stores carts and checkout sessions."
+                            ),
+                            "technology": "PostgreSQL",
+                        },
+                    ],
+                    "boundaries": [],
+                    "relationships": [
+                        {
+                            "type": "REL",
+                            "from": "checkout_api",
+                            "to": "checkout_db",
+                            "label": "Reads and writes",
+                            "technology": "SQL",
+                        }
+                    ],
+                }
+            ]
+        }
+    )
+
+
+class EnterpriseBoundarySchema(
+    BoundaryBase[EnterpriseBoundary],
+    WithBoundaryRelationship,
+):
+    """
+    This schema describes the
+    [`EnterpriseBoundary`][c4.diagrams.system_context.EnterpriseBoundary]
+    diagram component.
+    """
+
+    type: Literal["EnterpriseBoundary"] = Field(
+        ...,
+        description="Discriminator identifying the element type.",
+        frozen=True,
+    )
+    elements: list[AnyElement] = Field(
+        default_factory=list, description="Elements may be nested arbitrarily."
+    )
+    boundaries: list[AnyBoundary] = Field(
+        default_factory=list,
+        description="Boundaries may be nested arbitrarily.",
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "type": "EnterpriseBoundary",
+                    "label": "Acme Corp",
+                    "alias": "acme",
+                    "description": (
+                        "Enterprise boundary containing internal platforms."
+                    ),
+                    "tags": ["enterprise"],
+                    "link": "https://acme.example.com",
+                    "properties": {
+                        "properties": [
+                            ["Region", "EU"],
+                            ["Department", "Digital"],
+                        ]
+                    },
+                    "relationships": [
+                        {
+                            "type": "REL",
+                            "from": "customer_portal",
+                            "to": "shared_identity",
+                            "label": "Authenticates via",
+                            "technology": "OIDC",
+                        }
+                    ],
+                    "elements": [
+                        {
+                            "type": "System",
+                            "label": "Customer Portal",
+                            "alias": "customer_portal",
+                            "description": "Entry point for customers.",
+                        },
+                        {
+                            "type": "System",
+                            "label": "Shared Identity",
+                            "alias": "shared_identity",
+                            "description": "Central authentication service.",
+                        },
+                    ],
+                    "boundaries": [
+                        {
+                            "type": "SystemBoundary",
+                            "label": "Commerce Domain",
+                            "alias": "commerce_domain",
+                            "elements": [],
+                            "boundaries": [],
+                            "relationships": [],
+                        }
+                    ],
+                }
+            ]
+        }
+    )
+
+
+class SystemBoundarySchema(
+    BoundaryBase[SystemBoundary],
+    WithBoundaryRelationship,
+):
+    """
+    This schema describes the
+    [`SystemBoundary`][c4.diagrams.system_context.SystemBoundary]
+    diagram component.
+    """
+
+    type: Literal["SystemBoundary"] = Field(
+        ...,
+        description="Discriminator identifying the element type.",
+        frozen=True,
+    )
+    elements: list[AnyElement] = Field(
+        default_factory=list, description="Elements may be nested arbitrarily."
+    )
+    boundaries: list[AnyBoundary] = Field(
+        default_factory=list,
+        description="Boundaries may be nested arbitrarily.",
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "type": "SystemBoundary",
+                    "label": "Commerce Platform",
+                    "alias": "commerce_platform",
+                    "description": (
+                        "Boundary for the commerce system and its "
+                        "internal components."
+                    ),
+                    "tags": ["system_boundary"],
+                    "link": "https://docs.example.com/commerce",
+                    "properties": {
+                        "properties": [
+                            ["Owner", "Commerce Team"],
+                            ["Environment", "Production"],
+                        ]
+                    },
+                    "relationships": [
+                        {
+                            "type": "REL",
+                            "from": "web_storefront",
+                            "to": "orders_db",
+                            "label": "Reads and writes orders",
+                            "technology": "SQL",
+                        }
+                    ],
+                    "elements": [
+                        {
+                            "type": "System",
+                            "label": "Web Storefront",
+                            "alias": "web_storefront",
+                            "description": (
+                                "Frontend for browsing and checkout."
+                            ),
+                        },
+                        {
+                            "type": "SystemDb",
+                            "label": "Orders DB",
+                            "alias": "orders_db",
+                            "description": "Stores orders and payment state.",
+                        },
+                    ],
+                    "boundaries": [],
+                }
+            ]
+        }
+    )
+
+
 AnyElement = (
     PersonSchema
     | PersonExtSchema
@@ -482,113 +715,69 @@ COMPONENT_DIAGRAM_MINIMAL_EXAMPLE: dict[str, Any] = {
 
 COMPONENT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
     "type": "ComponentDiagram",
-    "title": "Checkout API - Component Diagram",
+    "title": "Order Processing API - Component Diagram",
     "elements": [
         {
             "type": "Component",
-            "label": "Checkout Controller",
-            "alias": "checkout_controller",
+            "label": "Order Controller",
+            "alias": "order_controller",
             "description": (
-                "HTTP entrypoint for checkout and order submission."
+                "HTTP entrypoint for order submission and status queries."
             ),
             "technology": "FastAPI",
-            "base_shape": "RoundedBox",
             "sprite": "server",
-            "tags": ["CoreComponent", "Entrypoint"],
-            "properties": {
-                "properties": [["Layer", "API"], ["Owner", "Checkout Team"]]
-            },
+            "tags": ["Entrypoint", "CoreComponent"],
         },
         {
             "type": "Component",
-            "label": "Order Validator",
-            "alias": "order_validator",
+            "label": "Order Application Service",
+            "alias": "order_app_service",
             "description": (
-                "Validates basket contents, shipping data, and "
-                "order invariants."
+                "Coordinates validation, payment, and order creation."
             ),
-            "technology": "Python",
-            "sprite": "server",
-            "tags": ["CoreComponent"],
-        },
-        {
-            "type": "Component",
-            "label": "Pricing Engine",
-            "alias": "pricing_engine",
-            "description": "Calculates totals, discounts, and taxes.",
-            "technology": "Python",
-            "sprite": "server",
-            "tags": ["CoreComponent"],
-        },
-        {
-            "type": "Component",
-            "label": "Payment Service",
-            "alias": "payment_service",
-            "description": (
-                "Creates payment intents and reconciles payment outcomes."
-            ),
-            "technology": "Python",
-            "sprite": "server",
-            "tags": ["CoreComponent", "Payments"],
-        },
-        {
-            "type": "Component",
-            "label": "Order Service",
-            "alias": "order_service",
-            "description": "Creates orders and manages order lifecycle state.",
             "technology": "Python",
             "sprite": "server",
             "tags": ["CoreComponent", "Orders"],
         },
         {
-            "type": "ComponentDb",
-            "label": "Order Store",
-            "alias": "order_store",
-            "description": "Stores orders and order transitions.",
-            "technology": "PostgreSQL",
-            "sprite": "database",
-            "tags": ["ComponentDatabase"],
+            "type": "Component",
+            "label": "Inventory Checker",
+            "alias": "inventory_checker",
+            "description": (
+                "Verifies stock availability before an order is confirmed."
+            ),
+            "technology": "Python",
+            "sprite": "server",
+            "tags": ["CoreComponent"],
+        },
+        {
+            "type": "Component",
+            "label": "Payment Adapter",
+            "alias": "payment_adapter",
+            "description": "Wraps external payment provider calls.",
+            "technology": "Python",
+            "sprite": "server",
+            "tags": ["CoreComponent", "Payments"],
         },
         {
             "type": "ComponentDb",
-            "label": "Payment Store",
-            "alias": "payment_store",
+            "label": "Order Database",
+            "alias": "order_db",
             "description": (
-                "Stores payment intents, provider references, and "
-                "payment status."
+                "Stores orders, line items, and order status history."
             ),
             "technology": "PostgreSQL",
             "sprite": "database",
             "tags": ["ComponentDatabase"],
-        },
-        {
-            "type": "ComponentDbExt",
-            "label": "Tax Rules Database",
-            "alias": "tax_rules_db",
-            "description": "External reference data for tax calculation.",
-            "technology": "Vendor DB",
-            "sprite": "database",
-            "tags": ["ExternalComponentDatabase"],
-        },
-        {
-            "type": "ComponentExt",
-            "label": "Fraud Check API",
-            "alias": "fraud_check_api",
-            "description": (
-                "External service that evaluates fraud risk before payment."
-            ),
-            "technology": "REST API",
-            "base_shape": "RoundedBox",
-            "sprite": "cloud",
-            "tags": ["ExternalComponent"],
         },
         {
             "type": "ComponentExt",
             "label": "Payment Gateway API",
             "alias": "payment_gateway_api",
-            "description": "External payment processor API.",
+            "description": (
+                "External provider API for payment authorization and capture."
+            ),
             "technology": "REST API",
-            "base_shape": "RoundedBox",
             "sprite": "cloud",
             "tags": ["ExternalComponent"],
         },
@@ -596,109 +785,58 @@ COMPONENT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
             "type": "ComponentQueue",
             "label": "Order Events Bus",
             "alias": "order_events_bus",
-            "description": (
-                "Internal stream of order-created and order-paid events."
-            ),
+            "description": ("Publishes order-created and order-paid events."),
             "technology": "Kafka",
             "sprite": "queue",
             "tags": ["AsyncComponent"],
-        },
-        {
-            "type": "ComponentQueueExt",
-            "label": "Shipping Updates Topic",
-            "alias": "shipping_updates_topic",
-            "description": "External topic with shipment tracking updates.",
-            "technology": "Kafka",
-            "sprite": "queue",
-            "tags": ["ExternalAsyncComponent"],
         },
     ],
     "relationships": [
         {
             "type": "REL",
-            "from": "checkout_controller",
-            "to": "order_validator",
-            "label": "Validates request with",
+            "from": "order_controller",
+            "to": "order_app_service",
+            "label": "Invokes",
             "technology": "Python call",
             "tags": ["SyncCall"],
         },
         {
             "type": "REL",
-            "from": "checkout_controller",
-            "to": "pricing_engine",
-            "label": "Calculates totals via",
+            "from": "order_app_service",
+            "to": "inventory_checker",
+            "label": "Checks stock via",
             "technology": "Python call",
             "tags": ["SyncCall"],
         },
         {
             "type": "REL",
-            "from": "checkout_controller",
-            "to": "payment_service",
-            "label": "Initiates payment through",
+            "from": "order_app_service",
+            "to": "payment_adapter",
+            "label": "Requests payment through",
             "technology": "Python call",
             "tags": ["SyncCall"],
         },
         {
             "type": "REL",
-            "from": "checkout_controller",
-            "to": "order_service",
-            "label": "Creates order through",
-            "technology": "Python call",
-            "tags": ["SyncCall"],
-        },
-        {
-            "type": "REL",
-            "from": "pricing_engine",
-            "to": "tax_rules_db",
-            "label": "Reads tax rules from",
-            "technology": "JDBC",
-            "tags": ["DataAccess"],
-        },
-        {
-            "type": "REL",
-            "from": "payment_service",
-            "to": "fraud_check_api",
-            "label": "Checks fraud via",
-            "technology": "HTTPS/JSON",
-            "tags": ["ExternalCall"],
-        },
-        {
-            "type": "REL",
-            "from": "payment_service",
+            "from": "payment_adapter",
             "to": "payment_gateway_api",
-            "label": "Creates payment intents via",
+            "label": "Authorizes payment via",
             "technology": "HTTPS/JSON",
             "tags": ["ExternalCall"],
         },
         {
             "type": "REL",
-            "from": "payment_service",
-            "to": "payment_store",
+            "from": "order_app_service",
+            "to": "order_db",
             "label": "Reads and writes",
             "technology": "SQL",
             "tags": ["DataAccess"],
         },
         {
             "type": "REL",
-            "from": "order_service",
-            "to": "order_store",
-            "label": "Reads and writes",
-            "technology": "SQL",
-            "tags": ["DataAccess"],
-        },
-        {
-            "type": "REL",
-            "from": "order_service",
+            "from": "order_app_service",
             "to": "order_events_bus",
-            "label": "Publishes order events to",
-            "technology": "Kafka",
-            "tags": ["AsyncFlow"],
-        },
-        {
-            "type": "REL",
-            "from": "shipping_updates_topic",
-            "to": "order_service",
-            "label": "Delivers shipment updates to",
+            "label": "Publishes events to",
             "technology": "Kafka",
             "tags": ["AsyncFlow"],
         },
@@ -706,80 +844,74 @@ COMPONENT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
     "layouts": [
         {
             "type": "LAY_R",
-            "from": "checkout_controller",
-            "to": "order_validator",
+            "from": "order_controller",
+            "to": "order_app_service",
         },
-        {"type": "LAY_R", "from": "order_validator", "to": "pricing_engine"},
-        {"type": "LAY_D", "from": "pricing_engine", "to": "tax_rules_db"},
-        {"type": "LAY_R", "from": "pricing_engine", "to": "payment_service"},
         {
             "type": "LAY_R",
-            "from": "payment_service",
+            "from": "order_app_service",
+            "to": "inventory_checker",
+        },
+        {"type": "LAY_D", "from": "order_app_service", "to": "order_db"},
+        {"type": "LAY_R", "from": "inventory_checker", "to": "payment_adapter"},
+        {
+            "type": "LAY_R",
+            "from": "payment_adapter",
             "to": "payment_gateway_api",
         },
-        {"type": "LAY_D", "from": "payment_service", "to": "payment_store"},
-        {"type": "LAY_R", "from": "payment_service", "to": "order_service"},
-        {"type": "LAY_D", "from": "order_service", "to": "order_store"},
-        {"type": "LAY_D", "from": "order_service", "to": "order_events_bus"},
+        {"type": "LAY_D", "from": "payment_adapter", "to": "order_events_bus"},
     ],
     "render_options": {
         "plantuml": {
             "layout": "LAYOUT_LEFT_RIGHT",
             "layout_with_legend": True,
-            "layout_as_sketch": False,
-            "set_sketch_style": {
-                "bg_color": "#ffffff",
-                "font_color": "#222222",
-                "warning_color": "#cc3300",
-                "font_name": "Inter",
-                "footer_warning": "Architecture draft",
-                "footer_text": "Component view",
-            },
-            "show_legend": {
-                "details": "Normal",
-                "hide_stereotype": False,
-            },
-            "show_floating_legend": {
-                "details": "Small",
-                "hide_stereotype": True,
-                "alias": "legend_box",
-            },
-            "hide_stereotype": False,
-            "hide_person_sprite": False,
-            "show_person_sprite": {"alias": "person"},
-            "show_person_outline": True,
-            "show_element_descriptions": True,
-            "legend_title": "Checkout Component Legend",
+            "legend_title": "Order Processing Component Legend",
+            "show_legend": {"details": "Normal", "hide_stereotype": False},
             "tags": [
                 {
                     "type": "ComponentTag",
-                    "tag_stereo": "CoreComponent",
-                    "legend_text": "Internal core component",
-                    "legend_sprite": "server",
-                    "sprite": "server",
-                    "bg_color": "#e8f0fe",
-                    "font_color": "#0d47a1",
-                    "border_color": "#64b5f6",
-                    "shadowing": True,
-                    "shape": "RoundedBoxShape",
-                    "technology": "Python",
-                    "border_style": "SolidLine",
-                    "border_thickness": "2",
-                },
-                {
-                    "type": "ComponentTag",
                     "tag_stereo": "Entrypoint",
-                    "legend_text": "API entrypoint component",
+                    "legend_text": "HTTP/API entrypoint component",
                     "legend_sprite": "server",
                     "sprite": "server",
                     "bg_color": "#e3f2fd",
                     "font_color": "#0d47a1",
                     "border_color": "#42a5f5",
+                    "border_style": "BoldLine",
+                    "border_thickness": "2",
                     "shadowing": True,
                     "shape": "RoundedBoxShape",
                     "technology": "FastAPI",
-                    "border_style": "BoldLine",
+                },
+                {
+                    "type": "ComponentTag",
+                    "tag_stereo": "CoreComponent",
+                    "legend_text": "Internal business component",
+                    "legend_sprite": "server",
+                    "sprite": "server",
+                    "bg_color": "#e8f5e9",
+                    "font_color": "#1b5e20",
+                    "border_color": "#66bb6a",
+                    "border_style": "SolidLine",
                     "border_thickness": "2",
+                    "shadowing": True,
+                    "shape": "RoundedBoxShape",
+                    "technology": "Python",
+                },
+                {
+                    "type": "ComponentTag",
+                    "tag_stereo": "Orders",
+                    "legend_text": "Order management component",
+                    "legend_sprite": "server",
+                    "sprite": "server",
+                    "bg_color": "#fff3e0",
+                    "font_color": "#e65100",
+                    "border_color": "#fb8c00",
+                    "border_style": "SolidLine",
+                    "border_thickness": "2",
+                    "shadowing": True,
+                    "shape": "RoundedBoxShape",
+                    "technology": "Python",
                 },
                 {
                     "type": "ComponentTag",
@@ -790,26 +922,11 @@ COMPONENT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
                     "bg_color": "#ede7f6",
                     "font_color": "#311b92",
                     "border_color": "#7e57c2",
+                    "border_style": "SolidLine",
+                    "border_thickness": "2",
                     "shadowing": True,
                     "shape": "RoundedBoxShape",
                     "technology": "Python",
-                    "border_style": "SolidLine",
-                    "border_thickness": "2",
-                },
-                {
-                    "type": "ComponentTag",
-                    "tag_stereo": "Orders",
-                    "legend_text": "Order management component",
-                    "legend_sprite": "server",
-                    "sprite": "server",
-                    "bg_color": "#e8f5e9",
-                    "font_color": "#1b5e20",
-                    "border_color": "#66bb6a",
-                    "shadowing": True,
-                    "shape": "RoundedBoxShape",
-                    "technology": "Python",
-                    "border_style": "SolidLine",
-                    "border_thickness": "2",
                 },
                 {
                     "type": "ComponentTag",
@@ -820,11 +937,11 @@ COMPONENT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
                     "bg_color": "#fff8e1",
                     "font_color": "#5d4037",
                     "border_color": "#ffb300",
+                    "border_style": "SolidLine",
+                    "border_thickness": "1",
                     "shadowing": False,
                     "shape": "RoundedBoxShape",
                     "technology": "PostgreSQL",
-                    "border_style": "SolidLine",
-                    "border_thickness": "1",
                 },
                 {
                     "type": "ExternalComponentTag",
@@ -835,26 +952,11 @@ COMPONENT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
                     "bg_color": "#f5f5f5",
                     "font_color": "#424242",
                     "border_color": "#9e9e9e",
+                    "border_style": "DashedLine",
+                    "border_thickness": "1",
                     "shadowing": False,
                     "shape": "RoundedBoxShape",
                     "technology": "REST API",
-                    "border_style": "DashedLine",
-                    "border_thickness": "1",
-                },
-                {
-                    "type": "ExternalComponentTag",
-                    "tag_stereo": "ExternalComponentDatabase",
-                    "legend_text": "External component database",
-                    "legend_sprite": "database",
-                    "sprite": "database",
-                    "bg_color": "#f5f5f5",
-                    "font_color": "#424242",
-                    "border_color": "#9e9e9e",
-                    "shadowing": False,
-                    "shape": "RoundedBoxShape",
-                    "technology": "Vendor DB",
-                    "border_style": "DashedLine",
-                    "border_thickness": "1",
                 },
                 {
                     "type": "ComponentTag",
@@ -862,68 +964,53 @@ COMPONENT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
                     "legend_text": "Internal asynchronous component",
                     "legend_sprite": "queue",
                     "sprite": "queue",
-                    "bg_color": "#fff3e0",
-                    "font_color": "#e65100",
-                    "border_color": "#fb8c00",
-                    "shadowing": False,
-                    "shape": "RoundedBoxShape",
-                    "technology": "Kafka",
-                    "border_style": "SolidLine",
-                    "border_thickness": "1",
-                },
-                {
-                    "type": "ExternalComponentTag",
-                    "tag_stereo": "ExternalAsyncComponent",
-                    "legend_text": "External asynchronous component",
-                    "legend_sprite": "queue",
-                    "sprite": "queue",
                     "bg_color": "#f3e5f5",
                     "font_color": "#6a1b9a",
                     "border_color": "#ab47bc",
+                    "border_style": "SolidLine",
+                    "border_thickness": "1",
                     "shadowing": False,
                     "shape": "RoundedBoxShape",
                     "technology": "Kafka",
-                    "border_style": "DashedLine",
-                    "border_thickness": "1",
                 },
                 {
                     "type": "RelTag",
                     "tag_stereo": "SyncCall",
                     "legend_text": "Synchronous internal call",
-                    "text_color": "#1565c0",
                     "line_color": "#1e88e5",
+                    "text_color": "#1565c0",
                     "line_style": "SolidLine",
                     "line_thickness": "1",
                     "technology": "Python call",
                 },
                 {
                     "type": "RelTag",
-                    "tag_stereo": "DataAccess",
-                    "legend_text": "Database access",
-                    "text_color": "#6d4c41",
-                    "line_color": "#8d6e63",
-                    "line_style": "DashedLine",
-                    "line_thickness": "1",
-                    "technology": "SQL/JDBC",
-                },
-                {
-                    "type": "RelTag",
                     "tag_stereo": "ExternalCall",
                     "legend_text": "External service call",
-                    "text_color": "#455a64",
                     "line_color": "#78909c",
+                    "text_color": "#455a64",
                     "line_style": "DashedLine",
                     "line_thickness": "1",
                     "technology": "HTTPS/JSON",
                 },
                 {
                     "type": "RelTag",
+                    "tag_stereo": "DataAccess",
+                    "legend_text": "Database access",
+                    "line_color": "#8d6e63",
+                    "text_color": "#6d4c41",
+                    "line_style": "DashedLine",
+                    "line_thickness": "1",
+                    "technology": "SQL",
+                },
+                {
+                    "type": "RelTag",
                     "tag_stereo": "AsyncFlow",
-                    "legend_text": "Asynchronous integration",
+                    "legend_text": "Asynchronous event flow",
                     "legend_sprite": "queue",
                     "sprite": "queue",
-                    "text_color": "#6a1b9a",
                     "line_color": "#8e24aa",
+                    "text_color": "#6a1b9a",
                     "line_style": "DottedLine",
                     "line_thickness": "2",
                     "technology": "Kafka",
@@ -932,36 +1019,14 @@ COMPONENT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
             "styles": [
                 {
                     "type": "ElementStyle",
-                    "element_name": "payment_service",
-                    "bg_color": "#ede7f6",
-                    "font_color": "#311b92",
-                    "border_color": "#673ab7",
-                    "shadowing": True,
+                    "element_name": "component",
                     "shape": "RoundedBoxShape",
-                    "technology": "Python",
-                    "legend_text": "Payment orchestration component",
-                    "legend_sprite": "server",
-                    "border_style": "BoldLine",
-                    "border_thickness": "2",
-                },
-                {
-                    "type": "ElementStyle",
-                    "element_name": "order_events_bus",
-                    "bg_color": "#fff3e0",
-                    "font_color": "#e65100",
-                    "border_color": "#fb8c00",
-                    "shadowing": False,
-                    "shape": "RoundedBoxShape",
-                    "technology": "Kafka",
-                    "legend_text": "Internal async bus",
-                    "legend_sprite": "queue",
                     "border_style": "SolidLine",
-                    "border_thickness": "1",
                 },
                 {
                     "type": "RelStyle",
-                    "text_color": "#37474f",
                     "line_color": "#546e7a",
+                    "text_color": "#37474f",
                 },
             ],
         }

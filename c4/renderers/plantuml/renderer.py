@@ -54,10 +54,7 @@ from c4.renderers.plantuml.macros import (
     RelationshipPlantUMLMacro,
     SetIndexPlantUMLMacro,
     SetSketchStylePlantUMLMacro,
-    ShowElementDescriptionsPlantUMLMacro,
     ShowFloatingLegendPlantUMLMacro,
-    ShowFootBoxesPlantUMLMacro,
-    ShowIndexPlantUMLMacro,
     ShowLegendPlantUMLMacro,
     ShowPersonOutlinePlantUMLMacro,
     ShowPersonSpritePlantUMLMacro,
@@ -105,7 +102,7 @@ class LayoutOptionsRenderer:
 
         return builder.get_result()
 
-    def _render_layout(self) -> str:  # noqa: C901
+    def _render_layout(self) -> str:
         builder = IndentedStringBuilder()
         macro: PlantUMLMacro[Any]
 
@@ -133,18 +130,6 @@ class LayoutOptionsRenderer:
 
         if self._config.show_person_outline:
             macro = ShowPersonOutlinePlantUMLMacro()
-            builder.add(macro.render())
-
-        if self._config.show_element_descriptions:
-            macro = ShowElementDescriptionsPlantUMLMacro()
-            builder.add(macro.render())
-
-        if self._config.show_foot_boxes:
-            macro = ShowFootBoxesPlantUMLMacro()
-            builder.add(macro.render())
-
-        if self._config.show_index:
-            macro = ShowIndexPlantUMLMacro()
             builder.add(macro.render())
 
         if self._config.legend_title:
@@ -648,9 +633,13 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
                 f"Unsupported PlantUML diagram type: {diagram_type}"
             )
 
+        layout_config = self._layout_config
+        if diagram.render_options and diagram.render_options.plantuml:
+            layout_config = diagram.render_options.plantuml
+
         return renderer_class(
             includes=self._includes,
-            layout_config=self._layout_config,
+            layout_config=layout_config,
             backend=self._plantuml_backend,
             use_new_c4_style=self._use_new_c4_style,
         )

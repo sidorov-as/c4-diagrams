@@ -392,7 +392,7 @@ def _build_convert_parser(
     """
     convert_parser = subparser.add_parser(
         "convert",
-        help="Converts a diagram from one representation to another.",
+        help="Convert a diagram from one representation to another.",
     )
     # To support linebreaks in help text
     convert_parser.formatter_class = HelpFormatter

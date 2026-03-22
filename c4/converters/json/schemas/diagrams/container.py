@@ -13,6 +13,8 @@ from c4 import (
     ContainerExt,
     ContainerQueue,
     ContainerQueueExt,
+    EnterpriseBoundary,
+    SystemBoundary,
 )
 from c4.converters.json.schemas.diagrams.common import (
     BaseDiagramSchema,
@@ -25,10 +27,8 @@ from c4.converters.json.schemas.diagrams.common import (
     WithTechnology,
 )
 from c4.converters.json.schemas.diagrams.system_context import (
-    EnterpriseBoundarySchema,
     PersonExtSchema,
     PersonSchema,
-    SystemBoundarySchema,
     SystemDbExtSchema,
     SystemDbSchema,
     SystemExtSchema,
@@ -367,6 +367,160 @@ class ContainerBoundarySchema(
     )
 
 
+class EnterpriseBoundarySchema(
+    BoundaryBase[EnterpriseBoundary],
+    WithBoundaryRelationship,
+):
+    """
+    This schema describes the
+    [`EnterpriseBoundary`][c4.diagrams.system_context.EnterpriseBoundary]
+    diagram component.
+    """
+
+    type: Literal["EnterpriseBoundary"] = Field(
+        ...,
+        description="Discriminator identifying the element type.",
+        frozen=True,
+    )
+    elements: list[AnyElement] = Field(
+        default_factory=list, description="Elements may be nested arbitrarily."
+    )
+    boundaries: list[AnyBoundary] = Field(
+        default_factory=list,
+        description="Boundaries may be nested arbitrarily.",
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "type": "EnterpriseBoundary",
+                    "label": "Acme Corp",
+                    "alias": "acme",
+                    "description": (
+                        "Enterprise boundary containing internal platforms."
+                    ),
+                    "tags": ["enterprise"],
+                    "link": "https://acme.example.com",
+                    "properties": {
+                        "properties": [
+                            ["Region", "EU"],
+                            ["Department", "Digital"],
+                        ]
+                    },
+                    "relationships": [
+                        {
+                            "type": "REL",
+                            "from": "customer_portal",
+                            "to": "shared_identity",
+                            "label": "Authenticates via",
+                            "technology": "OIDC",
+                        }
+                    ],
+                    "elements": [
+                        {
+                            "type": "System",
+                            "label": "Customer Portal",
+                            "alias": "customer_portal",
+                            "description": "Entry point for customers.",
+                        },
+                        {
+                            "type": "System",
+                            "label": "Shared Identity",
+                            "alias": "shared_identity",
+                            "description": "Central authentication service.",
+                        },
+                    ],
+                    "boundaries": [
+                        {
+                            "type": "SystemBoundary",
+                            "label": "Commerce Domain",
+                            "alias": "commerce_domain",
+                            "elements": [],
+                            "boundaries": [],
+                            "relationships": [],
+                        }
+                    ],
+                }
+            ]
+        }
+    )
+
+
+class SystemBoundarySchema(
+    BoundaryBase[SystemBoundary],
+    WithBoundaryRelationship,
+):
+    """
+    This schema describes the
+    [`SystemBoundary`][c4.diagrams.system_context.SystemBoundary]
+    diagram component.
+    """
+
+    type: Literal["SystemBoundary"] = Field(
+        ...,
+        description="Discriminator identifying the element type.",
+        frozen=True,
+    )
+    elements: list[AnyElement] = Field(
+        default_factory=list, description="Elements may be nested arbitrarily."
+    )
+    boundaries: list[AnyBoundary] = Field(
+        default_factory=list,
+        description="Boundaries may be nested arbitrarily.",
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "type": "SystemBoundary",
+                    "label": "Commerce Platform",
+                    "alias": "commerce_platform",
+                    "description": (
+                        "Boundary for the commerce system and its "
+                        "internal components."
+                    ),
+                    "tags": ["system_boundary"],
+                    "link": "https://docs.example.com/commerce",
+                    "properties": {
+                        "properties": [
+                            ["Owner", "Commerce Team"],
+                            ["Environment", "Production"],
+                        ]
+                    },
+                    "relationships": [
+                        {
+                            "type": "REL",
+                            "from": "web_storefront",
+                            "to": "orders_db",
+                            "label": "Reads and writes orders",
+                            "technology": "SQL",
+                        }
+                    ],
+                    "elements": [
+                        {
+                            "type": "System",
+                            "label": "Web Storefront",
+                            "alias": "web_storefront",
+                            "description": (
+                                "Frontend for browsing and checkout."
+                            ),
+                        },
+                        {
+                            "type": "SystemDb",
+                            "label": "Orders DB",
+                            "alias": "orders_db",
+                            "description": "Stores orders and payment state.",
+                        },
+                    ],
+                    "boundaries": [],
+                }
+            ]
+        }
+    )
+
+
 AnyElement = (
     PersonSchema
     | PersonExtSchema
@@ -389,147 +543,166 @@ AnyBoundary = (
 )
 
 
-CONTAINER_DIAGRAM_MINIMAL_EXAMPLE: dict[str, Any] = {}
+CONTAINER_DIAGRAM_MINIMAL_EXAMPLE: dict[str, Any] = {
+    "type": "ContainerDiagram",
+    "title": "Web App",
+    "elements": [
+        {
+            "type": "Person",
+            "alias": "user",
+            "label": "User",
+            "tags": ["User"],
+        }
+    ],
+    "boundaries": [
+        {
+            "type": "SystemBoundary",
+            "alias": "system",
+            "label": "Simple System",
+            "tags": ["SystemBoundary"],
+            "elements": [
+                {
+                    "type": "Container",
+                    "alias": "web",
+                    "label": "Web App",
+                    "technology": "React",
+                    "tags": ["Frontend"],
+                },
+                {
+                    "type": "Container",
+                    "alias": "api",
+                    "label": "API",
+                    "technology": "Python",
+                    "tags": ["Backend"],
+                },
+                {
+                    "type": "ContainerDb",
+                    "alias": "db",
+                    "label": "Database",
+                    "technology": "PostgreSQL",
+                    "tags": ["Database"],
+                },
+            ],
+            "boundaries": [],
+            "relationships": [],
+        }
+    ],
+    "relationships": [
+        {
+            "type": "REL",
+            "from": "user",
+            "to": "web",
+            "label": "Uses",
+            "tags": ["Sync"],
+        },
+        {
+            "type": "REL",
+            "from": "web",
+            "to": "api",
+            "label": "Calls",
+            "tags": ["Sync"],
+        },
+        {
+            "type": "REL",
+            "from": "api",
+            "to": "db",
+            "label": "Reads/Writes",
+            "tags": ["Data"],
+        },
+    ],
+    "render_options": {
+        "plantuml": {
+            "layout": "LAYOUT_LEFT_RIGHT",
+            "styles": [
+                {
+                    "type": "ElementStyle",
+                    "element_name": "container",
+                    "bg_color": "#eeeeff",
+                }
+            ],
+            "tags": [
+                {"type": "PersonTag", "tag_stereo": "User"},
+                {"type": "ContainerTag", "tag_stereo": "Frontend"},
+                {"type": "ContainerTag", "tag_stereo": "Backend"},
+                {"type": "ContainerTag", "tag_stereo": "Database"},
+                {"type": "BoundaryTag", "tag_stereo": "SystemBoundary"},
+                {"type": "RelTag", "tag_stereo": "Sync"},
+                {"type": "RelTag", "tag_stereo": "Data"},
+            ],
+        }
+    },
+}
+
 CONTAINER_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
     "type": "ContainerDiagram",
     "title": "Online Shop - Container Diagram",
     "elements": [
         {
             "type": "Person",
-            "label": "Customer",
             "alias": "customer",
+            "label": "Customer",
             "description": "Browses products and places orders.",
-            "stereotype": "Primary User",
             "sprite": "user",
+            "stereotype": "Primary User",
             "tags": ["Customer"],
             "properties": {"properties": [["Channel", "Web / Mobile"]]},
         },
         {
             "type": "PersonExt",
-            "label": "Support Agent",
             "alias": "support_agent",
+            "label": "Support Agent",
             "description": (
                 "Investigates customer issues from an external support tool."
             ),
-            "stereotype": "External User",
             "sprite": "user",
-            "tags": ["ExternalPerson"],
-        },
-        {
-            "type": "System",
-            "label": "Online Shop",
-            "alias": "online_shop",
-            "description": "Customer-facing commerce platform.",
-            "stereotype": "Software System",
-            "base_shape": "RoundedBox",
-            "sprite": "server",
-            "tags": ["CoreSystem"],
-            "link": "https://shop.example.com",
+            "stereotype": "External User",
+            "tags": ["ExternalSupport"],
+            "properties": {"properties": [["Organization", "Support Vendor"]]},
         },
         {
             "type": "SystemExt",
-            "label": "Payment Provider",
             "alias": "payment_provider",
+            "label": "Payment Provider",
             "description": "Processes card payments and payment webhooks.",
-            "stereotype": "External System",
-            "base_shape": "RoundedBox",
             "sprite": "cloud",
+            "stereotype": "External System",
             "tags": ["ExternalSystem"],
-            "link": "https://payments.example.com",
-        },
-        {
-            "type": "Container",
-            "label": "Web Application",
-            "alias": "web_app",
-            "description": "Serves the storefront and checkout UI.",
-            "technology": "React + Next.js",
-            "base_shape": "RoundedBox",
-            "sprite": "browser",
-            "tags": ["Frontend"],
-            "properties": {
-                "properties": [
-                    ["Runtime", "Node.js"],
-                    ["Team", "Storefront"],
-                ]
-            },
-        },
-        {
-            "type": "Container",
-            "label": "Backend API",
-            "alias": "backend_api",
-            "description": "Handles catalog, carts, checkout, and order APIs.",
-            "technology": "Python / FastAPI",
-            "base_shape": "RoundedBox",
-            "sprite": "server",
-            "tags": ["Backend", "CoreRuntime"],
-            "properties": {
-                "properties": [
-                    ["Runtime", "Python 3.12"],
-                    ["Team", "Platform"],
-                ]
-            },
-        },
-        {
-            "type": "ContainerDb",
-            "label": "Orders Database",
-            "alias": "orders_db",
-            "description": "Stores orders, payments, and status transitions.",
-            "technology": "PostgreSQL",
-            "sprite": "database",
-            "tags": ["DataStore"],
-            "properties": {
-                "properties": [
-                    ["Engine", "PostgreSQL 16"],
-                    ["HA", "Primary / Replica"],
-                ]
-            },
-        },
-        {
-            "type": "ContainerQueue",
-            "label": "Order Events Queue",
-            "alias": "order_events",
-            "description": "Publishes asynchronous order lifecycle events.",
-            "technology": "Kafka",
-            "sprite": "queue",
-            "tags": ["AsyncChannel"],
-            "properties": {
-                "properties": [["Retention", "7 days"], ["Format", "JSON"]]
-            },
         },
         {
             "type": "ContainerExt",
-            "label": "Recommendation API",
             "alias": "recommendation_api",
+            "label": "Recommendation API",
             "description": "Returns personalized product recommendations.",
-            "technology": "REST API",
-            "base_shape": "RoundedBox",
             "sprite": "cloud",
+            "technology": "REST API",
             "tags": ["ExternalContainer"],
         },
         {
             "type": "ContainerDbExt",
-            "label": "Fraud Signals DB",
             "alias": "fraud_db",
-            "description": "External datastore containing fraud intelligence.",
-            "technology": "Vendor DB",
+            "label": "Fraud Signals DB",
+            "description": (
+                "External datastore containing fraud intelligence."
+            ),
             "sprite": "database",
+            "technology": "Vendor DB",
             "tags": ["ExternalDataStore"],
         },
         {
             "type": "ContainerQueueExt",
-            "label": "Shipping Events Topic",
             "alias": "shipping_events",
+            "label": "Shipping Events Topic",
             "description": "External topic used by logistics partner.",
-            "technology": "Kafka",
             "sprite": "queue",
+            "technology": "Kafka",
             "tags": ["ExternalAsyncChannel"],
         },
     ],
     "boundaries": [
         {
             "type": "EnterpriseBoundary",
-            "label": "Acme Corp",
             "alias": "acme",
+            "label": "Acme Corp",
             "description": "Enterprise boundary for internal platforms.",
             "tags": ["EnterpriseBoundary"],
             "properties": {
@@ -538,89 +711,148 @@ CONTAINER_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
                     ["Business Unit", "Digital Commerce"],
                 ]
             },
-            "elements": [
+            "elements": [],
+            "boundaries": [
                 {
-                    "type": "System",
-                    "label": "Online Shop",
-                    "alias": "shop_system_inside_enterprise",
+                    "type": "SystemBoundary",
+                    "alias": "shop_boundary",
+                    "label": "Online Shop Platform",
                     "description": (
-                        "Reference system inside the enterprise boundary."
+                        "Main system boundary for the commerce platform."
                     ),
-                    "tags": ["CoreSystem"],
+                    "tags": ["SystemBoundary"],
+                    "properties": {
+                        "properties": [
+                            ["Owner", "Commerce Team"],
+                            ["Environment", "Production"],
+                        ]
+                    },
+                    "elements": [
+                        {
+                            "type": "Container",
+                            "alias": "web_app",
+                            "label": "Web Application",
+                            "description": (
+                                "Serves the storefront and checkout UI."
+                            ),
+                            "sprite": "browser",
+                            "technology": "React + Next.js",
+                            "tags": ["Frontend"],
+                            "properties": {
+                                "properties": [
+                                    ["Runtime", "Node.js"],
+                                    ["Team", "Storefront"],
+                                ]
+                            },
+                        },
+                        {
+                            "type": "Container",
+                            "alias": "backend_api",
+                            "label": "Backend API",
+                            "description": (
+                                "Handles catalog, carts, checkout, and "
+                                "order APIs."
+                            ),
+                            "sprite": "server",
+                            "technology": "Python / FastAPI",
+                            "tags": ["Backend", "CoreRuntime"],
+                            "properties": {
+                                "properties": [
+                                    ["Runtime", "Python 3.12"],
+                                    ["Team", "Platform"],
+                                ]
+                            },
+                        },
+                        {
+                            "type": "ContainerDb",
+                            "alias": "orders_db",
+                            "label": "Orders Database",
+                            "description": (
+                                "Stores orders, payments, and "
+                                "status transitions."
+                            ),
+                            "sprite": "database",
+                            "technology": "PostgreSQL",
+                            "tags": ["DataStore"],
+                            "properties": {
+                                "properties": [
+                                    ["Engine", "PostgreSQL 16"],
+                                    ["HA", "Primary / Replica"],
+                                ]
+                            },
+                        },
+                        {
+                            "type": "ContainerQueue",
+                            "alias": "order_events",
+                            "label": "Order Events Queue",
+                            "description": (
+                                "Publishes asynchronous order lifecycle events."
+                            ),
+                            "sprite": "queue",
+                            "technology": "Kafka",
+                            "tags": ["AsyncChannel"],
+                            "properties": {
+                                "properties": [
+                                    ["Retention", "7 days"],
+                                    ["Format", "JSON"],
+                                ]
+                            },
+                        },
+                    ],
+                    "boundaries": [
+                        {
+                            "type": "ContainerBoundary",
+                            "alias": "checkout_boundary",
+                            "label": "Checkout Subsystem",
+                            "description": (
+                                "Groups checkout-related containers."
+                            ),
+                            "tags": ["ContainerBoundary"],
+                            "properties": {
+                                "properties": [
+                                    ["Owner", "Checkout Team"],
+                                    ["Criticality", "High"],
+                                ]
+                            },
+                            "elements": [
+                                {
+                                    "type": "Container",
+                                    "alias": "checkout_api",
+                                    "label": "Checkout API",
+                                    "description": (
+                                        "Handles checkout and "
+                                        "payment orchestration."
+                                    ),
+                                    "technology": "Python / FastAPI",
+                                    "tags": ["Backend"],
+                                },
+                                {
+                                    "type": "ContainerDb",
+                                    "alias": "checkout_db",
+                                    "label": "Checkout DB",
+                                    "description": "Stores checkout sessions.",
+                                    "technology": "PostgreSQL",
+                                    "tags": ["DataStore"],
+                                },
+                            ],
+                            "boundaries": [],
+                            "relationships": [
+                                {
+                                    "type": "REL",
+                                    "from": "checkout_api",
+                                    "to": "checkout_db",
+                                    "label": "Reads and writes",
+                                    "technology": "SQL",
+                                    "tags": ["DataAccess"],
+                                }
+                            ],
+                        }
+                    ],
+                    "relationships": [],
                 }
             ],
-            "boundaries": [],
             "relationships": [],
-        },
-        {
-            "type": "SystemBoundary",
-            "label": "Online Shop Platform",
-            "alias": "shop_boundary",
-            "description": "Main system boundary for the commerce platform.",
-            "tags": ["SystemBoundary"],
-            "properties": {
-                "properties": [
-                    ["Owner", "Commerce Team"],
-                    ["Environment", "Production"],
-                ]
-            },
-            "elements": [
-                {
-                    "type": "Container",
-                    "label": "Web Application",
-                    "alias": "web_app_in_boundary",
-                    "description": "Customer-facing frontend.",
-                    "technology": "React + Next.js",
-                    "tags": ["Frontend"],
-                }
-            ],
-            "boundaries": [],
-            "relationships": [],
-        },
-        {
-            "type": "ContainerBoundary",
-            "label": "Checkout Subsystem",
-            "alias": "checkout_boundary",
-            "description": "Groups checkout-related containers.",
-            "tags": ["ContainerBoundary"],
-            "properties": {
-                "properties": [
-                    ["Owner", "Checkout Team"],
-                    ["Criticality", "High"],
-                ]
-            },
-            "elements": [
-                {
-                    "type": "Container",
-                    "label": "Checkout API",
-                    "alias": "checkout_api",
-                    "description": (
-                        "Handles checkout and payment orchestration."
-                    ),
-                    "technology": "Python / FastAPI",
-                    "tags": ["Backend"],
-                },
-                {
-                    "type": "ContainerDb",
-                    "label": "Checkout DB",
-                    "alias": "checkout_db",
-                    "description": "Stores checkout sessions.",
-                    "technology": "PostgreSQL",
-                    "tags": ["DataStore"],
-                },
-            ],
-            "boundaries": [],
-            "relationships": [
-                {
-                    "type": "REL",
-                    "from": "checkout_api",
-                    "to": "checkout_db",
-                    "label": "Reads and writes",
-                    "technology": "SQL",
-                    "tags": ["DataAccess"],
-                }
-            ],
-        },
+        }
     ],
     "relationships": [
         {
@@ -700,261 +932,285 @@ CONTAINER_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
         {"type": "LAY_R", "from": "customer", "to": "web_app"},
         {"type": "LAY_R", "from": "web_app", "to": "backend_api"},
         {"type": "LAY_D", "from": "backend_api", "to": "orders_db"},
-        {"type": "LAY_R", "from": "backend_api", "to": "payment_provider"},
         {"type": "LAY_D", "from": "backend_api", "to": "order_events"},
+        {"type": "LAY_R", "from": "backend_api", "to": "payment_provider"},
     ],
     "render_options": {
         "plantuml": {
             "layout": "LAYOUT_LEFT_RIGHT",
-            "layout_with_legend": True,
             "layout_as_sketch": False,
+            "layout_with_legend": True,
+            "legend_title": "Container Diagram Legend",
+            "hide_stereotype": False,
+            "hide_person_sprite": False,
+            "show_person_outline": True,
+            "show_person_portrait": False,
+            "show_person_sprite": {"alias": "person"},
+            "show_legend": {"details": "Normal", "hide_stereotype": False},
+            "show_floating_legend": {
+                "alias": "legend_box",
+                "details": "Small",
+                "hide_stereotype": True,
+            },
             "set_sketch_style": {
                 "bg_color": "#ffffff",
                 "font_color": "#222222",
-                "warning_color": "#cc3300",
                 "font_name": "Inter",
-                "footer_warning": "Architecture draft",
                 "footer_text": "Container view",
+                "footer_warning": "Architecture draft",
+                "warning_color": "#cc3300",
             },
-            "show_legend": {
-                "details": "Normal",
-                "hide_stereotype": False,
-            },
-            "show_floating_legend": {
-                "details": "Small",
-                "hide_stereotype": True,
-                "alias": "legend_box",
-            },
-            "hide_stereotype": False,
-            "hide_person_sprite": False,
-            "show_person_sprite": {"alias": "person"},
-            "show_person_outline": True,
-            "show_person_portrait": False,
-            "show_element_descriptions": True,
-            "show_foot_boxes": False,
-            "show_index": False,
             "without_property_header": False,
-            "legend_title": "Container Diagram Legend",
+            "styles": [
+                {
+                    "type": "ElementStyle",
+                    "element_name": "container",
+                    "bg_color": "#ede7f6",
+                    "border_color": "#673ab7",
+                    "border_style": "SolidLine",
+                    "border_thickness": "2",
+                    "font_color": "#311b92",
+                    "legend_text": "Application container",
+                    "legend_sprite": "server",
+                    "shape": "RoundedBoxShape",
+                    "shadowing": True,
+                },
+                {
+                    "type": "SystemBoundaryStyle",
+                    "element_name": "systemboundary",
+                    "bg_color": "#fff8e1",
+                    "border_color": "#ffb300",
+                    "border_style": "SolidLine",
+                    "border_thickness": "2",
+                    "font_color": "#5d4037",
+                    "legend_text": "System boundary",
+                    "shape": "RoundedBoxShape",
+                    "shadowing": False,
+                },
+                {
+                    "type": "ContainerBoundaryStyle",
+                    "element_name": "containerboundary",
+                    "bg_color": "#f1f8e9",
+                    "border_color": "#8bc34a",
+                    "border_style": "DashedLine",
+                    "border_thickness": "1",
+                    "font_color": "#33691e",
+                    "legend_text": "Container boundary",
+                    "shape": "RoundedBoxShape",
+                    "shadowing": False,
+                },
+                {
+                    "type": "RelStyle",
+                    "line_color": "#546e7a",
+                    "text_color": "#37474f",
+                },
+            ],
             "tags": [
                 {
                     "type": "PersonTag",
                     "tag_stereo": "Customer",
-                    "legend_text": "Primary customer actor",
-                    "legend_sprite": "user",
-                    "sprite": "user",
                     "bg_color": "#e8f5e9",
-                    "font_color": "#1b5e20",
                     "border_color": "#66bb6a",
-                    "shadowing": False,
                     "border_style": "SolidLine",
                     "border_thickness": "1",
+                    "font_color": "#1b5e20",
+                    "legend_sprite": "user",
+                    "legend_text": "Primary customer actor",
+                    "sprite": "user",
+                    "shadowing": False,
                 },
                 {
                     "type": "ExternalPersonTag",
-                    "tag_stereo": "ExternalPerson",
-                    "legend_text": "External support user",
-                    "legend_sprite": "user",
-                    "sprite": "user",
+                    "tag_stereo": "ExternalSupport",
                     "bg_color": "#f5f5f5",
-                    "font_color": "#424242",
                     "border_color": "#9e9e9e",
-                    "shadowing": False,
                     "border_style": "DashedLine",
                     "border_thickness": "1",
-                },
-                {
-                    "type": "SystemTag",
-                    "tag_stereo": "CoreSystem",
-                    "legend_text": "Core internal system",
-                    "legend_sprite": "server",
-                    "sprite": "server",
-                    "bg_color": "#e8f0fe",
-                    "font_color": "#0d47a1",
-                    "border_color": "#64b5f6",
-                    "shadowing": True,
-                    "shape": "RoundedBoxShape",
-                    "border_style": "SolidLine",
-                    "border_thickness": "2",
+                    "font_color": "#424242",
+                    "legend_sprite": "user",
+                    "legend_text": "External support user",
+                    "sprite": "user",
+                    "shadowing": False,
                 },
                 {
                     "type": "ExternalSystemTag",
                     "tag_stereo": "ExternalSystem",
-                    "legend_text": "External system dependency",
-                    "legend_sprite": "cloud",
-                    "sprite": "cloud",
                     "bg_color": "#f5f5f5",
-                    "font_color": "#424242",
                     "border_color": "#9e9e9e",
-                    "shadowing": False,
-                    "shape": "RoundedBoxShape",
                     "border_style": "DashedLine",
                     "border_thickness": "1",
+                    "font_color": "#424242",
+                    "legend_sprite": "cloud",
+                    "legend_text": "External system dependency",
+                    "sprite": "cloud",
+                    "shape": "RoundedBoxShape",
+                    "shadowing": False,
                 },
                 {
                     "type": "ContainerTag",
                     "tag_stereo": "Frontend",
-                    "legend_text": "User-facing frontend container",
-                    "legend_sprite": "browser",
-                    "sprite": "browser",
                     "bg_color": "#e3f2fd",
-                    "font_color": "#0d47a1",
                     "border_color": "#64b5f6",
-                    "shadowing": True,
-                    "technology": "Web UI",
                     "border_style": "SolidLine",
                     "border_thickness": "2",
+                    "font_color": "#0d47a1",
+                    "legend_sprite": "browser",
+                    "legend_text": "User-facing frontend container",
+                    "sprite": "browser",
+                    "technology": "Web UI",
+                    "shadowing": True,
                 },
                 {
                     "type": "ContainerTag",
                     "tag_stereo": "Backend",
-                    "legend_text": "Backend application container",
-                    "legend_sprite": "server",
-                    "sprite": "server",
                     "bg_color": "#ede7f6",
-                    "font_color": "#311b92",
                     "border_color": "#673ab7",
-                    "shadowing": True,
-                    "technology": "Python / FastAPI",
                     "border_style": "SolidLine",
                     "border_thickness": "2",
+                    "font_color": "#311b92",
+                    "legend_sprite": "server",
+                    "legend_text": "Backend application container",
+                    "sprite": "server",
+                    "technology": "Python / FastAPI",
+                    "shadowing": True,
                 },
                 {
                     "type": "ContainerTag",
                     "tag_stereo": "CoreRuntime",
-                    "legend_text": "Core runtime container",
-                    "legend_sprite": "server",
-                    "sprite": "server",
                     "bg_color": "#ede7f6",
-                    "font_color": "#4527a0",
                     "border_color": "#7e57c2",
-                    "shadowing": True,
-                    "technology": "Python 3.12",
                     "border_style": "BoldLine",
                     "border_thickness": "2",
+                    "font_color": "#4527a0",
+                    "legend_sprite": "server",
+                    "legend_text": "Core runtime container",
+                    "sprite": "server",
+                    "technology": "Python 3.12",
+                    "shadowing": True,
                 },
                 {
                     "type": "ContainerTag",
                     "tag_stereo": "DataStore",
-                    "legend_text": "Internal data store",
-                    "legend_sprite": "database",
-                    "sprite": "database",
                     "bg_color": "#fff8e1",
-                    "font_color": "#5d4037",
                     "border_color": "#ffb300",
-                    "shadowing": False,
-                    "technology": "PostgreSQL",
                     "border_style": "SolidLine",
                     "border_thickness": "1",
+                    "font_color": "#5d4037",
+                    "legend_sprite": "database",
+                    "legend_text": "Internal data store",
+                    "sprite": "database",
+                    "technology": "PostgreSQL",
+                    "shadowing": False,
                 },
                 {
                     "type": "ContainerTag",
                     "tag_stereo": "AsyncChannel",
-                    "legend_text": "Internal asynchronous channel",
-                    "legend_sprite": "queue",
-                    "sprite": "queue",
                     "bg_color": "#fff3e0",
-                    "font_color": "#e65100",
                     "border_color": "#fb8c00",
-                    "shadowing": False,
-                    "technology": "Kafka",
                     "border_style": "SolidLine",
                     "border_thickness": "1",
+                    "font_color": "#e65100",
+                    "legend_sprite": "queue",
+                    "legend_text": "Internal asynchronous channel",
+                    "sprite": "queue",
+                    "technology": "Kafka",
+                    "shadowing": False,
                 },
                 {
                     "type": "ExternalContainerTag",
                     "tag_stereo": "ExternalContainer",
-                    "legend_text": "External container dependency",
-                    "legend_sprite": "cloud",
-                    "sprite": "cloud",
                     "bg_color": "#f5f5f5",
-                    "font_color": "#424242",
                     "border_color": "#9e9e9e",
-                    "shadowing": False,
-                    "shape": "RoundedBoxShape",
-                    "technology": "REST API",
                     "border_style": "DashedLine",
                     "border_thickness": "1",
+                    "font_color": "#424242",
+                    "legend_sprite": "cloud",
+                    "legend_text": "External container dependency",
+                    "sprite": "cloud",
+                    "technology": "REST API",
+                    "shape": "RoundedBoxShape",
+                    "shadowing": False,
                 },
                 {
                     "type": "ExternalContainerTag",
                     "tag_stereo": "ExternalDataStore",
-                    "legend_text": "External data store",
-                    "legend_sprite": "database",
-                    "sprite": "database",
                     "bg_color": "#f5f5f5",
-                    "font_color": "#424242",
                     "border_color": "#9e9e9e",
-                    "shadowing": False,
-                    "technology": "Vendor DB",
                     "border_style": "DashedLine",
                     "border_thickness": "1",
+                    "font_color": "#424242",
+                    "legend_sprite": "database",
+                    "legend_text": "External data store",
+                    "sprite": "database",
+                    "technology": "Vendor DB",
+                    "shadowing": False,
                 },
                 {
                     "type": "ExternalContainerTag",
                     "tag_stereo": "ExternalAsyncChannel",
-                    "legend_text": "External asynchronous channel",
-                    "legend_sprite": "queue",
-                    "sprite": "queue",
                     "bg_color": "#f3e5f5",
-                    "font_color": "#6a1b9a",
                     "border_color": "#ab47bc",
-                    "shadowing": False,
-                    "technology": "Kafka",
                     "border_style": "DashedLine",
                     "border_thickness": "1",
+                    "font_color": "#6a1b9a",
+                    "legend_sprite": "queue",
+                    "legend_text": "External asynchronous channel",
+                    "sprite": "queue",
+                    "technology": "Kafka",
+                    "shadowing": False,
                 },
                 {
                     "type": "BoundaryTag",
                     "tag_stereo": "EnterpriseBoundary",
-                    "legend_text": "Enterprise boundary",
                     "bg_color": "#fafafa",
-                    "font_color": "#424242",
                     "border_color": "#9e9e9e",
-                    "shadowing": False,
                     "border_style": "SolidLine",
                     "border_thickness": "1",
+                    "font_color": "#424242",
+                    "legend_text": "Enterprise boundary",
+                    "shadowing": False,
                 },
                 {
                     "type": "BoundaryTag",
                     "tag_stereo": "SystemBoundary",
-                    "legend_text": "System boundary",
                     "bg_color": "#fff8e1",
-                    "font_color": "#5d4037",
                     "border_color": "#ffb300",
-                    "shadowing": False,
                     "border_style": "SolidLine",
                     "border_thickness": "2",
+                    "font_color": "#5d4037",
+                    "legend_text": "System boundary",
+                    "shadowing": False,
                 },
                 {
                     "type": "BoundaryTag",
                     "tag_stereo": "ContainerBoundary",
-                    "legend_text": "Container boundary",
                     "bg_color": "#f1f8e9",
-                    "font_color": "#33691e",
                     "border_color": "#8bc34a",
-                    "shadowing": False,
                     "border_style": "DashedLine",
                     "border_thickness": "1",
+                    "font_color": "#33691e",
+                    "legend_text": "Container boundary",
+                    "shadowing": False,
                 },
                 {
                     "type": "RelTag",
                     "tag_stereo": "SyncRequest",
                     "legend_text": "Synchronous request/response flow",
-                    "text_color": "#1565c0",
                     "line_color": "#1e88e5",
                     "line_style": "SolidLine",
                     "line_thickness": "1",
                     "technology": "HTTPS/JSON",
+                    "text_color": "#1565c0",
                 },
                 {
                     "type": "RelTag",
                     "tag_stereo": "DataAccess",
                     "legend_text": "Database access",
-                    "text_color": "#6d4c41",
                     "line_color": "#8d6e63",
                     "line_style": "DashedLine",
                     "line_thickness": "1",
                     "technology": "SQL",
+                    "text_color": "#6d4c41",
                 },
                 {
                     "type": "RelTag",
@@ -962,78 +1218,31 @@ CONTAINER_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
                     "legend_text": "Asynchronous messaging flow",
                     "legend_sprite": "queue",
                     "sprite": "queue",
-                    "text_color": "#6a1b9a",
                     "line_color": "#8e24aa",
                     "line_style": "DottedLine",
                     "line_thickness": "2",
                     "technology": "Kafka",
+                    "text_color": "#6a1b9a",
                 },
                 {
                     "type": "RelTag",
                     "tag_stereo": "ExternalCall",
                     "legend_text": "External service/data call",
-                    "text_color": "#455a64",
                     "line_color": "#78909c",
                     "line_style": "DashedLine",
                     "line_thickness": "1",
                     "technology": "REST API / JDBC",
+                    "text_color": "#455a64",
                 },
                 {
                     "type": "RelTag",
                     "tag_stereo": "SupportFlow",
                     "legend_text": "Support access flow",
-                    "text_color": "#2e7d32",
                     "line_color": "#43a047",
                     "line_style": "SolidLine",
                     "line_thickness": "1",
                     "technology": "HTTPS",
-                },
-            ],
-            "styles": [
-                {
-                    "type": "ElementStyle",
-                    "element_name": "backend_api",
-                    "bg_color": "#ede7f6",
-                    "font_color": "#311b92",
-                    "border_color": "#673ab7",
-                    "shadowing": True,
-                    "shape": "RoundedBoxShape",
-                    "technology": "Python / FastAPI",
-                    "legend_text": "Core backend service",
-                    "legend_sprite": "server",
-                    "border_style": "BoldLine",
-                    "border_thickness": "2",
-                },
-                {
-                    "type": "SystemBoundaryStyle",
-                    "element_name": "shop_boundary",
-                    "bg_color": "#fff8e1",
-                    "font_color": "#5d4037",
-                    "border_color": "#ffb300",
-                    "shadowing": False,
-                    "shape": "RoundedBoxShape",
-                    "stereotype": "System",
-                    "legend_text": "System boundary",
-                    "border_style": "SolidLine",
-                    "border_thickness": "2",
-                },
-                {
-                    "type": "ContainerBoundaryStyle",
-                    "element_name": "checkout_boundary",
-                    "bg_color": "#f1f8e9",
-                    "font_color": "#33691e",
-                    "border_color": "#8bc34a",
-                    "shadowing": False,
-                    "shape": "RoundedBoxShape",
-                    "stereotype": "Container",
-                    "legend_text": "Container boundary",
-                    "border_style": "DashedLine",
-                    "border_thickness": "1",
-                },
-                {
-                    "type": "RelStyle",
-                    "text_color": "#37474f",
-                    "line_color": "#546e7a",
+                    "text_color": "#2e7d32",
                 },
             ],
         }

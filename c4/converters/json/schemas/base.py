@@ -118,11 +118,6 @@ class BaseSchemaItem(JSONSchemaMixin, BaseModel, Generic[TDiagramElement]):
         """
         data: dict[str, Any] = self.model_dump(mode="python")
 
-        # Normalize tags: list[str] -> "a,b,c"
-        tags = data.get("tags")
-        if isinstance(tags, list):
-            data["tags"] = ",".join(str(t) for t in tags if t)
-
         # Normalize only None -> "".
         for key, value in list(data.items()):
             if value is None:

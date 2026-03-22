@@ -40,7 +40,8 @@ class BaseTag:
     relationships, including optional visual enhancements and legend metadata.
 
     Attributes:
-        tag_stereo: The stereotype name of the tag.
+        tag_stereo: Stereotype name of the tag. Must match one of the tags
+            declared in the `tags` field of a diagram component.
         legend_text: The text shown in the legend for this tag.
         legend_sprite: The sprite displayed in the legend.
         sprite: The sprite icon associated with the element or relationship.
@@ -74,7 +75,7 @@ class ElementTag(BaseTag):
     bg_color: str
     font_color: str
     border_color: str
-    shadowing: str
+    shadowing: bool | None
     shape: TagShape
     technology: str
     border_style: LineStyle
@@ -177,7 +178,7 @@ class PersonTag(BaseTag):
     bg_color: str
     font_color: str
     border_color: str
-    shadowing: str
+    shadowing: bool | None
     shape: TagShape
     type_: str
     border_style: LineStyle
@@ -212,7 +213,7 @@ class SystemTag(BaseTag):
     bg_color: str
     font_color: str
     border_color: str
-    shadowing: str
+    shadowing: bool | None
     shape: TagShape
     type_: str
     border_style: LineStyle
@@ -262,7 +263,7 @@ class ElementStyle(BaseStyle):
     bg_color: str
     font_color: str
     border_color: str
-    shadowing: str
+    shadowing: bool | None
     shape: TagShape
     sprite: str
     technology: str
@@ -416,10 +417,6 @@ class LayoutConfig:
         show_person_sprite: Configuration for SHOW_PERSON_SPRITE macro.
         show_person_portrait: Whether to enable person portraits.
         show_person_outline: Whether to enable person outlines.
-        show_element_descriptions: Whether to display element descriptions
-                           in sequence diagrams.
-        show_foot_boxes: Whether to display foot boxes in sequence diagrams.
-        show_index: Whether to display index numbers in sequence diagrams.
         without_property_header: If no header is used, then the second column
             is bold.
         legend_title: Optional title for the diagram legend.
@@ -438,9 +435,6 @@ class LayoutConfig:
     show_person_sprite: ShowPersonSprite | None = None
     show_person_portrait: bool = False
     show_person_outline: bool = False
-    show_element_descriptions: bool = False
-    show_foot_boxes: bool = False
-    show_index: bool = False
     without_property_header: bool = False
     legend_title: str | None = None
     tags: list[BaseTag] = field(default_factory=list)
@@ -494,9 +488,6 @@ class LayoutOptions:
         self._hide_person_sprite = False
         self._show_person_portrait = False
         self._show_person_outline = False
-        self._show_element_descriptions = False
-        self._show_foot_boxes: bool = False
-        self._show_index: bool = False
         self._show_person_sprite = False
         self._show_person_sprite_defaults = {
             "alias": None,
@@ -557,14 +548,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = ElementTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -612,14 +601,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = BoundaryTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -711,14 +698,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = ComponentTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -766,14 +751,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = ExternalComponentTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -821,14 +804,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = ContainerTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -876,14 +857,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = ExternalContainerTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -931,14 +910,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = NodeTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -986,14 +963,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = PersonTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             type_=type_,
@@ -1041,14 +1016,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = ExternalPersonTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             type_=type_,
@@ -1096,14 +1069,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = SystemTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             type_=type_,
@@ -1151,14 +1122,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         tag = ExternalSystemTag(
             tag_stereo=tag_stereo,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             type_=type_,
@@ -1190,7 +1159,8 @@ class LayoutOptions:
         Adds an UpdateElementStyle() macro configuration.
 
         Args:
-            element_name: Element name.
+            element_name: C4 element type to style
+                (e.g. 'person', 'system', 'container').
             bg_color: Background color.
             font_color: Font color.
             border_color: Border color.
@@ -1206,14 +1176,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         style = ElementStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1246,7 +1214,8 @@ class LayoutOptions:
         Adds an UpdateBoundaryStyle() macro configuration.
 
         Args:
-            element_name: Element name.
+            element_name: C4 element type to style
+                (e.g. 'person', 'system', 'container').
             bg_color: Background color.
             font_color: Font color.
             border_color: Border color.
@@ -1263,14 +1232,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         style = BoundaryStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1327,7 +1294,8 @@ class LayoutOptions:
         Adds an UpdateContainerBoundaryStyle() macro configuration.
 
         Args:
-            element_name: Element name.
+            element_name: C4 element type to style
+                (e.g. 'person', 'system', 'container').
             bg_color: Background color.
             font_color: Font color.
             border_color: Border color.
@@ -1344,14 +1312,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         style = ContainerBoundaryStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1385,7 +1351,8 @@ class LayoutOptions:
         Adds an UpdateSystemBoundaryStyle() macro configuration.
 
         Args:
-            element_name: Element name.
+            element_name: C4 element type to style
+                (e.g. 'person', 'system', 'container').
             bg_color: Background color.
             font_color: Font color.
             border_color: Border color.
@@ -1402,14 +1369,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         style = SystemBoundaryStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1443,7 +1408,8 @@ class LayoutOptions:
         Adds an UpdateEnterpriseBoundaryStyle() macro configuration.
 
         Args:
-            element_name: Element name.
+            element_name: C4 element type to style
+                (e.g. 'person', 'system', 'container').
             bg_color: Background color.
             font_color: Font color.
             border_color: Border color.
@@ -1460,14 +1426,12 @@ class LayoutOptions:
         Returns:
             The updated layout configuration.
         """
-        shadowing_str = str(shadowing).lower() if shadowing is not None else ""
-
         style = EnterpriseBoundaryStyle(
             element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
-            shadowing=shadowing_str,
+            shadowing=shadowing,
             shape=shape,
             sprite=sprite,
             technology=technology,
@@ -1673,39 +1637,6 @@ class LayoutOptions:
 
         return self
 
-    def show_element_descriptions(self) -> Self:
-        """
-        Enables SHOW_ELEMENT_DESCRIPTIONS macro.
-
-        Returns:
-            The updated layout configuration.
-        """
-        self._show_element_descriptions = True
-
-        return self
-
-    def show_foot_boxes(self) -> Self:
-        """
-        Enables SHOW_FOOT_BOXES macro.
-
-        Returns:
-            The updated layout configuration.
-        """
-        self._show_foot_boxes = True
-
-        return self
-
-    def show_index(self) -> Self:
-        """
-        Enables SHOW_INDEX macro.
-
-        Returns:
-            The updated layout configuration.
-        """
-        self._show_index = True
-
-        return self
-
     def show_person_sprite(
         self,
         alias: str | None = None,
@@ -1820,9 +1751,6 @@ class LayoutOptions:
             show_person_sprite=show_person_sprite,
             show_person_portrait=self._show_person_portrait,
             show_person_outline=self._show_person_outline,
-            show_element_descriptions=self._show_element_descriptions,
-            show_foot_boxes=self._show_foot_boxes,
-            show_index=self._show_index,
             tags=self._tags,
             styles=self._styles,
             show_legend=show_legend,

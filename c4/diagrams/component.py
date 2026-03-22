@@ -46,7 +46,7 @@ class Component(Element):
         description: str = "",
         technology: str = "",
         sprite: str = "",
-        tags: str = "",
+        tags: list[str] | None = None,
         link: str = "",
         base_shape: str = "",
         alias: str | EmptyStr = empty,
@@ -60,7 +60,7 @@ class Component(Element):
                 behavior or role.
             technology: Technology used to implement the component.
             sprite: Optional sprite for visual appearance in the diagram.
-            tags: Comma-separated tags for filtering or styling.
+            tags: Optional tags for styling or grouping.
             link: Optional external link related to the component.
             base_shape: Optional shape override for rendering.
             alias: Unique identifier for the component.

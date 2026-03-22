@@ -127,14 +127,21 @@ class PythonCodegen:
         we can configure those properties on the alias inside the block.
         """
         alias = boundary.alias
+        diagram = boundary.diagram
 
-        if boundary.properties.properties:
+        need_variable = (
+            diagram.is_element_referenced_by_alias(alias)
+            or boundary.properties.properties
+        )
+
+        if need_variable:
             self._builder.add(f"with {boundary!r} as {alias}:")
-
-            with self._builder.indent():
-                self._render_properties(alias, boundary.properties)
         else:
             self._builder.add(f"with {boundary!r}:")
+
+        if boundary.properties.properties:
+            with self._builder.indent():
+                self._render_properties(alias, boundary.properties)
 
         with self._builder.indent():
             yield
@@ -272,6 +279,7 @@ class PythonCodegen:
             )
 
         if options_to_render:
+            self._builder.add_blank_line(check_duplicates=True)
             attrs = [f"    {option}," for option in options_to_render]
             signature = "\n".join(attrs)
             self._builder.add(
