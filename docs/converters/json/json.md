@@ -178,7 +178,7 @@ The following example shows how architecture information can be extracted from a
           c4.rel.order_db.tags: "DataAccess"
 
           c4.rel.order_events_bus.label: "Publishes events to"
-          c4.rel.order_events_bus.technology: "Kafka"
+          c4.rel.order_events_bus.technology: "RabbitMQ"
           c4.rel.order_events_bus.tags: "AsyncFlow"
 
       inventory_checker:
