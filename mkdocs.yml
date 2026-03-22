@@ -151,8 +151,6 @@ markdown_extensions:
   - pymdownx.blocks.caption
   - pymdownx.snippets:
       base_path: docs
-  - markdown_include.include:
-      base_path: docs
 
 extra_css:
   - assets/styles/extra.css
