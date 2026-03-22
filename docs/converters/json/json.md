@@ -131,94 +131,130 @@ The following example shows how architecture information can be extracted from a
 
     services:
       order_controller:
-        # ...
+        image: python:3.12-slim
         container_name: order_controller
-        environment:
-          SERVICE_NAME: order_controller
-          SERVICE_LABEL: Order Controller
-          SERVICE_TECHNOLOGY: FastAPI
-          SERVICE_DESCRIPTION: HTTP entrypoint for order submission and status queries.
-          SERVICE_TYPE: container
-          SERVICE_TAGS: Entrypoint,CoreComponent
-          DEPENDS_ON_SERVICES: order_app_service
+        command: ["sh", "-c", "echo starting order_controller && sleep infinity"]
         depends_on:
           - order_app_service
+        ports:
+          - "8000:8000"
+        labels:
+          c4.type: "Container"
+          c4.label: "Order Controller"
+          c4.technology: "FastAPI"
+          c4.description: "HTTP entrypoint for order submission and status queries."
+          c4.tags: "Entrypoint,CoreComponent"
+
+          c4.rel.order_app_service.label: "Invokes"
+          c4.rel.order_app_service.technology: "Python call"
+          c4.rel.order_app_service.tags: "SyncCall"
 
       order_app_service:
-        # ...
+        image: python:3.12-slim
         container_name: order_app_service
-        environment:
-          SERVICE_NAME: order_app_service
-          SERVICE_LABEL: Order Application Service
-          SERVICE_TECHNOLOGY: Python
-          SERVICE_DESCRIPTION: Coordinates validation, payment, and order creation.
-          SERVICE_TYPE: container
-          SERVICE_TAGS: CoreComponent,Orders
-          DEPENDS_ON_SERVICES: inventory_checker,payment_adapter,order_db,order_events_bus
+        command: ["sh", "-c", "echo starting order_app_service && sleep infinity"]
         depends_on:
           - inventory_checker
           - payment_adapter
           - order_db
           - order_events_bus
+        labels:
+          c4.type: "Container"
+          c4.label: "Order Application Service"
+          c4.technology: "Python"
+          c4.description: "Coordinates validation, payment, and order creation."
+          c4.tags: "CoreComponent,Orders"
+
+          c4.rel.inventory_checker.label: "Checks stock via"
+          c4.rel.inventory_checker.technology: "Python call"
+          c4.rel.inventory_checker.tags: "SyncCall"
+
+          c4.rel.payment_adapter.label: "Requests payment through"
+          c4.rel.payment_adapter.technology: "Python call"
+          c4.rel.payment_adapter.tags: "SyncCall"
+
+          c4.rel.order_db.label: "Reads and writes"
+          c4.rel.order_db.technology: "SQL"
+          c4.rel.order_db.tags: "DataAccess"
+
+          c4.rel.order_events_bus.label: "Publishes events to"
+          c4.rel.order_events_bus.technology: "Kafka"
+          c4.rel.order_events_bus.tags: "AsyncFlow"
 
       inventory_checker:
-        # ...
+        image: python:3.12-slim
         container_name: inventory_checker
-        environment:
-          SERVICE_NAME: inventory_checker
-          SERVICE_LABEL: Inventory Checker
-          SERVICE_TECHNOLOGY: Python
-          SERVICE_DESCRIPTION: Verifies stock availability before an order is confirmed.
-          SERVICE_TYPE: container
-          SERVICE_TAGS: CoreComponent
+        command: ["sh", "-c", "echo starting inventory_checker && sleep infinity"]
+        labels:
+          c4.type: "Container"
+          c4.label: "Inventory Checker"
+          c4.technology: "Python"
+          c4.description: "Verifies stock availability before an order is confirmed."
+          c4.tags: "CoreComponent"
 
       payment_adapter:
-        # ...
+        image: python:3.12-slim
         container_name: payment_adapter
-        environment:
-          SERVICE_NAME: payment_adapter
-          SERVICE_LABEL: Payment Adapter
-          SERVICE_TECHNOLOGY: Python
-          SERVICE_DESCRIPTION: Wraps external payment provider calls.
-          SERVICE_TYPE: container
-          SERVICE_TAGS: CoreComponent,Payments
-          DEPENDS_ON_SERVICES: payment_gateway_api
+        command: ["sh", "-c", "echo starting payment_adapter && sleep infinity"]
         depends_on:
           - payment_gateway_api
+        labels:
+          c4.type: "Container"
+          c4.label: "Payment Adapter"
+          c4.technology: "Python"
+          c4.description: "Wraps external payment provider calls."
+          c4.tags: "CoreComponent,Payments"
+
+          c4.rel.payment_gateway_api.label: "Authorizes payment via"
+          c4.rel.payment_gateway_api.technology: "HTTPS/JSON"
+          c4.rel.payment_gateway_api.tags: "ExternalCall"
 
       order_db:
         image: postgres:16
         container_name: order_db
         environment:
-          # ...
-          SERVICE_NAME: order_db
-          SERVICE_LABEL: Order Database
-          SERVICE_TECHNOLOGY: PostgreSQL
-          SERVICE_DESCRIPTION: Stores orders, line items, and order status history.
-          SERVICE_TYPE: database
-          SERVICE_TAGS: ComponentDatabase
+          POSTGRES_DB: orders
+          POSTGRES_USER: orders
+          POSTGRES_PASSWORD: orders
+        ports:
+          - "5432:5432"
+        volumes:
+          - order_db_data:/var/lib/postgresql/data
+        labels:
+          c4.type: "ContainerDb"
+          c4.label: "Order Database"
+          c4.technology: "PostgreSQL"
+          c4.description: "Stores orders, line items, and order status history."
+          c4.tags: "ComponentDatabase"
 
       order_events_bus:
-        # ...
+        image: rabbitmq:3.13-management
         container_name: order_events_bus
-        environment:
-          SERVICE_NAME: order_events_bus
-          SERVICE_LABEL: Order Events Bus
-          SERVICE_TECHNOLOGY: Kafka
-          SERVICE_DESCRIPTION: Publishes order-created and order-paid events.
-          SERVICE_TYPE: queue
-          SERVICE_TAGS: AsyncComponent
+        ports:
+          - "5672:5672"   # AMQP
+          - "15672:15672" # Management UI
+        labels:
+          c4.type: "ContainerQueue"
+          c4.label: "Order Events Bus"
+          c4.technology: "RabbitMQ"
+          c4.description: "Publishes order-created and order-paid events."
+          c4.tags: "AsyncComponent"
 
       payment_gateway_api:
-        # ...
+        image: nginx:alpine
         container_name: payment_gateway_api
-        environment:
-          SERVICE_NAME: payment_gateway_api
-          SERVICE_LABEL: Payment Gateway API
-          SERVICE_TECHNOLOGY: REST API
-          SERVICE_DESCRIPTION: External provider API for payment authorization and capture.
-          SERVICE_TYPE: external
-          SERVICE_TAGS: ExternalComponent
+        command: ["sh", "-c", "echo 'mock gateway' > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"]
+        ports:
+          - "8080:80"
+        labels:
+          c4.type: "ContainerExt"
+          c4.label: "Payment Gateway API"
+          c4.technology: "REST API"
+          c4.description: "External provider API for payment authorization and capture."
+          c4.tags: "ExternalComponent"
+
+    volumes:
+      order_db_data:
     ```
 
 ??? abstract "Diagram generator"
@@ -227,10 +263,21 @@ The following example shows how architecture information can be extracted from a
     import yaml
 
 
-    def parse_tags(value: str | None) -> list[str]:
+    def parse_kv_list(value: str | None) -> list[str]:
         if not value:
             return []
-        return [item.strip() for item in value.split(",") if item.strip()]
+        return [v.strip() for v in value.split(",") if v.strip()]
+
+
+    def parse_labels(raw_labels) -> dict:
+        if isinstance(raw_labels, list):
+            # ["key=value"]
+            result = {}
+            for item in raw_labels:
+                k, v = item.split("=", 1)
+                result[k] = v
+            return result
+        return raw_labels or {}
 
 
     def parse_compose(file_path: str) -> dict:
@@ -241,35 +288,31 @@ The following example shows how architecture information can be extracted from a
         elements = []
         relationships = []
 
-        type_map = {
-            "container": "Container",
-            "database": "ContainerDb",
-            "queue": "ContainerQueue",
-            "external": "ContainerExt",
-        }
+        for name, service in services.items():
+            labels = parse_labels(service.get("labels"))
 
-        for service_name, service in services.items():
-            env = service.get("environment", {})
-
-            service_kind = env.get("SERVICE_TYPE", "container")
-            element_type = type_map.get(service_kind, "Container")
+            element_type = labels.get("c4.type", "Container")
 
             elements.append({
                 "type": element_type,
-                "alias": service_name,
-                "label": env.get("SERVICE_LABEL", service_name),
-                "technology": env.get("SERVICE_TECHNOLOGY"),
-                "description": env.get("SERVICE_DESCRIPTION", "Docker service"),
-                "tags": parse_tags(env.get("SERVICE_TAGS")),
+                "alias": name,
+                "label": labels.get("c4.label", name),
+                "technology": labels.get("c4.technology"),
+                "description": labels.get("c4.description", "Docker service"),
+                "tags": parse_kv_list(labels.get("c4.tags")),
             })
 
+            # relationships
             for dep in service.get("depends_on", []):
+                rel_prefix = f"c4.rel.{dep}"
+
                 relationships.append({
                     "type": "REL",
-                    "from": service_name,
+                    "from": name,
                     "to": dep,
-                    "label": "Depends on",
-                    "tags": ["InfraDependency"],
+                    "label": labels.get(f"{rel_prefix}.label", "Depends on"),
+                    "technology": labels.get(f"{rel_prefix}.technology"),
+                    "tags": parse_kv_list(labels.get(f"{rel_prefix}.tags")),
                 })
 
         return {

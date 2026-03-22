@@ -318,7 +318,8 @@ with Diagram("Simple Diagram") as diagram:
 
     element1 >> Rel("Uses") >> [element2, element3]
 
-assert diagram.elements == [element1, element2]
+assert diagram.elements == [element1]
+assert boundary.elements == [element2, element3]
 ```
 
 There are several types of boundaries:
