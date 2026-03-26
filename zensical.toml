@@ -1,0 +1,177 @@
+[project]
+site_name = "c4-diagrams"
+repo_url = "https://github.com/sidorov-as/c4-diagrams"
+site_url = "https://sidorov-as.github.io/c4-diagrams"
+site_description = "A Python DSL for generating C4 diagrams"
+site_author = "Alexey Sidorov"
+edit_uri = "edit/main/docs/"
+repo_name = "sidorov-as/c4-diagrams"
+copyright = "Maintained by <a href=\"https://github.com/sidorov-as\">sidorov-as</a>."
+extra_css = ["assets/styles/extra.css"]
+
+nav = [
+  {"Getting started" = [
+    {"Overview" = "index.md"},
+    {"Installation" = "installation.md"},
+    {"CLI" = "cli.md"},
+    {"Contributing" = "contributing.md"},
+    {"Changelog" = "changelog.md"},
+  ]},
+  {"Concepts" = [
+    {"What is C4?" = "concepts/introduction.md"},
+    {"Diagrams and components" = "concepts/diagrams.md"},
+    {"Renderers" = "concepts/renderers.md"},
+  ]},
+  {"Diagrams" = [
+    {"System context" = "diagrams/system-context.md"},
+    {"Containers" = "diagrams/containers.md"},
+    {"Components" = "diagrams/components.md"},
+    {"Supporting diagrams" = "diagrams/supporting.md"},
+  ]},
+  {"Rendering backends" = [
+    {"PlantUML" = [
+      {"Renderers" = "renderers/plantuml/renderers.md"},
+      {"Styles and layout options" = "renderers/plantuml/styles-and-options.md"},
+      {"Macros" = "renderers/plantuml/macros.md"},
+    ]},
+    {"Render options" = "renderers/render-options.md"},
+  ]},
+  {"Converters" = [
+    {"JSON" = [
+      {"JSON to Diagram" = "converters/json/json.md"},
+      {"Diagram Specs" = [
+        {"System Context Diagram" = "converters/json/specs/system_context_diagram.md"},
+        {"System Landscape Diagram" = "converters/json/specs/system_landscape_diagram.md"},
+        {"Container Diagram" = "converters/json/specs/container_diagram.md"},
+        {"Component Diagram" = "converters/json/specs/component_diagram.md"},
+        {"Deployment Diagram" = "converters/json/specs/deployment_diagram.md"},
+        {"Dynamic Diagram" = "converters/json/specs/dynamic_diagram.md"},
+      ]},
+    ]},
+  ]},
+  {"Examples" = [
+    {"PlantUML" = "examples/plantuml/plantuml.md"},
+  ]},
+  {"API Reference" = [
+    {"Core" = [
+      {"Diagrams and components" = "api_docs/core.md"},
+      {"Relationships" = "api_docs/relationships.md"},
+      {"Layouts" = "api_docs/layouts.md"},
+      {"Macros" = "api_docs/macros.md"},
+      {"Formats" = "api_docs/diagram-formats.md"},
+    ]},
+    {"Diagrams" = [
+      {"System Context Diagram" = "api_docs/system-context.md"},
+      {"Component Diagram" = "api_docs/component.md"},
+      {"Container Diagram" = "api_docs/container.md"},
+      {"Dynamic Diagram" = "api_docs/dynamic.md"},
+      {"Deployment Diagram" = "api_docs/deployment.md"},
+    ]},
+    {"Rendering backends" = [
+      {"Render options" = "api_docs/render-options.md"},
+      {"PlantUML" = [
+        {"Renderers" = "api_docs/plantuml/renderers.md"},
+        {"Macros" = "api_docs/plantuml/macros.md"},
+        {"Layout options" = "api_docs/plantuml/layout-options.md"},
+      ]},
+    ]},
+  ]},
+]
+
+[project.theme]
+variant = "modern"
+language = "en"
+features = [
+  "content.tabs.link",
+  "content.code.annotate",
+  "content.code.copy",
+  "announce.dismiss",
+  "navigation.tabs",
+  "navigation.footer",
+  "navigation.tabs.sticky",
+  "navigation.instant",
+  "navigation.instant.prefetch",
+  "navigation.instant.preview",
+  "navigation.instant.progress",
+  "navigation.path",
+  "navigation.sections",
+  "navigation.top",
+  "navigation.tracking",
+  "search.suggest",
+]
+logo = "assets/c4-diagrams.png"
+favicon = "assets/favicon.ico"
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "blue"
+accent = "blue"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "blue"
+accent = "blue"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to system preference"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["c4"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+members_order = "source"
+separate_signature = true
+filters = ["!^_"]
+merge_init_into_class = true
+show_signature_annotations = true
+signature_crossrefs = true
+
+[project.plugins.mkdocstrings.handlers.python.options.docstring_options]
+ignore_init_summary = true
+
+[project.markdown_extensions]
+admonition = {}
+codehilite = {}
+tables = {}
+pymdownx.superfences = {}
+pymdownx.details = {}
+attr_list = {}
+md_in_html = {}
+pymdownx.blocks.caption = {}
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+
+[project.markdown_extensions.pymdownx.highlight]
+pygments_lang_class = true
+
+[project.markdown_extensions.pymdownx.tasklist]
+clickable_checkbox = true
+
+[project.markdown_extensions.toc]
+permalink = true
+
+[project.markdown_extensions.pymdownx.arithmatex]
+generic = true
+
+[project.markdown_extensions.pymdownx.snippets]
+base_path = [".", "docs"]
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/sidorov-as/c4-diagrams"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/python"
+link = "https://pypi.org/project/c4-diagrams"

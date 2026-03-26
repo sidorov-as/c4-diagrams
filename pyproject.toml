@@ -44,13 +44,10 @@ dev = [
     "pytest-cov>=7.0.0",
     "pytest-mock>=3.15.1",
     "ruff>=0.14.10",
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.7.1",
-    "mkdocstrings[python]>=1.0.0",
-    "mkdocs-include-markdown-plugin>=7.2.0",
-    "mkdocs-gen-files==0.6.0",
     "commitizen>=4.11.0",
     "polyfactory>=3.3.0",
+    "zensical>=0.0.29",
+    "mkdocstrings[python]>=1.0.0",
 ]
 
 [build-system]

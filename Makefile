@@ -43,11 +43,11 @@ clean-build: ## Clean build artifacts
 
 .PHONY: docs-test
 docs-test: ## Test if documentation can be built without warnings or errors
-	@uv run mkdocs build -s
+	@uv run zensical build -s
 
 .PHONY: docs
 docs: ## Build and serve the documentation
-	@uv run mkdocs serve --livereload
+	@uv run zensical serve
 
 .PHONY: bump
 bump: ## Bump semantic version based on the git log

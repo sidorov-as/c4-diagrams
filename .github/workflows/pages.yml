@@ -29,7 +29,7 @@ jobs:
         uses: ./.github/actions/setup-python-env
 
       - name: Build
-        run: uv run mkdocs build --strict --site-dir site
+        run: uv run zensical build --clean
 
       - uses: actions/upload-pages-artifact@v3
         with:
