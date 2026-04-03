@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import abc
-from collections import UserString, defaultdict
+from collections import defaultdict
 from collections.abc import Iterable
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from enum import unique
+from enum import Enum, auto, unique
 from itertools import repeat
 from pathlib import Path
 from types import TracebackType
@@ -13,7 +13,10 @@ from typing import (
     TYPE_CHECKING,
     Any,
     ClassVar,
+    Final,
+    Literal,
     NoReturn,
+    TypeAlias,
     TypeVar,
     cast,
     overload,
@@ -28,6 +31,8 @@ if TYPE_CHECKING:  # pragma: no cover
 
 __diagram: ContextVar[Diagram | None] = ContextVar("diagram")
 __boundary: ContextVar[Boundary | None] = ContextVar("boundary")
+
+_T = TypeVar("_T")
 
 
 class AliasGenerator:
@@ -346,28 +351,20 @@ def set_boundary(boundary: Boundary | None) -> None:
     __boundary.set(boundary)
 
 
-class EmptyStr(UserString):
-    def __init__(self) -> None:
-        super().__init__("")
-
-    @override
-    def __repr__(self) -> str:
-        return "<EmptyStr>"
+class _Required(Enum):
+    required = auto()
 
 
-empty = EmptyStr()
+Required: TypeAlias = _T | Literal[_Required.required]
+REQUIRED: Final[Literal[_Required.required]] = _Required.required
 
 
-class Required(UserString):
-    def __init__(self) -> None:
-        super().__init__("")
-
-    @override
-    def __repr__(self) -> str:
-        return "<Required>"
+class _Missing(Enum):
+    missing = auto()
 
 
-not_provided = Required()
+Maybe: TypeAlias = _T | Literal[_Missing.missing]
+MISSING: Final[Literal[_Missing.missing]] = _Missing.missing
 
 DEFAULT_PROPERTIES_HEADER: tuple[str, str] = ("Property", "Value")
 
@@ -819,17 +816,19 @@ class Element(BaseDiagramElement, abc.ABC):
 
     alias: str
     label: str
-    tags: list[str]
+    tags: list[str] | None
+    base_shape: str | None
+    technology: str | None
 
     def __init__(
         self,
-        label: str | Required = not_provided,
-        description: str = "",
-        sprite: str = "",
+        label: Required[str] = REQUIRED,
+        description: str | None = None,
+        sprite: str | None = None,
         tags: list[str] | None = None,
-        link: str = "",
-        type_: str = "",
-        alias: str | EmptyStr = empty,
+        link: str | None = None,
+        type_: str | None = None,
+        alias: Maybe[str] = MISSING,
     ) -> None:
         """
         Initialize a new diagram element. Automatically adds the element to the
@@ -852,12 +851,12 @@ class Element(BaseDiagramElement, abc.ABC):
         self.alias = self._check_alias(alias, self.label)
         self.sprite = sprite
         self.type = type_
-        self.tags = tags or []
+        self.tags = tags
         self.link = link
 
         self.description = description
-        self.base_shape = ""
-        self.technology = ""
+        self.base_shape = None
+        self.technology = None
 
         super().__init__()
 
@@ -930,13 +929,13 @@ class Element(BaseDiagramElement, abc.ABC):
         return NotImplemented  # pragma: no cover
 
     def _check_label(self, label: str | Required) -> str:
-        if label is not_provided:
+        if label is REQUIRED:
             raise ValueError("The 'label' argument is required")
 
         return cast(str, label)
 
-    def _check_alias(self, alias: str | EmptyStr, label: str) -> str:
-        if alias is empty:
+    def _check_alias(self, alias: Maybe[str], label: str) -> str:
+        if alias is MISSING:
             alias = self._generate_alias(label)
 
         return cast(str, alias)
@@ -1056,13 +1055,13 @@ class ElementWithTechnology(Element):
 
     def __init__(
         self,
-        label: str | Required = not_provided,
-        description: str = "",
-        technology: str = "",
-        sprite: str = "",
+        label: Required[str] = REQUIRED,
+        description: str | None = None,
+        technology: str | None = None,
+        sprite: str | None = None,
         tags: list[str] | None = None,
-        link: str = "",
-        alias: str | EmptyStr = empty,
+        link: str | None = None,
+        alias: Maybe[str] = MISSING,
     ) -> None:
         """
         Initialize a new diagram element.
@@ -1098,12 +1097,12 @@ class Boundary(Element):
 
     def __init__(
         self,
-        label: str | Required = not_provided,
-        description: str = "",
-        type_: str = "",
+        label: Required[str] = REQUIRED,
+        description: str | None = None,
+        type_: str | None = None,
         tags: list[str] | None = None,
-        link: str = "",
-        alias: str | EmptyStr = empty,
+        link: str | None = None,
+        alias: Maybe[str] = MISSING,
     ) -> None:
         """
         Initialize a new boundary element.
@@ -1617,12 +1616,12 @@ class Relationship(BaseDiagramElement):
 
     def __init__(
         self,
-        label: str,
-        description: str = "",
-        technology: str = "",
-        sprite: str = "",
+        label: str | None = None,
+        description: str | None = None,
+        technology: str | None = None,
+        sprite: str | None = None,
         tags: list[str] | None = None,
-        link: str = "",
+        link: str | None = None,
         index: str | BaseIndex | None = None,
         from_element: _TElement | None = None,
         to_element: _TElement | None = None,
@@ -1655,7 +1654,7 @@ class Relationship(BaseDiagramElement):
         self.technology = technology
         self.description = description
         self.sprite = sprite
-        self.tags = tags or []
+        self.tags = tags
         self.link = link
         self.index = index
 

@@ -102,8 +102,8 @@ def test_element_attrs():
     assert element.link == link
     assert element.type == type_
     # reserved for other elements
-    assert element.base_shape == ""
-    assert element.technology == ""
+    assert element.base_shape is None
+    assert element.technology is None
 
 
 def test_element_with_technology_attrs():
@@ -132,8 +132,8 @@ def test_element_with_technology_attrs():
     assert element.sprite == sprite
     assert element.tags == tags
     assert element.link == link
-    assert element.type == ""
-    assert element.base_shape == ""
+    assert element.type is None
+    assert element.base_shape is None
     assert element.technology == technology
 
 

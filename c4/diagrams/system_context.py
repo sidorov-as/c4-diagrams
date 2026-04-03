@@ -1,14 +1,14 @@
 from typing import ClassVar
 
 from c4.diagrams.core import (
+    MISSING,
+    REQUIRED,
     Boundary,
     Diagram,
     DiagramType,
     Element,
-    EmptyStr,
+    Maybe,
     Required,
-    empty,
-    not_provided,
 )
 
 
@@ -47,14 +47,14 @@ class System(Element):
 
     def __init__(
         self,
-        label: str | Required = not_provided,
-        description: str = "",
-        sprite: str = "",
+        label: Required[str] = REQUIRED,
+        description: str | None = None,
+        sprite: str | None = None,
         tags: list[str] | None = None,
-        link: str = "",
-        type_: str = "",
-        base_shape: str = "",
-        alias: str | EmptyStr = empty,
+        link: str | None = None,
+        type_: str | None = None,
+        base_shape: str | None = None,
+        alias: Maybe[str] = MISSING,
     ) -> None:
         """
         Initialize a software system element.
@@ -123,11 +123,11 @@ class EnterpriseBoundary(Boundary):
 
     def __init__(
         self,
-        label: str | Required = not_provided,
-        description: str = "",
+        label: Required[str] = REQUIRED,
+        description: str | None = None,
         tags: list[str] | None = None,
-        link: str = "",
-        alias: str | EmptyStr = empty,
+        link: str | None = None,
+        alias: Maybe[str] = MISSING,
     ) -> None:
         """
         Initialize the enterprise boundary element.
@@ -157,11 +157,11 @@ class SystemBoundary(Boundary):
 
     def __init__(
         self,
-        label: str | Required = not_provided,
-        description: str = "",
+        label: Required[str] = REQUIRED,
+        description: str | None = None,
         tags: list[str] | None = None,
-        link: str = "",
-        alias: str | EmptyStr = empty,
+        link: str | None = None,
+        alias: Maybe[str] = MISSING,
     ) -> None:
         """
         Initialize the system boundary element.

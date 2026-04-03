@@ -46,6 +46,7 @@ from c4 import (
     SystemQueueExt,
 )
 from c4.diagrams.core import (
+    MISSING,
     BaseDiagramElement,
     Boundary,
     DiagramElementProperties,
@@ -371,9 +372,9 @@ class PlantUMLMacro(Generic[_TDiagramElement]):
         for arg in args:
             name = arg.source or arg.name
 
-            value = data.get(name, "")
+            value = data.get(name, MISSING)
 
-            if not value:
+            if value is None or value is MISSING:
                 forced_keyword = True
                 continue
 

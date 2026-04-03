@@ -91,9 +91,9 @@ def test_boundary_attrs():
     assert boundary.link == link
     assert boundary.type == type_
     # reserved for other elements
-    assert boundary.base_shape == ""
-    assert boundary.technology == ""
-    assert boundary.sprite == ""
+    assert boundary.base_shape is None
+    assert boundary.technology is None
+    assert boundary.sprite is None
 
 
 def test_nested_boundaries():

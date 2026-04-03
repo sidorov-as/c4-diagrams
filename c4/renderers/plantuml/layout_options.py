@@ -26,8 +26,8 @@ class DiagramLayout(StrEnum):
     LAYOUT_LANDSCAPE = "LAYOUT_LANDSCAPE"
 
 
-TagShape = Literal["EightSidedShape", "RoundedBoxShape", ""]
-LineStyle = Literal["DashedLine", "DottedLine", "BoldLine", "SolidLine", ""]
+TagShape = Literal["EightSidedShape", "RoundedBoxShape"]
+LineStyle = Literal["DashedLine", "DottedLine", "BoldLine", "SolidLine"]
 Details = Literal["Small", "Normal", "None"]
 
 
@@ -47,10 +47,10 @@ class BaseTag:
         sprite: The sprite icon associated with the element or relationship.
     """
 
-    tag_stereo: str
-    legend_text: str
-    legend_sprite: str
-    sprite: str
+    tag_stereo: str | None = None
+    legend_text: str | None = None
+    legend_sprite: str | None = None
+    sprite: str | None = None
 
 
 @dataclass
@@ -72,14 +72,14 @@ class ElementTag(BaseTag):
         border_thickness: Thickness of the borderline.
     """
 
-    bg_color: str
-    font_color: str
-    border_color: str
-    shadowing: bool | None
-    shape: TagShape
-    technology: str
-    border_style: LineStyle
-    border_thickness: str
+    bg_color: str | None = None
+    font_color: str | None = None
+    border_color: str | None = None
+    shadowing: bool | None = None
+    shape: TagShape | None = None
+    technology: str | None = None
+    border_style: LineStyle | None = None
+    border_thickness: str | None = None
 
 
 @dataclass
@@ -98,11 +98,11 @@ class RelTag(BaseTag):
         technology: Technology label associated with the relationship.
     """
 
-    text_color: str
-    line_color: str
-    line_style: LineStyle
-    line_thickness: str
-    technology: str
+    text_color: str | None = None
+    line_color: str | None = None
+    line_style: LineStyle | None = None
+    line_thickness: str | None = None
+    technology: str | None = None
 
 
 @dataclass
@@ -175,14 +175,14 @@ class PersonTag(BaseTag):
         border_thickness: Border thickness.
     """
 
-    bg_color: str
-    font_color: str
-    border_color: str
-    shadowing: bool | None
-    shape: TagShape
-    type_: str
-    border_style: LineStyle
-    border_thickness: str
+    bg_color: str | None = None
+    font_color: str | None = None
+    border_color: str | None = None
+    shadowing: bool | None = None
+    shape: TagShape | None = None
+    type_: str | None = None
+    border_style: LineStyle | None = None
+    border_thickness: str | None = None
 
 
 @dataclass
@@ -210,14 +210,14 @@ class SystemTag(BaseTag):
         border_thickness: Thickness of the border.
     """
 
-    bg_color: str
-    font_color: str
-    border_color: str
-    shadowing: bool | None
-    shape: TagShape
-    type_: str
-    border_style: LineStyle
-    border_thickness: str
+    bg_color: str | None = None
+    font_color: str | None = None
+    border_color: str | None = None
+    shadowing: bool | None = None
+    shape: TagShape | None = None
+    type_: str | None = None
+    border_style: LineStyle | None = None
+    border_thickness: str | None = None
 
 
 @dataclass
@@ -259,18 +259,18 @@ class ElementStyle(BaseStyle):
         border_thickness: Thickness of the borderline.
     """
 
-    element_name: str
-    bg_color: str
-    font_color: str
-    border_color: str
-    shadowing: bool | None
-    shape: TagShape
-    sprite: str
-    technology: str
-    legend_text: str
-    legend_sprite: str
-    border_style: LineStyle
-    border_thickness: str
+    element_name: str | None = None
+    bg_color: str | None = None
+    font_color: str | None = None
+    border_color: str | None = None
+    shadowing: bool | None = None
+    shape: TagShape | None = None
+    sprite: str | None = None
+    technology: str | None = None
+    legend_text: str | None = None
+    legend_sprite: str | None = None
+    border_style: LineStyle | None = None
+    border_thickness: str | None = None
 
 
 @dataclass
@@ -283,8 +283,8 @@ class RelStyle(BaseStyle):
         line_color: Color of the connecting line.
     """
 
-    text_color: str
-    line_color: str
+    text_color: str | None = None
+    line_color: str | None = None
 
 
 @dataclass
@@ -296,7 +296,7 @@ class BoundaryStyle(ElementStyle):
         type_: The type of boundary (e.g., "System", "Container").
     """
 
-    type_: str
+    type_: str | None = None
 
 
 @dataclass
@@ -515,18 +515,18 @@ class LayoutOptions:
 
     def add_element_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddElementTag() macro configuration.
@@ -568,18 +568,18 @@ class LayoutOptions:
 
     def add_boundary_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddBoundaryTag() macro configuration.
@@ -621,15 +621,15 @@ class LayoutOptions:
 
     def add_rel_tag(
         self,
-        tag_stereo: str,
-        text_color: str = "",
-        line_color: str = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        line_style: LineStyle = "",
-        line_thickness: str = "",
+        tag_stereo: str | None = None,
+        text_color: str | None = None,
+        line_color: str | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        line_style: LineStyle | None = None,
+        line_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddRelTag() macro configuration.
@@ -665,18 +665,18 @@ class LayoutOptions:
 
     def add_component_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddComponentTag() macro configuration.
@@ -718,18 +718,18 @@ class LayoutOptions:
 
     def add_external_component_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddExternalComponentTag() macro configuration.
@@ -771,18 +771,18 @@ class LayoutOptions:
 
     def add_container_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddContainerTag() macro configuration.
@@ -824,18 +824,18 @@ class LayoutOptions:
 
     def add_external_container_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddExternalContainerTag() macro configuration.
@@ -877,18 +877,18 @@ class LayoutOptions:
 
     def add_node_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddNodeTag() macro configuration.
@@ -930,18 +930,18 @@ class LayoutOptions:
 
     def add_person_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        type_: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        type_: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddPersonTag() macro configuration.
@@ -983,18 +983,18 @@ class LayoutOptions:
 
     def add_external_person_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        type_: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        type_: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddExternalPersonTag() macro configuration.
@@ -1036,18 +1036,18 @@ class LayoutOptions:
 
     def add_system_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        type_: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        type_: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddSystemTag() macro configuration.
@@ -1089,18 +1089,18 @@ class LayoutOptions:
 
     def add_external_system_tag(
         self,
-        tag_stereo: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        tag_stereo: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        type_: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        type_: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an AddExternalSystemTag() macro configuration.
@@ -1142,18 +1142,18 @@ class LayoutOptions:
 
     def update_element_style(
         self,
-        element_name: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        element_name: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an UpdateElementStyle() macro configuration.
@@ -1196,19 +1196,19 @@ class LayoutOptions:
 
     def update_boundary_style(
         self,
-        element_name: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        element_name: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        type_: str = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        type_: str | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an UpdateBoundaryStyle() macro configuration.
@@ -1253,8 +1253,8 @@ class LayoutOptions:
 
     def update_rel_style(
         self,
-        text_color: str = "",
-        line_color: str = "",
+        text_color: str | None = None,
+        line_color: str | None = None,
     ) -> Self:
         """
         Adds an UpdateRelStyle() macro configuration.
@@ -1276,19 +1276,19 @@ class LayoutOptions:
 
     def update_container_boundary_style(
         self,
-        element_name: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        element_name: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        type_: str = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        type_: str | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an UpdateContainerBoundaryStyle() macro configuration.
@@ -1333,19 +1333,19 @@ class LayoutOptions:
 
     def update_system_boundary_style(
         self,
-        element_name: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        element_name: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        type_: str = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        type_: str | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an UpdateSystemBoundaryStyle() macro configuration.
@@ -1390,19 +1390,19 @@ class LayoutOptions:
 
     def update_enterprise_boundary_style(
         self,
-        element_name: str,
-        bg_color: str = "",
-        font_color: str = "",
-        border_color: str = "",
+        element_name: str | None = None,
+        bg_color: str | None = None,
+        font_color: str | None = None,
+        border_color: str | None = None,
         shadowing: bool | None = None,
-        shape: TagShape = "",
-        type_: str = "",
-        sprite: str = "",
-        technology: str = "",
-        legend_text: str = "",
-        legend_sprite: str = "",
-        border_style: LineStyle = "",
-        border_thickness: str = "",
+        shape: TagShape | None = None,
+        type_: str | None = None,
+        sprite: str | None = None,
+        technology: str | None = None,
+        legend_text: str | None = None,
+        legend_sprite: str | None = None,
+        border_style: LineStyle | None = None,
+        border_thickness: str | None = None,
     ) -> Self:
         """
         Adds an UpdateEnterpriseBoundaryStyle() macro configuration.
@@ -1612,7 +1612,7 @@ class LayoutOptions:
 
         return self
 
-    def update_legend_title(self, new_title: str) -> Self:
+    def update_legend_title(self, new_title: str | None = None) -> Self:
         """
         Sets a custom title for the legend.
 

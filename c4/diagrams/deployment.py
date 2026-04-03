@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import ClassVar
 
 from c4.diagrams.core import (
+    MISSING,
+    REQUIRED,
     Boundary,
     Diagram,
     DiagramType,
-    EmptyStr,
+    Maybe,
     Required,
-    empty,
-    not_provided,
 )
 
 AllowedDiagramTypes = tuple[DiagramType, ...] | None
@@ -46,13 +46,13 @@ class Node(Boundary):
 
     def __init__(
         self,
-        label: str | Required = not_provided,
-        description: str = "",
-        type_: str = "",
-        sprite: str = "",
+        label: Required[str] = REQUIRED,
+        description: str | None = None,
+        type_: str | None = None,
+        sprite: str | None = None,
         tags: list[str] | None = None,
-        link: str = "",
-        alias: str | EmptyStr = empty,
+        link: str | None = None,
+        alias: Maybe[str] = MISSING,
     ) -> None:
         """
         Initialize a new Node element.

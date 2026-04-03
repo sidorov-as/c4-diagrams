@@ -118,11 +118,6 @@ class BaseSchemaItem(JSONSchemaMixin, BaseModel, Generic[TDiagramElement]):
         """
         data: dict[str, Any] = self.model_dump(mode="python")
 
-        # Normalize only None -> "".
-        for key, value in list(data.items()):
-            if value is None:
-                data[key] = ""
-
         # Keep alias only if provided (avoid injecting None).
         alias = data.pop("alias", None)
         if alias:

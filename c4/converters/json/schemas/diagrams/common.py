@@ -259,7 +259,7 @@ class BoundaryBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
             },
         )
         for key, value in kwargs.items():
-            value = value or ""
+            value = value or None
             kwargs[key] = value
 
         # Keep alias only if provided (avoid injecting None).

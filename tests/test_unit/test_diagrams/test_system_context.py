@@ -137,7 +137,7 @@ def test_system_attrs(
     assert system.type == type_
     assert system.base_shape == base_shape
     # reserved for other elements
-    assert system.technology == ""
+    assert system.technology is None
 
 
 @pytest.mark.parametrize("boundary_class", [EnterpriseBoundary, SystemBoundary])
@@ -171,10 +171,10 @@ def test_enterprise_boundary_attrs(
     assert boundary.tags == tags
     assert boundary.link == link
     # reserved for other elements
-    assert boundary.type == ""
-    assert boundary.base_shape == ""
-    assert boundary.technology == ""
-    assert boundary.sprite == ""
+    assert boundary.type is None
+    assert boundary.base_shape is None
+    assert boundary.technology is None
+    assert boundary.sprite is None
 
 
 @pytest.mark.parametrize(

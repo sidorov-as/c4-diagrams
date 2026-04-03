@@ -81,11 +81,11 @@ def test_create_relationship_with_elements():
     assert relationship.from_element == from_element
     assert relationship.to_element == to_element
     assert relationship.label == "example"
-    assert relationship.technology == ""
-    assert relationship.description == ""
-    assert relationship.sprite == ""
-    assert relationship.tags == []
-    assert relationship.link == ""
+    assert relationship.technology is None
+    assert relationship.description is None
+    assert relationship.sprite is None
+    assert relationship.tags is None
+    assert relationship.link is None
     assert relationship.index is None
     assert relationship.relationship_type == RelationshipType.REL
 

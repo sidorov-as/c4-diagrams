@@ -835,8 +835,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -907,8 +906,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -1050,8 +1048,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -1083,8 +1080,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -1226,8 +1222,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -1259,8 +1254,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -1376,8 +1370,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -1448,8 +1441,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -2429,8 +2421,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -2462,8 +2453,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -3282,8 +3272,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -3354,8 +3343,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -3497,8 +3485,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -3530,8 +3517,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -3647,8 +3633,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -3719,8 +3704,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -3862,8 +3846,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -3895,8 +3878,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -4038,8 +4020,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -4071,8 +4052,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -4227,8 +4207,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -4247,8 +4226,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -4403,8 +4381,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -4423,8 +4400,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -5275,8 +5251,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -5308,8 +5283,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -5732,8 +5706,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -5752,8 +5725,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -6133,8 +6105,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -6580,8 +6551,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -6652,8 +6622,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },
@@ -7638,8 +7607,7 @@
             {
               "enum": [
                 "EightSidedShape",
-                "RoundedBoxShape",
-                ""
+                "RoundedBoxShape"
               ],
               "type": "string"
             },
@@ -7658,8 +7626,7 @@
                 "DashedLine",
                 "DottedLine",
                 "BoldLine",
-                "SolidLine",
-                ""
+                "SolidLine"
               ],
               "type": "string"
             },

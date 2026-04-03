@@ -647,9 +647,9 @@ def test_element_plantuml_macro_get_data(
             for key, value in kwargs.items()
             if key not in ("type_", "technology")
         },
-        "type": kwargs.get("type_", ""),
-        "technology": kwargs.get("technology", ""),
-        "base_shape": "",
+        "type": kwargs.get("type_"),
+        "technology": kwargs.get("technology"),
+        "base_shape": None,
     }
 
     assert macro.get_data() == expected_kwargs
@@ -725,9 +725,9 @@ def test_element_with_technology_plantuml_macro_get_data():
         "sprite": "$foo1",
         "tags": ["foo", "bar"],
         "link": "https://example.com",
-        "type": "",
+        "type": None,
         "technology": "tech",
-        "base_shape": "",
+        "base_shape": None,
     }
 
     assert macro.get_data() == expected_kwargs
