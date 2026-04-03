@@ -22,7 +22,7 @@ wheels = [
 
 [[package]]
 name = "c4-diagrams"
-version = "0.4.3"
+version = "0.4.4"
 source = { editable = "." }
 dependencies = [
     { name = "typing-extensions" },
