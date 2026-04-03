@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import os
+import sys
 import typing
 from dataclasses import dataclass
 from pathlib import Path
@@ -169,22 +170,29 @@ def _load_module_from_file(filepath: str) -> ModuleType:
             or cannot be executed.
     """
     filepath = os.path.abspath(filepath)
+    module_dir = str(Path(filepath).parent)
+
     if not os.path.exists(filepath):
         raise ImportFromStringError(f"Python file not found: {filepath!r}.")
     if not os.path.isfile(filepath):
         raise ImportFromStringError(f"Path is not a file: {filepath!r}.")
 
-    suffix = uuid4().hex[:4]
-    module_name = f"_c4_file_{suffix}"
-    spec = importlib.util.spec_from_file_location(module_name, filepath)
-    if spec is None or spec.loader is None:
-        raise ImportFromStringError(
-            f"Could not load Python file as a module: {filepath!r}."
-        )
+    sys.path.insert(0, module_dir)
+    try:
+        suffix = uuid4().hex[:4]
+        module_name = f"_c4_file_{suffix}"
+        spec = importlib.util.spec_from_file_location(module_name, filepath)
+        if spec is None or spec.loader is None:
+            raise ImportFromStringError(
+                f"Could not load Python file as a module: {filepath!r}."
+            )
 
-    # Import errors are written to stderr.
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+        # Import errors are written to stderr.
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    finally:
+        if sys.path and sys.path[0] == module_dir:
+            sys.path.pop(0)
 
     return module
 

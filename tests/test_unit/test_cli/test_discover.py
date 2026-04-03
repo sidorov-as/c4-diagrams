@@ -9,7 +9,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 import c4.cli.discover as discover
-from c4 import SystemContextDiagram
+from c4 import Person, SystemContextDiagram
 from c4.cli.discover import Target
 from c4.cli.exceptions import (
     DiagramNotFoundError,
@@ -320,6 +320,63 @@ def test__load_module_from_file_exec_module_error_raises(
 
 def test__load_module_from_file_success_loads_module(tmp_path: Path):
     file_path = tmp_path / "m.py"
+    file_path.write_text("value = 123\n", encoding="utf-8")
+
+    module = discover._load_module_from_file(str(file_path))
+
+    assert isinstance(module, ModuleType)
+    assert module.value == 123
+
+
+def test__load_module_from_file_modified_sys_path(tmp_path: Path) -> None:
+    """
+    Regression test for issue https://github.com/sidorov-as/c4-diagrams/issues/23
+    """
+    common_c4 = tmp_path / "common_c4" / "__init__.py"
+    common_c4.parent.mkdir()
+    common_c4.write_text(
+        textwrap.dedent(
+            """
+            from functools import partial
+
+            from c4 import System, Person
+
+            Backend = partial(System, label="Backend")
+            User = partial(Person, label="User")
+            WebApp = partial(System, label="Web Application")
+            """
+        )
+    )
+    file_path = tmp_path / "diagram.py"
+    file_path.write_text(
+        textwrap.dedent(
+            """
+            from c4 import SystemContextDiagram
+
+            from common_c4 import Backend, User, WebApp
+
+
+            with SystemContextDiagram() as diagram:
+                user = User()
+                web_app = WebApp()
+                backend = Backend()
+
+                user >> "Interacts with" >> web_app
+                web_app >> "Sends requests to" >> backend
+            """
+        )
+    )
+
+    module = discover._load_module_from_file(str(file_path))
+
+    assert isinstance(module, ModuleType)
+    assert isinstance(module.diagram, SystemContextDiagram)
+    assert isinstance(module.user, Person)
+    assert module.user.label == "User"
+
+
+def test__load_module_from_file_loads_related_modules(tmp_path: Path):
+    file_path = tmp_path / "diagram.py"
     file_path.write_text("value = 123\n", encoding="utf-8")
 
     module = discover._load_module_from_file(str(file_path))
