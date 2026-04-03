@@ -6,20 +6,20 @@
     !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 !endif
 
-AddPersonTag("Customer", $bgColor="#e8f5e9", $fontColor="#1b5e20", $borderColor="#66bb6a", $legendText="Primary customer actor", $legendSprite="user", $borderStyle=SolidLine(), $borderThickness="1")
-AddExternalPersonTag("ExternalSupport", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $legendText="External support user", $legendSprite="user", $borderStyle=DashedLine(), $borderThickness="1")
-AddExternalSystemTag("ExternalSystem", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $shape=RoundedBoxShape(), $legendText="External system dependency", $legendSprite="cloud", $borderStyle=DashedLine(), $borderThickness="1")
+AddPersonTag("Customer", $bgColor="#e8f5e9", $fontColor="#1b5e20", $borderColor="#66bb6a", $shadowing="false", $legendText="Primary customer actor", $legendSprite="user", $borderStyle=SolidLine(), $borderThickness="1")
+AddExternalPersonTag("ExternalSupport", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $shadowing="false", $legendText="External support user", $legendSprite="user", $borderStyle=DashedLine(), $borderThickness="1")
+AddExternalSystemTag("ExternalSystem", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $shadowing="false", $shape=RoundedBoxShape(), $legendText="External system dependency", $legendSprite="cloud", $borderStyle=DashedLine(), $borderThickness="1")
 AddContainerTag("Frontend", $bgColor="#e3f2fd", $fontColor="#0d47a1", $borderColor="#64b5f6", $shadowing="true", $techn="Web UI", $legendText="User-facing frontend container", $legendSprite="browser", $borderStyle=SolidLine(), $borderThickness="2")
 AddContainerTag("Backend", $bgColor="#ede7f6", $fontColor="#311b92", $borderColor="#673ab7", $shadowing="true", $techn="Python / FastAPI", $legendText="Backend application container", $legendSprite="server", $borderStyle=SolidLine(), $borderThickness="2")
 AddContainerTag("CoreRuntime", $bgColor="#ede7f6", $fontColor="#4527a0", $borderColor="#7e57c2", $shadowing="true", $techn="Python 3.12", $legendText="Core runtime container", $legendSprite="server", $borderStyle=BoldLine(), $borderThickness="2")
-AddContainerTag("DataStore", $bgColor="#fff8e1", $fontColor="#5d4037", $borderColor="#ffb300", $techn="PostgreSQL", $legendText="Internal data store", $legendSprite="database", $borderStyle=SolidLine(), $borderThickness="1")
-AddContainerTag("AsyncChannel", $bgColor="#fff3e0", $fontColor="#e65100", $borderColor="#fb8c00", $techn="Kafka", $legendText="Internal asynchronous channel", $legendSprite="queue", $borderStyle=SolidLine(), $borderThickness="1")
-AddExternalContainerTag("ExternalContainer", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $shape=RoundedBoxShape(), $techn="REST API", $legendText="External container dependency", $legendSprite="cloud", $borderStyle=DashedLine(), $borderThickness="1")
-AddExternalContainerTag("ExternalDataStore", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $techn="Vendor DB", $legendText="External data store", $legendSprite="database", $borderStyle=DashedLine(), $borderThickness="1")
-AddExternalContainerTag("ExternalAsyncChannel", $bgColor="#f3e5f5", $fontColor="#6a1b9a", $borderColor="#ab47bc", $techn="Kafka", $legendText="External asynchronous channel", $legendSprite="queue", $borderStyle=DashedLine(), $borderThickness="1")
-AddBoundaryTag("EnterpriseBoundary", $bgColor="#fafafa", $fontColor="#424242", $borderColor="#9e9e9e", $legendText="Enterprise boundary", $borderStyle=SolidLine(), $borderThickness="1")
-AddBoundaryTag("SystemBoundary", $bgColor="#fff8e1", $fontColor="#5d4037", $borderColor="#ffb300", $legendText="System boundary", $borderStyle=SolidLine(), $borderThickness="2")
-AddBoundaryTag("ContainerBoundary", $bgColor="#f1f8e9", $fontColor="#33691e", $borderColor="#8bc34a", $legendText="Container boundary", $borderStyle=DashedLine(), $borderThickness="1")
+AddContainerTag("DataStore", $bgColor="#fff8e1", $fontColor="#5d4037", $borderColor="#ffb300", $shadowing="false", $techn="PostgreSQL", $legendText="Internal data store", $legendSprite="database", $borderStyle=SolidLine(), $borderThickness="1")
+AddContainerTag("AsyncChannel", $bgColor="#fff3e0", $fontColor="#e65100", $borderColor="#fb8c00", $shadowing="false", $techn="Kafka", $legendText="Internal asynchronous channel", $legendSprite="queue", $borderStyle=SolidLine(), $borderThickness="1")
+AddExternalContainerTag("ExternalContainer", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $shadowing="false", $shape=RoundedBoxShape(), $techn="REST API", $legendText="External container dependency", $legendSprite="cloud", $borderStyle=DashedLine(), $borderThickness="1")
+AddExternalContainerTag("ExternalDataStore", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $shadowing="false", $techn="Vendor DB", $legendText="External data store", $legendSprite="database", $borderStyle=DashedLine(), $borderThickness="1")
+AddExternalContainerTag("ExternalAsyncChannel", $bgColor="#f3e5f5", $fontColor="#6a1b9a", $borderColor="#ab47bc", $shadowing="false", $techn="Kafka", $legendText="External asynchronous channel", $legendSprite="queue", $borderStyle=DashedLine(), $borderThickness="1")
+AddBoundaryTag("EnterpriseBoundary", $bgColor="#fafafa", $fontColor="#424242", $borderColor="#9e9e9e", $shadowing="false", $legendText="Enterprise boundary", $borderStyle=SolidLine(), $borderThickness="1")
+AddBoundaryTag("SystemBoundary", $bgColor="#fff8e1", $fontColor="#5d4037", $borderColor="#ffb300", $shadowing="false", $legendText="System boundary", $borderStyle=SolidLine(), $borderThickness="2")
+AddBoundaryTag("ContainerBoundary", $bgColor="#f1f8e9", $fontColor="#33691e", $borderColor="#8bc34a", $shadowing="false", $legendText="Container boundary", $borderStyle=DashedLine(), $borderThickness="1")
 AddRelTag("SyncRequest", $textColor="#1565c0", $lineColor="#1e88e5", $lineStyle=SolidLine(), $lineThickness="1", $techn="HTTPS/JSON")
 AddRelTag("DataAccess", $textColor="#6d4c41", $lineColor="#8d6e63", $lineStyle=DashedLine(), $lineThickness="1", $techn="SQL")
 AddRelTag("AsyncRequest", $textColor="#6a1b9a", $lineColor="#8e24aa", $lineStyle=DottedLine(), $lineThickness="2", $techn="Kafka")
@@ -27,8 +27,8 @@ AddRelTag("ExternalCall", $textColor="#455a64", $lineColor="#78909c", $lineStyle
 AddRelTag("SupportFlow", $textColor="#2e7d32", $lineColor="#43a047", $lineStyle=SolidLine(), $lineThickness="1", $techn="HTTPS")
 
 UpdateElementStyle("container", $bgColor="#ede7f6", $fontColor="#311b92", $borderColor="#673ab7", $shadowing="true", $shape=RoundedBoxShape(), $legendText="Application container", $legendSprite="server", $borderStyle=SolidLine(), $borderThickness="2")
-UpdateSystemBoundaryStyle("systemboundary", $bgColor="#fff8e1", $fontColor="#5d4037", $borderColor="#ffb300", $shape=RoundedBoxShape(), $legendText="System boundary", $borderStyle=SolidLine(), $borderThickness="2")
-UpdateContainerBoundaryStyle("containerboundary", $bgColor="#f1f8e9", $fontColor="#33691e", $borderColor="#8bc34a", $shape=RoundedBoxShape(), $legendText="Container boundary", $borderStyle=DashedLine(), $borderThickness="1")
+UpdateSystemBoundaryStyle("systemboundary", $bgColor="#fff8e1", $fontColor="#5d4037", $borderColor="#ffb300", $shadowing="false", $shape=RoundedBoxShape(), $legendText="System boundary", $borderStyle=SolidLine(), $borderThickness="2")
+UpdateContainerBoundaryStyle("containerboundary", $bgColor="#f1f8e9", $fontColor="#33691e", $borderColor="#8bc34a", $shadowing="false", $shape=RoundedBoxShape(), $legendText="Container boundary", $borderStyle=DashedLine(), $borderThickness="1")
 UpdateRelStyle($textColor="#37474f", $lineColor="#546e7a")
 
 LAYOUT_LEFT_RIGHT()
@@ -105,8 +105,8 @@ Lay_D(backend_api, orders_db)
 Lay_D(backend_api, order_events)
 Lay_R(backend_api, payment_provider)
 
-SHOW_LEGEND($details=Normal())
+SHOW_LEGEND($hideStereotype="false", $details=Normal())
 
-SHOW_FLOATING_LEGEND("legend_box")
+SHOW_FLOATING_LEGEND("legend_box", $hideStereotype="true", $details=Small())
 
 @enduml

@@ -83,6 +83,6 @@ def test_render_system_context_diagram(
     diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
-        snapshot="plantuml/system_context_diagram.puml",
+        snapshot_name="plantuml/system_context_diagram.puml",
         diagram_code=diagram_code,
     )

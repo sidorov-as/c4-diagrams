@@ -393,6 +393,44 @@ def test_json_to_diagram_converter__init(
     assert converter._diagram.title == "Online Shop"
 
 
+def test_json_to_diagram_converter__check_empty(
+    system_context_diagram_dict: dict[str, Any],
+):
+    diagram_dict = {
+        "type": "SystemContextDiagram",
+        "title": "Online Shop",
+        "elements": [
+            {
+                "type": "Person",
+                "alias": "customer",
+                "label": "Customer",
+            }
+        ],
+        "render_options": {
+            "plantuml": {
+                "tags": [
+                    {
+                        "type": "PersonTag",
+                        "tag_stereo": "Customer",
+                        "bg_color": "#e8f5e9",
+                        "border_color": "#66bb6a",
+                        "border_style": "SolidLine",
+                        "border_thickness": "1",
+                        "font_color": "#1b5e20",
+                        "legend_sprite": "user",
+                        "legend_text": "Primary customer actor",
+                        "shadowing": False,
+                    }
+                ],
+            }
+        },
+    }
+
+    diagram = JSONToDiagramConverter(diagram_dict).convert()
+
+    assert diagram.title == "Online Shop"
+
+
 def test_json_to_diagram_converter__validation_error():
     diagram_dict = {
         "type": "UnknownDiagramType",
@@ -765,16 +803,15 @@ def test_json_to_diagram_converter__set_render_options__plantuml(
             ElementTag(
                 tag_stereo="external",
                 legend_text="External dependency",
-                legend_sprite="",
+                legend_sprite=None,
                 sprite="cloud",
-                bg_color="",
-                font_color="",
-                border_color="",
+                font_color=None,
+                border_color=None,
                 shadowing=False,
-                shape="",
-                technology="",
-                border_style="",
-                border_thickness="",
+                shape=None,
+                technology=None,
+                border_style=None,
+                border_thickness=None,
             )
         ],
         styles=[],

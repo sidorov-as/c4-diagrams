@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.test_integration.test_cli.conftest import CLI
+from tests.conftest import CLI
 
 
 def test_convert__json_to_py(

@@ -63,6 +63,6 @@ def test_render_diagram(
     diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
-        snapshot="plantuml/samples/c4_context-diagram-sample-bigbankplc.puml",
+        snapshot_name="plantuml/samples/c4_context-diagram-sample-bigbankplc.puml",
         diagram_code=diagram_code,
     )

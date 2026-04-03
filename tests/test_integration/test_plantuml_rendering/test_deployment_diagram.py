@@ -153,7 +153,7 @@ def test_render_deployment_diagram(
     diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
-        snapshot="plantuml/deployment_diagram.puml",
+        snapshot_name="plantuml/deployment_diagram.puml",
         diagram_code=diagram_code,
     )
 
@@ -322,6 +322,6 @@ def test_render_deployment_diagram_with_properties(
     diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
-        snapshot="plantuml/deployment_diagram_with_properties.puml",
+        snapshot_name="plantuml/deployment_diagram_with_properties.puml",
         diagram_code=diagram_code,
     )

@@ -95,6 +95,7 @@ fix = true
 exclude = [
     "tests/snapshots/",
     "tests/test_integration/test_cli/snapshots",
+    "docs/assets/examples",
     "docs/scripts/generate_diagram_spec_docs.py",
 ]
 

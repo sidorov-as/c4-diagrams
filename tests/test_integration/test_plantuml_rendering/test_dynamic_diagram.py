@@ -156,6 +156,6 @@ def test_render_dynamic_diagram(
     diagram_code = diagram.as_plantuml(layout_config=layout_config)
 
     assert_match_snapshot(
-        snapshot="plantuml/dynamic_diagram.puml",
+        snapshot_name="plantuml/dynamic_diagram.puml",
         diagram_code=diagram_code,
     )

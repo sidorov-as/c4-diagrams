@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import AssertMatchSnapshot, MakeTmpPyFile
-from tests.test_integration.test_cli.conftest import CLI
+from tests.conftest import CLI, AssertMatchSnapshot, MakeTmpPyFile
 
 pytestmark = [pytest.mark.usefixtures("clean_sys_modules")]
 
@@ -50,7 +49,7 @@ def test_export__absolute_file_path__success(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_export_success.txt",
+        snapshot_name="test_export_success.txt",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -93,7 +92,7 @@ def test_export__module__success(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_export_success.txt",
+        snapshot_name="test_export_success.txt",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -136,7 +135,7 @@ def test_export__absolute_file_path_with_ref__success(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_export_success.txt",
+        snapshot_name="test_export_success.txt",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -179,7 +178,7 @@ def test_export__module_with_ref__success(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_export_success.txt",
+        snapshot_name="test_export_success.txt",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -694,7 +693,7 @@ def test_export_to_stdout(
     assert result.exit_code == 0
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_export_success.txt",
+        snapshot_name="test_export_success.txt",
         diagram_code=result.stdout,
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -735,7 +734,7 @@ def test_export_default_renderer_plantuml(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_export_success.txt",
+        snapshot_name="test_export_success.txt",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -780,7 +779,7 @@ def test_export_provided_renderer_plantuml(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_export_success.txt",
+        snapshot_name="test_export_success.txt",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -998,7 +997,7 @@ def test_export_shortcut_renderer_plantuml(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_export_success.txt",
+        snapshot_name="test_export_success.txt",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -1196,7 +1195,7 @@ def test_export__use_new_c4_style(
     assert result.exit_code == 0
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_export_success.txt",
+        snapshot_name="test_export_success.txt",
         diagram_code=result.stdout,
         snapshot_dir=SNAPSHOT_DIR,
     )

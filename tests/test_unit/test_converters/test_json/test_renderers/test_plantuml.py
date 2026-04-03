@@ -208,17 +208,17 @@ def test_plantuml_layout_options_schema__to_layout_config__styles__empty():
         styles=[
             ElementStyle(
                 element_name="api",
-                bg_color="",
-                font_color="",
-                border_color="",
-                shadowing="",
-                shape="",
-                sprite="",
-                technology="",
-                legend_text="",
-                legend_sprite="",
-                border_style="",
-                border_thickness="",
+                bg_color=None,
+                font_color=None,
+                border_color=None,
+                shadowing=None,
+                shape=None,
+                sprite=None,
+                technology=None,
+                legend_text=None,
+                legend_sprite=None,
+                border_style=None,
+                border_thickness=None,
             )
         ]
     )

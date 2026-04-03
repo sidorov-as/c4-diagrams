@@ -6,18 +6,18 @@
     !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
 !endif
 
-AddPersonTag("person", $bgColor="#e8f5e9", $fontColor="#1b5e20", $borderColor="#66bb6a", $legendText="End user", $borderStyle=SolidLine(), $borderThickness="2")
-AddExternalContainerTag("external_service", $bgColor="#f3e5f5", $fontColor="#4a148c", $borderColor="#ab47bc", $legendText="External service", $borderStyle=DashedLine(), $borderThickness="2")
-AddContainerTag("frontend", $bgColor="#e3f2fd", $fontColor="#0d47a1", $borderColor="#42a5f5", $legendText="Frontend container", $borderStyle=SolidLine(), $borderThickness="2")
-AddContainerTag("backend", $bgColor="#ede7f6", $fontColor="#311b92", $borderColor="#7e57c2", $legendText="Backend container", $borderStyle=SolidLine(), $borderThickness="2")
-AddContainerTag("database", $bgColor="#fff3e0", $fontColor="#e65100", $borderColor="#fb8c00", $legendText="Database container", $borderStyle=SolidLine(), $borderThickness="2")
-AddContainerTag("message_bus", $bgColor="#fce4ec", $fontColor="#880e4f", $borderColor="#ec407a", $legendText="Message queue / stream", $borderStyle=SolidLine(), $borderThickness="2")
+AddPersonTag("person", $bgColor="#e8f5e9", $fontColor="#1b5e20", $borderColor="#66bb6a", $shadowing="false", $legendText="End user", $borderStyle=SolidLine(), $borderThickness="2")
+AddExternalContainerTag("external_service", $bgColor="#f3e5f5", $fontColor="#4a148c", $borderColor="#ab47bc", $shadowing="false", $legendText="External service", $borderStyle=DashedLine(), $borderThickness="2")
+AddContainerTag("frontend", $bgColor="#e3f2fd", $fontColor="#0d47a1", $borderColor="#42a5f5", $shadowing="false", $legendText="Frontend container", $borderStyle=SolidLine(), $borderThickness="2")
+AddContainerTag("backend", $bgColor="#ede7f6", $fontColor="#311b92", $borderColor="#7e57c2", $shadowing="false", $legendText="Backend container", $borderStyle=SolidLine(), $borderThickness="2")
+AddContainerTag("database", $bgColor="#fff3e0", $fontColor="#e65100", $borderColor="#fb8c00", $shadowing="false", $legendText="Database container", $borderStyle=SolidLine(), $borderThickness="2")
+AddContainerTag("message_bus", $bgColor="#fce4ec", $fontColor="#880e4f", $borderColor="#ec407a", $shadowing="false", $legendText="Message queue / stream", $borderStyle=SolidLine(), $borderThickness="2")
 AddNodeTag("cloud_account", $bgColor="#eef6ff", $fontColor="#0d47a1", $borderColor="#64b5f6", $shadowing="true", $shape=RoundedBoxShape(), $techn="Infrastructure", $legendText="Cloud account boundary", $legendSprite="cloud", $borderStyle=SolidLine(), $borderThickness="2")
-AddNodeTag("public_network", $bgColor="#f1f8e9", $fontColor="#33691e", $borderColor="#8bc34a", $shape=RoundedBoxShape(), $techn="DMZ", $legendText="Public network zone", $legendSprite="network", $borderStyle=SolidLine(), $borderThickness="1")
-AddNodeTag("private_network", $bgColor="#fbe9e7", $fontColor="#bf360c", $borderColor="#ff8a65", $shape=RoundedBoxShape(), $techn="Internal", $legendText="Private network zone", $legendSprite="network", $borderStyle=SolidLine(), $borderThickness="1")
-AddNodeTag("edge_node", $bgColor="#e1f5fe", $fontColor="#01579b", $borderColor="#29b6f6", $shape=RoundedBoxShape(), $techn="Ingress", $legendText="Ingress deployment node", $legendSprite="router", $borderStyle=BoldLine(), $borderThickness="2")
+AddNodeTag("public_network", $bgColor="#f1f8e9", $fontColor="#33691e", $borderColor="#8bc34a", $shadowing="false", $shape=RoundedBoxShape(), $techn="DMZ", $legendText="Public network zone", $legendSprite="network", $borderStyle=SolidLine(), $borderThickness="1")
+AddNodeTag("private_network", $bgColor="#fbe9e7", $fontColor="#bf360c", $borderColor="#ff8a65", $shadowing="false", $shape=RoundedBoxShape(), $techn="Internal", $legendText="Private network zone", $legendSprite="network", $borderStyle=SolidLine(), $borderThickness="1")
+AddNodeTag("edge_node", $bgColor="#e1f5fe", $fontColor="#01579b", $borderColor="#29b6f6", $shadowing="false", $shape=RoundedBoxShape(), $techn="Ingress", $legendText="Ingress deployment node", $legendSprite="router", $borderStyle=BoldLine(), $borderThickness="2")
 AddNodeTag("runtime_node", $bgColor="#e8f5e9", $fontColor="#1b5e20", $borderColor="#66bb6a", $shadowing="true", $shape=RoundedBoxShape(), $techn="Runtime", $legendText="Runtime deployment node", $legendSprite="server", $borderStyle=SolidLine(), $borderThickness="2")
-AddNodeTag("data_node", $bgColor="#fff8e1", $fontColor="#ff6f00", $borderColor="#ffb300", $shape=RoundedBoxShape(), $techn="Data Platform", $legendText="Data deployment node", $legendSprite="database", $borderStyle=SolidLine(), $borderThickness="2")
+AddNodeTag("data_node", $bgColor="#fff8e1", $fontColor="#ff6f00", $borderColor="#ffb300", $shadowing="false", $shape=RoundedBoxShape(), $techn="Data Platform", $legendText="Data deployment node", $legendSprite="database", $borderStyle=SolidLine(), $borderThickness="2")
 AddRelTag("encrypted_traffic", $textColor="#0d47a1", $lineColor="#1976d2", $lineStyle=SolidLine(), $lineThickness="2", $techn="TLS")
 AddRelTag("async_flow", $textColor="#4a148c", $lineColor="#8e24aa", $lineStyle=DashedLine(), $lineThickness="2", $techn="Kafka")
 
@@ -66,6 +66,6 @@ Lay_R(alb, app_cluster)
 Lay_D(app_cluster, db_service)
 Lay_R(app_cluster, payment_gateway)
 
-SHOW_LEGEND($details=Normal())
+SHOW_LEGEND($hideStereotype="false", $details=Normal())
 
 @enduml

@@ -6,9 +6,9 @@
     !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
 !endif
 
-AddPersonTag("customer", $bgColor="#08427B", $fontColor="#FFFFFF", $borderColor="#052E56", $legendText="Customer actor")
-AddSystemTag("core", $bgColor="#1168BD", $fontColor="#FFFFFF", $borderColor="#0B4884", $legendText="Core internal system")
-AddExternalSystemTag("external", $bgColor="#999999", $fontColor="#FFFFFF", $borderColor="#6B6B6B", $legendText="External system")
+AddPersonTag("customer", $bgColor="#08427B", $fontColor="#FFFFFF", $borderColor="#052E56", $shadowing="false", $legendText="Customer actor")
+AddSystemTag("core", $bgColor="#1168BD", $fontColor="#FFFFFF", $borderColor="#0B4884", $shadowing="false", $legendText="Core internal system")
+AddExternalSystemTag("external", $bgColor="#999999", $fontColor="#FFFFFF", $borderColor="#6B6B6B", $shadowing="false", $legendText="External system")
 AddRelTag("payment_call", $textColor="#0B4884", $lineColor="#0B4884", $lineStyle=BoldLine())
 AddRelTag("fulfillment_call", $textColor="#1B5E20", $lineColor="#1B5E20")
 AddRelTag("response", $textColor="#6B6B6B", $lineColor="#6B6B6B", $lineStyle=DottedLine())

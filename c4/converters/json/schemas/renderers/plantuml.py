@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, ClassVar, Literal
 
-from pydantic import ConfigDict, Field, field_serializer
+from pydantic import ConfigDict, Field
 
 from c4.converters.json.schemas.base import BaseSchemaItem
 from c4.renderers.plantuml.layout_options import (
@@ -111,12 +111,6 @@ class BaseTagSchema(LayoutOptionsModel):
         None,
         description="Sprite icon associated with the element or relationship.",
     )
-
-    @field_serializer("*")
-    def none_to_empty(self, value: Any) -> Any:
-        if value is None:
-            return ""
-        return value
 
 
 class ElementTagSchema(BaseTagSchema):
@@ -358,12 +352,6 @@ class BaseStyleSchema(LayoutOptionsModel):
         ...,
         description="Discriminator identifying the element type.",
     )
-
-    @field_serializer("*")
-    def none_to_empty(self, value: Any) -> Any:
-        if value is None:
-            return ""
-        return value
 
 
 class ElementStyleSchema(BaseStyleSchema):

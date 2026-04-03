@@ -561,13 +561,13 @@ class LayoutOptionsCodegen:
         # common element-like tags share the same shape
         element_kwargs = {
             **base_tag_kwargs,
-            "bg_color": getattr(tag, "bg_color", ""),
-            "font_color": getattr(tag, "font_color", ""),
-            "border_color": getattr(tag, "border_color", ""),
-            "shadowing": getattr(tag, "shadowing", ""),
-            "shape": getattr(tag, "shape", ""),
-            "border_style": getattr(tag, "border_style", ""),
-            "border_thickness": getattr(tag, "border_thickness", ""),
+            "bg_color": getattr(tag, "bg_color", None),
+            "font_color": getattr(tag, "font_color", None),
+            "border_color": getattr(tag, "border_color", None),
+            "shadowing": getattr(tag, "shadowing", None),
+            "shape": getattr(tag, "shape", None),
+            "border_style": getattr(tag, "border_style", None),
+            "border_thickness": getattr(tag, "border_thickness", None),
         }
 
         if isinstance(tag, RelTag):
@@ -582,12 +582,12 @@ class LayoutOptionsCodegen:
         elif isinstance(tag, (PersonTag, SystemTag)):
             tag_kwargs = {
                 **element_kwargs,
-                "type_": getattr(tag, "type_", ""),
+                "type_": getattr(tag, "type_", None),
             }
         else:
             tag_kwargs = {
                 **element_kwargs,
-                "technology": getattr(tag, "technology", ""),
+                "technology": getattr(tag, "technology", None),
             }
 
         kwargs = self._filtered_kwargs(

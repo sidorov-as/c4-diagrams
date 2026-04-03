@@ -6,11 +6,11 @@
     !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
 !endif
 
-AddPersonTag("Primary", $sprite="person", $legendText="Primary user")
-AddExternalPersonTag("External", $sprite="person", $legendText="External person")
-AddSystemTag("Core", $sprite="server", $legendText="Core internal system")
-AddExternalSystemTag("External", $sprite="cloud", $legendText="External dependency")
-AddBoundaryTag("Enterprise", $legendText="Enterprise boundary")
+AddPersonTag("Primary", $shadowing="false", $sprite="person", $legendText="Primary user")
+AddExternalPersonTag("External", $shadowing="false", $sprite="person", $legendText="External person")
+AddSystemTag("Core", $shadowing="false", $sprite="server", $legendText="Core internal system")
+AddExternalSystemTag("External", $shadowing="false", $sprite="cloud", $legendText="External dependency")
+AddBoundaryTag("Enterprise", $shadowing="false", $legendText="Enterprise boundary")
 AddRelTag("Synchronous")
 AddRelTag("Manual")
 
@@ -40,6 +40,6 @@ Lay_R(customer, retail_platform)
 Lay_R(retail_platform, payment_gateway)
 Lay_D(support_agent, crm_platform)
 
-SHOW_LEGEND($details=Normal())
+SHOW_LEGEND($hideStereotype="false", $details=Normal())
 
 @enduml

@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import AssertMatchSnapshot, MakeTmpPyFile
-from tests.test_integration.test_cli.conftest import CLI
+from tests.conftest import CLI, AssertMatchSnapshot, MakeTmpPyFile
 
 pytestmark = [pytest.mark.usefixtures("clean_sys_modules")]
 
@@ -36,7 +35,7 @@ def test_render__absolute_file_path__success(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_render_success.puml",
+        snapshot_name="test_render_success.puml",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -66,7 +65,7 @@ def test_render__module__success(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_render_success.puml",
+        snapshot_name="test_render_success.puml",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -101,7 +100,7 @@ def test_render__absolute_file_path_with_ref__success(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_render_success.puml",
+        snapshot_name="test_render_success.puml",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -131,7 +130,7 @@ def test_render__module_with_ref__success(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_render_success.puml",
+        snapshot_name="test_render_success.puml",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -635,7 +634,7 @@ def test_render_to_stdout(
     assert result.exit_code == 0
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_render_success.puml",
+        snapshot_name="test_render_success.puml",
         diagram_code=result.stdout,
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -665,7 +664,7 @@ def test_render_default_renderer_plantuml(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_render_success.puml",
+        snapshot_name="test_render_success.puml",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -702,7 +701,7 @@ def test_render_provided_renderer_plantuml(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_render_success.puml",
+        snapshot_name="test_render_success.puml",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -738,7 +737,7 @@ def test_render_shortcut_renderer_plantuml(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_render_success.puml",
+        snapshot_name="test_render_success.puml",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
@@ -880,7 +879,7 @@ def test_render__use_new_c4_style(
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(
-        snapshot="test_render_success_new_c4_style.puml",
+        snapshot_name="test_render_success_new_c4_style.puml",
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
