@@ -1,6 +1,6 @@
 [project]
 name = "c4-diagrams"
-version = "0.4.1"
+version = "0.4.2"
 description = "A Python DSL for generating C4 diagrams"
 authors = [{ name = "Alexey Sidorov", email = "ereon.dev@gmail.com" }]
 readme = "README.md"
@@ -171,7 +171,7 @@ omit = [
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.4.1"
+version = "0.4.2"
 tag_format = "$version"
 version_scheme = "semver"
 version_files = [
