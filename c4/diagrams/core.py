@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import copy
 from collections import defaultdict
 from collections.abc import Iterable
 from contextvars import ContextVar
@@ -432,7 +433,8 @@ class BaseDiagramElement:
         """
         Sets the column headers for the element's property table.
 
-        This must be called before adding any property rows.
+        This must be called either before adding any property rows, or
+        the header length must match the number of values.
 
         Args:
             *args: Column names to use as the property header.
@@ -441,17 +443,18 @@ class BaseDiagramElement:
             The updated diagram element.
 
         Raises:
-            ValueError: If properties were already added before setting
-                the header.
+            ValueError: If header length does not match the number of values.
         """
         if not args:
             raise ValueError("The header cannot be empty")
 
         if self.properties.properties:
-            raise ValueError(
-                "Cannot change header after properties have been added. "
-                "Set the header before calling add_property()."
-            )
+            expected_header_length = self.properties.properties[0]
+
+            if len(args) != len(expected_header_length):
+                raise ValueError(
+                    "The header length does not match the number of values"
+                )
 
         self.properties.header = list(args)
 
@@ -1877,7 +1880,12 @@ class Relationship(BaseDiagramElement):
 
         cls = self.get_relationship_by_type(self.relationship_type)
 
-        return cls(**attrs)
+        relationship_copy = cls(**attrs)
+
+        if self.properties.properties:
+            relationship_copy.properties = copy.deepcopy(self.properties)
+
+        return relationship_copy
 
     @classmethod
     def get_relationship_by_type(

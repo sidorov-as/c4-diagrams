@@ -333,10 +333,20 @@ class PythonCodegen:
         Render a relationship in fluent DSL form: `a >> Rel(...) >> b`.
         """
         from_element, to_element = relationship.get_participants()  # type: ignore[var-annotated]
+        diagram = relationship.diagram
+        from_, to_ = from_element.alias, to_element.alias
 
-        self._builder.add(
-            f"{from_element.alias} >> {relationship!r} >> {to_element.alias}"
-        )
+        need_variable = bool(relationship.properties.properties)
+
+        if need_variable:
+            rel_variable = diagram.generate_alias(label=f"rel_{from_}_{to_}")
+            self._builder.add(
+                f"{rel_variable} = {from_} >> {relationship!r} >> {to_}"
+            )
+
+            self._render_properties(rel_variable, relationship.properties)
+        else:
+            self._builder.add(f"{from_} >> {relationship!r} >> {to_}")
 
     def _render_relationships(self, parent: Diagram | Boundary) -> bool:
         """

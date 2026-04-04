@@ -1078,6 +1078,7 @@ applied at render time.
     | **`from(required)`** | `string` | The source element alias (or unique label). |
     | **`label(required)`** | `string` | The label shown on the relationship edge. |
     | `link` | `string` \| `null` | Optional URL link associated with the relationship. |
+    | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `sprite` | `string` \| `null` | Optional sprite/icon to represent the relationship. |
     | `tags` | <code>array[string]</code> | Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions. |
     | `technology` | `string` \| `null` | The technology used in the communication. |

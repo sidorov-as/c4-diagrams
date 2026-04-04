@@ -44,6 +44,9 @@
           - relationships
           - __enter__
           - __exit__
+          - set_property_header
+          - without_property_header
+          - add_property
 
 ::: c4.diagrams.core.RelationshipType
     options:
@@ -63,6 +66,9 @@
           - get_attrs
           - copy
           - get_relationship_by_type
+          - set_property_header
+          - without_property_header
+          - add_property
 
 !!! note
 

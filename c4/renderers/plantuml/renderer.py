@@ -356,6 +356,9 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
                 blank_line_after=idx == len(diagram.relationships),
             )
 
+            if properties:
+                self._builder.add_blank_line()
+
     def _render_layouts(self, diagram: _TDiagram) -> None:
         for idx, layout in enumerate(diagram.layouts, start=1):
             *properties, layout_macro = self.render_layout(layout)

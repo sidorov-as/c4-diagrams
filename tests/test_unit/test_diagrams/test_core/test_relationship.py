@@ -630,3 +630,23 @@ def test_relationship_get_participants_no_to_element(
 
     with pytest.raises(ValueError, match="to_element not provided"):
         relationship.get_participants()
+
+
+def test_relationship_copy_properties(diagram: Diagram):
+    frontend = Element("frontend")
+    backend = Element("backend")
+    api_call = Rel("API Call", technology="JSON/HTTPS")
+    api_call.add_property("Rate limit", "10/s")
+
+    result = frontend >> api_call >> backend
+
+    assert len(diagram.relationships) == 1
+    assert isinstance(result, Relationship)
+    assert diagram.relationships[0] == result
+    assert diagram.relationships[0].from_element == frontend
+    assert diagram.relationships[0].to_element == backend
+    assert diagram.relationships[0].label == "API Call"
+    assert diagram.relationships[0].technology == "JSON/HTTPS"
+    assert diagram.relationships[0].properties.properties == [
+        ["Rate limit", "10/s"]
+    ]

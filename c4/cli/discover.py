@@ -191,7 +191,7 @@ def _load_module_from_file(filepath: str) -> ModuleType:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
     finally:
-        if sys.path and sys.path[0] == module_dir:
+        if sys.path and sys.path[0] == module_dir:  # pragma: no cover
             sys.path.pop(0)
 
     return module

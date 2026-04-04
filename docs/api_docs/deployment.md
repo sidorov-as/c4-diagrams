@@ -17,6 +17,10 @@
         # explicit members list so we can set order and include `__init__` easily
         members:
           - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.deployment.NodeLeft
     options:
@@ -24,6 +28,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.deployment.NodeRight
     options:
@@ -31,6 +41,11 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
 
 ::: c4.diagrams.deployment.DeploymentNode
     options:
@@ -38,6 +53,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.deployment.DeploymentNodeLeft
     options:
@@ -45,6 +66,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.deployment.DeploymentNodeRight
     options:
@@ -52,3 +79,8 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property

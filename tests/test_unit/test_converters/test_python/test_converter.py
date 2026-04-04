@@ -14,6 +14,7 @@ from c4 import (
     System,
     SystemBoundary,
     SystemContextDiagram,
+    SystemExt,
     increment,
     set_index,
 )
@@ -645,6 +646,51 @@ def test_python_codegen__render_relationship_with_attrs(
     python_codegen._render_relationship(relationship)
 
     assert builder.lines == [f"user >> RelUp({expected_rel_attrs}) >> system"]
+
+
+def test_python_codegen__render_relationship_with_properties(
+    python_codegen: PythonCodegen,
+):
+    with SystemContextDiagram() as diagram:
+        user = Person("User")
+        system = System("System")
+        email_provider = SystemExt("Email Provider")
+
+        relationship = user >> RelUp("Uses") >> system
+        relationship.set_property_header("Key", "Value")
+        relationship.add_property("Channel", "Web")
+        relationship.add_property("Region", "EU")
+
+        system >> Rel("Uses").add_property("Fallback", "SMTP") >> email_provider
+    expected_result = textwrap.dedent(
+        """
+        from c4 import (
+            Person,
+            Rel,
+            RelUp,
+            System,
+            SystemContextDiagram,
+            SystemExt,
+        )
+
+
+        with SystemContextDiagram():
+            user = Person('User', alias='user')
+            system = System('System', alias='system')
+            email_provider = SystemExt('Email Provider', alias='email_provider')
+            rel_user_system = user >> RelUp('Uses') >> system
+            rel_user_system.set_property_header('Key', 'Value')
+            rel_user_system.add_property('Channel', 'Web')
+            rel_user_system.add_property('Region', 'EU')
+
+            rel_system_email_provider = system >> Rel('Uses') >> email_provider
+            rel_system_email_provider.add_property('Fallback', 'SMTP')
+        """
+    ).strip()
+
+    result = python_codegen.generate(diagram)
+
+    assert expected_result == result.strip()
 
 
 def test_python_codegen__render_relationships__diagram(

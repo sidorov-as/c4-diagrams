@@ -18,6 +18,9 @@
         # explicit members list so we can set order and include `__init__` easily
         members:
           - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
 
 ::: c4.diagrams.component.ComponentDb
     options:
@@ -25,6 +28,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.component.ComponentQueue
     options:
@@ -32,6 +41,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.component.ComponentExt
     options:
@@ -39,6 +54,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.component.ComponentDbExt
     options:
@@ -46,6 +67,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.component.ComponentQueueExt
     options:
@@ -53,3 +80,8 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property

@@ -17,6 +17,10 @@
         # explicit members list so we can set order and include `__init__` easily
         members:
           - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.container.ContainerDb
     options:
@@ -24,6 +28,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.container.ContainerQueue
     options:
@@ -31,6 +41,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.container.ContainerExt
     options:
@@ -38,6 +54,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.container.ContainerDbExt
     options:
@@ -45,6 +67,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.container.ContainerQueueExt
     options:
@@ -52,6 +80,12 @@
         merge_init_into_class: false
         group_by_category: false
         show_source: false
+        members:
+          - __init__
+          - set_property_header
+          - without_property_header
+          - add_property
+
 
 ::: c4.diagrams.container.ContainerBoundary
     options:
@@ -63,3 +97,6 @@
         # explicit members list so we can set order and include `__init__` easily
         members:
           - __init__
+          - set_property_header
+          - without_property_header
+          - add_property

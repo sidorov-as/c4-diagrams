@@ -124,3 +124,52 @@ def test_add_properties__override_header(
         ["Department", "Retail Ops"],
         ["Role", "Manager"],
     ]
+
+
+def test_relationship__add_properties(
+    get_diagram_schema: GetDiagramSchema,
+):
+    data = {
+        "type": "SystemContextDiagram",
+        "elements": [
+            {
+                "type": "Person",
+                "label": "Store Manager",
+                "alias": "store_manager",
+            },
+            {
+                "type": "System",
+                "label": "Back-Office",
+                "alias": "back_office",
+            },
+        ],
+        "relationships": [
+            {
+                "type": "REL",
+                "from": "store_manager",
+                "to": "back_office",
+                "label": "Uses",
+                "properties": {
+                    "show_header": True,
+                    "header": ["Override", "Header"],
+                    "properties": [
+                        ["Department", "Retail Ops"],
+                        ["Role", "Manager"],
+                    ],
+                },
+            },
+        ],
+    }
+    converter = JSONToDiagramConverter(data)
+    diagram = converter.convert()
+    relationship = diagram.relationships[0]
+
+    properties = relationship.properties
+
+    assert isinstance(properties, DiagramElementProperties)
+    assert properties.show_header is True
+    assert properties.header == ["Override", "Header"]
+    assert properties.properties == [
+        ["Department", "Retail Ops"],
+        ["Role", "Manager"],
+    ]

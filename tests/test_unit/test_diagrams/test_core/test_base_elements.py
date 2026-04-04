@@ -365,17 +365,27 @@ def test_base_diagram_element_set_property_header(diagram: Diagram):
     assert base_element.properties.header == ["Key", "Value"]
 
 
+def test_base_diagram_element_set_property_header_same_length(diagram: Diagram):
+    base_element = BaseDiagramElement()
+    header_before = base_element.properties.header
+    base_element.add_property("Property 1", "Property 1 Value")
+
+    base_element.set_property_header("Key", "Value")
+
+    assert header_before == ["Property", "Value"]
+    assert base_element.properties.header == ["Key", "Value"]
+
+
 def test_base_diagram_element_set_property_header_error(diagram: Diagram):
     base_element = BaseDiagramElement()
     header_before = base_element.properties.header
     base_element.add_property("Property 1", "Property 1 Value")
     expected_error = re.escape(
-        "Cannot change header after properties have been added. "
-        "Set the header before calling add_property()."
+        "The header length does not match the number of values"
     )
 
     with pytest.raises(ValueError, match=expected_error):
-        base_element.set_property_header("Key", "Value")
+        base_element.set_property_header("Key", "Value", "Extra")
 
     assert header_before == ["Property", "Value"]
     assert base_element.properties.header == ["Property", "Value"]

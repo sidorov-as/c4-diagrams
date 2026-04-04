@@ -3477,7 +3477,6 @@
         },
         "label": {
           "description": "The label shown on the relationship edge.",
-          "minLength": 1,
           "title": "Label",
           "type": "string"
         },
@@ -3540,6 +3539,18 @@
           "default": null,
           "description": "Optional URL link associated with the relationship.",
           "title": "Link"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
         },
         "index": {
           "anyOf": [

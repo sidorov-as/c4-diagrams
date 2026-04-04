@@ -47,7 +47,8 @@ dev = [
     "commitizen>=4.11.0",
     "polyfactory>=3.3.0",
     "zensical>=0.0.29",
-    "mkdocstrings[python]>=1.0.0",
+    "mkdocstrings[python]>=1.0.1",
+    "mkdocs-autorefs>=1.4.3",
 ]
 
 [build-system]

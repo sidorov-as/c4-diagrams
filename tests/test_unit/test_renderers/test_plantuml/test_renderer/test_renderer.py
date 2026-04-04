@@ -21,11 +21,12 @@ from c4 import (
     System,
     SystemBoundary,
     SystemContextDiagram,
+    SystemExt,
     SystemLandscapeDiagram,
     increment,
     set_index,
 )
-from c4.diagrams.core import Diagram
+from c4.diagrams.core import Diagram, RelUp
 from c4.exceptions import PlantUMLBackendConfigurationError
 from c4.renderers import RenderOptions
 from c4.renderers.plantuml import LayoutOptions
@@ -517,3 +518,50 @@ def test_plantuml_dynamic_diagram_renderer__base_elements__unknown_type():
 
     with pytest.raises(TypeError, match=expected_error):
         renderer.render_base_element(element)
+
+
+def test_plantuml_renderer__relationships_with_properties():
+    renderer = PlantUMLDynamicDiagramRenderer()
+    with SystemContextDiagram() as diagram:
+        user = Person("User")
+        system = System("System")
+        email_provider = SystemExt("Email Provider")
+
+        relationship = user >> RelUp("Uses") >> system
+        relationship.set_property_header("Key", "Value")
+        relationship.add_property("Channel", "Web")
+        relationship.add_property("Region", "EU")
+
+        system >> Rel("Uses").add_property("Fallback", "SMTP") >> email_provider
+    expected_diagram = textwrap.dedent(
+        """
+        @startuml
+        ' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+        !if %variable_exists("RELATIVE_INCLUDE")
+            !include %get_variable_value("RELATIVE_INCLUDE")/C4_Dynamic.puml
+        !else
+            !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
+        !endif
+
+        Person(user, "User")
+
+        System(system, "System")
+
+        System_Ext(email_provider, "Email Provider")
+
+        SetPropertyHeader("Key", "Value")
+        AddProperty("Channel", "Web")
+        AddProperty("Region", "EU")
+        Rel_Up(user, system, "Uses")
+
+        SetPropertyHeader("Property", "Value")
+        AddProperty("Fallback", "SMTP")
+        Rel(system, email_provider, "Uses")
+
+        @enduml
+        """
+    ).strip()
+
+    result = renderer.render(diagram)
+
+    assert result == expected_diagram

@@ -135,7 +135,7 @@ class ElementBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
         return cast(BaseDiagramElement, element)
 
 
-class RelationshipSchema(BaseSchemaItem[Relationship]):
+class RelationshipSchema(BaseSchemaItem[Relationship], PropertiesMixin):
     type: RelationshipType = Field(..., description="Type of the relationship.")
     from_: str = Field(
         ...,
@@ -148,9 +148,7 @@ class RelationshipSchema(BaseSchemaItem[Relationship]):
         min_length=1,
         description="The destination element alias (or unique label).",
     )
-    label: str = Field(
-        min_length=1, description="The label shown on the relationship edge."
-    )
+    label: str = Field(description="The label shown on the relationship edge.")
     description: str | None = Field(
         None, description="Additional details about the relationship."
     )
@@ -171,9 +169,24 @@ class RelationshipSchema(BaseSchemaItem[Relationship]):
     link: str | None = Field(
         None, description="Optional URL link associated with the relationship."
     )
+    properties: DiagramElementPropertiesSchema | None = Field(
+        None, description="Optional property table metadata."
+    )
 
     def _get_diagram_element_class(self) -> TypeDiagramElement | None:
         return Relationship.get_relationship_by_type(self.type)
+
+    def to_diagram_element(self, **overrides: Any) -> BaseDiagramElement:
+        """
+        Instantiate the target diagram element using validated
+        and filtered kwargs.
+        """
+        element = super().to_diagram_element(**overrides)
+
+        if self.properties:
+            self._add_properties(element, self.properties)
+
+        return cast(BaseDiagramElement, element)
 
 
 class LayoutSchema(BaseSchemaItem[Layout]):
