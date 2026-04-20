@@ -93,7 +93,7 @@ from c4.enums import (
     DiagramFormat,
 )
 
-__version__ = "0.4.5"
+__version__ = "0.5.0"
 
 __all__ = (
     "EPS",
