@@ -88,7 +88,7 @@ def test_export__module__success(
         "60",
     ])
 
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.stderr
     assert not result.stdout
     assert not result.stderr
     assert_match_snapshot(

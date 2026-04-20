@@ -629,7 +629,7 @@ def test_build_plantuml_export_cli_options_remote_backend():
 
     result = _build_plantuml_export_cli_options(args)
 
-    assert result.plantuml_bin is None
+    assert result.plantuml_bin == "plantuml"
     assert result.plantuml_jar is None
     assert result.plantuml_server_url == "https://plantuml.com"
     assert result.plantuml_backend == "remote"
@@ -807,6 +807,15 @@ def test_build_mermaid_exporter(
 
 
 def test_build_mermaid_export_cli_options():
+    args = argparse.Namespace()
+
+    result = _build_mermaid_export_cli_options(args)
+
+    assert result.mermaid_bin == "mmdc"
+    assert result.scale_factor == 1
+
+
+def test_build_mermaid_export_cli_options__mermaid_bin():
     args = argparse.Namespace(
         mermaid_bin="mmdc",
     )

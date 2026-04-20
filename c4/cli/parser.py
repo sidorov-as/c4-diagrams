@@ -16,8 +16,6 @@ from c4.constants import (
     CONVERT_FROM_FORMATS,
     CONVERT_TO_FORMATS,
     DEFAULT_JAVA_BIN,
-    DEFAULT_MERMAID_BIN,
-    DEFAULT_PLANTUML_BIN,
     DEFAULT_PLANTUML_SERVER_URL,
     DEFAULT_RENDERING_TIMEOUT_SECONDS,
     FORMATS_BY_RENDERER_HELP_TEXT,
@@ -291,8 +289,8 @@ def _add_plantuml_export_flags(parser: argparse.ArgumentParser) -> None:
     mex = group.add_mutually_exclusive_group()
     mex.add_argument(
         "--plantuml-bin",
-        default=DEFAULT_PLANTUML_BIN,
         type=_plantuml_bin_type,
+        default=_env_default([PLANTUML_BIN_ENV_VAR]),
         help=(
             "PlantUML executable (command name or full path). "
             f"If not provided, the {PLANTUML_BIN_ENV_VAR} "
@@ -363,7 +361,6 @@ def _add_mermaid_export_flags(parser: argparse.ArgumentParser) -> None:
 
     group.add_argument(
         "--mermaid-bin",
-        default=DEFAULT_MERMAID_BIN,
         type=_mermaid_bin_type,
         help=(
             "Mermaid executable (command name or full path). "

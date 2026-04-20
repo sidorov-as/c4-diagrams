@@ -291,8 +291,8 @@ def test_export_default_cli_args(
     assert args.format == "png"
     assert args.timeout == 30.0
     assert args.plantuml_backend == "local"
-    assert args.plantuml_bin == "plantuml"
-    assert args.mermaid_bin == "mmdc"
+    assert args.plantuml_bin is None
+    assert args.mermaid_bin is None
     assert args.mermaid_scale_factor is None
     assert args.java_bin == "java"
     assert args.plantuml_server_url == "https://www.plantuml.com/plantuml"
