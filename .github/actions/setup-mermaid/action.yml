@@ -1,0 +1,36 @@
+name: "Setup Mermaid CLI"
+description: "Install Mermaid CLI (mmdc) and expose it for tests"
+
+inputs:
+  mermaid-version:
+    description: "Mermaid CLI version to install (e.g. 11.4.0)"
+    required: true
+    default: "11.4.0"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    - name: Install Mermaid CLI (mmdc)
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        VERSION="${{ inputs.mermaid-version }}"
+
+        echo "Installing mermaid-cli@$VERSION..."
+        npm install -g @mermaid-js/mermaid-cli@"$VERSION"
+
+        # Ensure mmdc is available
+        command -v mmdc
+
+        # Export for your app/tests (similar to PLANTUML_JAR)
+        echo "MERMAID_BIN=$(command -v mmdc)" >> "$GITHUB_ENV"
+
+    - name: Show Mermaid CLI version
+      shell: bash
+      run: mmdc --version

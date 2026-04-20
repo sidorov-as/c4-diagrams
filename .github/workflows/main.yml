@@ -30,6 +30,7 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         plantuml-version: ["1.2025.10"]
+        mermaid-version: ["11.4.0"]
       fail-fast: false
     defaults:
       run:
@@ -47,6 +48,11 @@ jobs:
         uses: ./.github/actions/setup-plantuml
         with:
           plantuml-version: ${{ matrix.plantuml-version }}
+
+      - name: Set up Mermaid CLI
+        uses: ./.github/actions/setup-mermaid
+        with:
+          mermaid-version: ${{ matrix.mermaid-version }}
 
       - name: Run tests
         run: uv run python -m pytest tests --cov --cov-config=pyproject.toml --cov-report=lcov
