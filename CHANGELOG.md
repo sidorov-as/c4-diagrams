@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **cli**: add mermaid options
 - **plantuml**: add [C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML) to `LocalPlantUMLBackend`.
 
+#### Breaking changes
+
+1. Refactor layout options: replace `c4.renderers.plantuml.layout_options.LayoutOptions` with `c4.renderers.plantuml.options.PlantUMLRenderOptionsBuilder`.
+
+
 ## 0.4.5 (2026-04-04)
 
 ### Fix
