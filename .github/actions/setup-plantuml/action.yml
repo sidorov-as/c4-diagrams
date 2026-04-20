@@ -56,7 +56,7 @@ runs:
           EXTRA_ARGS+=("-graphvizdot" "$GRAPHVIZ_DOT")
         fi
 
-        exec java ${VMARGS} -jar "$PLANTUML_JAR" "${EXTRA_ARGS[@]}" "$@"
+        exec java ${VMARGS} -jar "$PLANTUML_JAR_PATH" "${EXTRA_ARGS[@]}" "$@"
         EOF
 
         chmod +x "$BIN_DIR/plantuml"
