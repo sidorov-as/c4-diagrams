@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fix
 
-- **cli**: fix export cli parsing
+- **cli**: fix export cli args parsing
 
 ## 0.5.1 (2026-04-20)
 
