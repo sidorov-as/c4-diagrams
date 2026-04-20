@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from enum import unique
 from typing import Annotated, Any, ClassVar, Literal
 
 from pydantic import ConfigDict, Field
 
+from c4.compat.strenum import StrEnum
 from c4.converters.json.schemas.base import BaseSchemaItem
-from c4.renderers.plantuml.layout_options import (
+from c4.converters.json.schemas.renderers.common import RenderOptionsItem
+from c4.renderers.plantuml.options import (
     BaseStyle,
     BaseTag,
     BoundaryStyle,
@@ -13,7 +16,6 @@ from c4.renderers.plantuml.layout_options import (
     ComponentTag,
     ContainerBoundaryStyle,
     ContainerTag,
-    Details,
     DiagramLayout,
     ElementStyle,
     ElementTag,
@@ -22,10 +24,9 @@ from c4.renderers.plantuml.layout_options import (
     ExternalContainerTag,
     ExternalPersonTag,
     ExternalSystemTag,
-    LayoutConfig,
-    LineStyle,
     NodeTag,
     PersonTag,
+    PlantUMLRenderOptions,
     RelStyle,
     RelTag,
     SetSketchStyle,
@@ -34,10 +35,36 @@ from c4.renderers.plantuml.layout_options import (
     ShowPersonSprite,
     SystemBoundaryStyle,
     SystemTag,
-    TagShape,
 )
 
 TypeAny = type[Any]
+
+
+@unique
+class TagShape(StrEnum):
+    """Defines PlantUML tag shape."""
+
+    EIGHT_SIDED_SHAPE = "EightSidedShape"
+    ROUNDED_BOX_SHAPE = "RoundedBoxShape"
+
+
+@unique
+class LineStyle(StrEnum):
+    """Defines PlantUML line style."""
+
+    DASHED_LINE = "DashedLine"
+    DOTTED_LINE = "DottedLine"
+    BOLD_LINE = "BoldLine"
+    SOLID_LINE = "SolidLine"
+
+
+@unique
+class Details(StrEnum):
+    """Defines PlantUML legend details."""
+
+    SMALL = "Small"
+    NORMAL = "Normal"
+    NONE = "None"
 
 
 class WithType:
@@ -48,44 +75,15 @@ class WithType:
     )
 
 
-class LayoutOptionsModel(BaseSchemaItem):
-    """
-    Base schema model for layout option items that can be converted
-    into renderer-side dataclass models.
-
-    Subclasses are expected to declare ``__model__`` with the target
-    runtime model class.
-    """
-
-    model_config = ConfigDict(frozen=True)
-
-    __model__: ClassVar[TypeAny]
-
-    def to_model(self) -> Any:
-        """
-        Convert this schema object into its corresponding runtime model.
-
-        The model is first dumped to a plain Python dictionary. Only fields
-        accepted by the target model's initializer are kept.
-        """
-        kwargs: dict[str, Any] = self.model_dump(mode="python")
-
-        allowed = self._allowed_init_params(self.__model__)
-        filtered = {}
-        for key, value in kwargs.items():
-            if key in allowed:
-                filtered[key] = value
-
-        return self.__model__(**filtered)
-
-
-class BaseTagSchema(LayoutOptionsModel):
+class BaseTagSchema(RenderOptionsItem):
     """
     Base class for C4-PlantUML tag macros.
 
     Represents shared attributes for tags applied to diagram elements or
     relationships, including optional visual enhancements and legend metadata.
     """
+
+    model_config = ConfigDict(use_enum_values=True)
 
     __model__: ClassVar[TypeAny] = BaseTag
 
@@ -338,13 +336,15 @@ class ExternalSystemTagSchema(SystemTagSchema):
     )
 
 
-class BaseStyleSchema(LayoutOptionsModel):
+class BaseStyleSchema(RenderOptionsItem):
     """
     Base class for C4-PlantUML style update macros.
 
     Represents macro configurations that update the visual style
     of diagram elements or relationships.
     """
+
+    model_config = ConfigDict(use_enum_values=True)
 
     __model__: ClassVar[TypeAny] = BaseStyle
 
@@ -466,10 +466,12 @@ class EnterpriseBoundaryStyleSchema(BoundaryStyleSchema):
     )
 
 
-class ShowLegendSchema(LayoutOptionsModel):
+class ShowLegendSchema(RenderOptionsItem):
     """
     Configuration for the SHOW_LEGEND macro in PlantUML.
     """
+
+    model_config = ConfigDict(use_enum_values=True)
 
     __model__: ClassVar[TypeAny] = ShowLegend
 
@@ -478,7 +480,7 @@ class ShowLegendSchema(LayoutOptionsModel):
         description="Whether to hide stereotype labels in the legend.",
     )
     details: Details = Field(
-        default="Small",
+        default=Details.SMALL,
         description="Legend detail level.",
     )
 
@@ -495,7 +497,7 @@ class ShowFloatingLegendSchema(ShowLegendSchema):
     )
 
 
-class ShowPersonSpriteSchema(LayoutOptionsModel):
+class ShowPersonSpriteSchema(RenderOptionsItem):
     """
     Configuration for the SHOW_PERSON_SPRITE macro.
     """
@@ -508,7 +510,7 @@ class ShowPersonSpriteSchema(LayoutOptionsModel):
     )
 
 
-class SetSketchStyleSchema(LayoutOptionsModel):
+class SetSketchStyleSchema(RenderOptionsItem):
     """
     Configuration for the SET_SKETCH_STYLE macro.
     """
@@ -568,7 +570,7 @@ AnyStyle = Annotated[
 ]
 
 
-class PlantUMLLayoutOptionsSchema(BaseSchemaItem):
+class PlantUMLRenderOptionsSchema(BaseSchemaItem):
     """
     Final layout configuration for rendering a C4-PlantUML diagram.
 
@@ -576,6 +578,13 @@ class PlantUMLLayoutOptionsSchema(BaseSchemaItem):
     applied at render time.
     """
 
+    includes: list[str] = Field(
+        default_factory=list,
+        description=(
+            "A list of PlantUML `!include` directives "
+            "to be injected at the beginning of the diagram."
+        ),
+    )
     layout: DiagramLayout | None = Field(
         default=None, description="Layout direction."
     )
@@ -633,9 +642,9 @@ class PlantUMLLayoutOptionsSchema(BaseSchemaItem):
         description="List of style update macro configurations.",
     )
 
-    def to_layout_config(self) -> LayoutConfig:
+    def to_render_options(self) -> PlantUMLRenderOptions:
         """
-        Returns the layout configuration object.
+        Returns the render options object.
         """
         kwargs: dict[str, Any] = {
             "tags": [],
@@ -647,7 +656,7 @@ class PlantUMLLayoutOptionsSchema(BaseSchemaItem):
                 continue
 
             value = getattr(self, field, None)
-            if value and isinstance(value, LayoutOptionsModel):
+            if value and isinstance(value, RenderOptionsItem):
                 kwargs[field] = value.to_model()
             else:
                 kwargs[field] = value
@@ -658,13 +667,4 @@ class PlantUMLLayoutOptionsSchema(BaseSchemaItem):
         for style in self.styles:
             kwargs["styles"].append(style.to_model())
 
-        return LayoutConfig(**kwargs)
-
-
-class PlantUMLRenderOptionsSchema(BaseSchemaItem):
-    layout_options: PlantUMLLayoutOptionsSchema | None = Field(
-        None,
-        description=(
-            "Layout configuration for rendering a C4-PlantUML diagram."
-        ),
-    )
+        return PlantUMLRenderOptions(**kwargs)

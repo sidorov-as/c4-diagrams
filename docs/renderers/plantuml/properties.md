@@ -80,4 +80,4 @@ Properties can be added to any diagram element or relationship except:
 
 - [`SystemBoundary`](../../api_docs/system-context/#c4.diagrams.system_context.SystemBoundary)
 - [`EnterpriseBoundary`](../../api_docs/system-context/#c4.diagrams.system_context.EnterpriseBoundary)
-- [`ContainerBoundary`](../../api_docs/system-context/#c4.diagrams.system_context.ContainerBoundary)
+- [`ContainerBoundary`](../../api_docs/container/#c4.diagrams.container.ContainerBoundary)

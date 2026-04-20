@@ -15,10 +15,13 @@ from c4.cli.options import (
     ConvertCLIOptions,
     DiagramFormat,
     ExportCLIOptions,
+    MermaidExportCLIOptions,
     PlantUMLExportCLIOptions,
     PlantUMLRenderCLIOptions,
     RenderCLIOptions,
     RendererEnum,
+    _build_mermaid_export_cli_options,
+    _build_mermaid_exporter,
     _build_plantuml_export_cli_options,
     _build_plantuml_exporter,
     _build_plantuml_render_cli_options,
@@ -35,13 +38,15 @@ from c4.cli.options import (
 from c4.constants import (
     D2,
     DIAGRAM_FORMATS_BY_RENDERER,
+    KNOWN_RENDERERS,
     MERMAID,
     PLANTUML,
     REMOTE_BACKEND,
     STRUCTURIZR,
 )
-from c4.enums import JSON, PY, ConvertShortcut, DiagramConvertionFormat
-from c4.renderers import PlantUMLRenderer
+from c4.enums import JSON, PDF, PY, ConvertShortcut, DiagramConvertionFormat
+from c4.renderers import MermaidRenderer, PlantUMLRenderer
+from c4.renderers.mermaid import LocalMermaidBackend
 from c4.renderers.plantuml import LocalPlantUMLBackend, RemotePlantUMLBackend
 
 
@@ -207,6 +212,16 @@ def test_convert_cli_options_open_output__output_is_none(
             PLANTUML,
         ),
         (
+            {"renderer": MERMAID.value},
+            [],
+            MERMAID,
+        ),
+        (
+            {},
+            [MERMAID.value],
+            MERMAID,
+        ),
+        (
             {"renderer": PLANTUML.value},
             [MERMAID.value],
             PLANTUML,
@@ -238,7 +253,9 @@ def test_convert_cli_options_open_output__output_is_none(
         ),
     ],
     ids=[
-        "renderer_provided",
+        "renderer_provided_plantuml",
+        "renderer_provided_mermaid",
+        "renderer_provided_mermaid_flag",
         "renderer_priority_over_plantuml",
         "renderer_priority_over_mermaid",
         "renderer_priority_over_structurizr",
@@ -263,11 +280,6 @@ def test_get_renderer_name(
     ("cli_args", "flags", "renderer"),
     [
         (
-            {"renderer": MERMAID.value},
-            [],
-            MERMAID.value,
-        ),
-        (
             {"renderer": STRUCTURIZR.value},
             [],
             STRUCTURIZR.value,
@@ -276,11 +288,6 @@ def test_get_renderer_name(
             {"renderer": D2.value},
             [],
             D2.value,
-        ),
-        (
-            {},
-            [MERMAID.value],
-            MERMAID.value,
         ),
         (
             {},
@@ -304,7 +311,7 @@ def test_get_renderer_name_unknown(
 ):
     args = argparse.Namespace(**cli_args, **dict.fromkeys(flags, True))
     expected_error = re.escape(
-        f"Unknown renderer {renderer!r}. Allowed: plantuml."
+        f"Unknown renderer {renderer!r}. Allowed: mermaid, plantuml."
     )
 
     with pytest.raises(CLIError, match=expected_error):
@@ -324,7 +331,7 @@ def test_validate_output_format_unknown_renderer(
 ):
     expected_error = (
         f"Renderer {str(renderer)!r} has no registered formats. "
-        f"Allowed renderers: plantuml."
+        f"Allowed renderers: mermaid, plantuml."
     )
 
     with pytest.raises(CLIError, match=expected_error):
@@ -346,6 +353,7 @@ def test_validate_output_format_unknown_renderer(
                 PNG,
                 TXT,
                 UTXT,
+                PDF,
             }
         ),
     ],
@@ -384,7 +392,9 @@ def test_validate_output_format_enum_fmt_is_accepted():
 
 
 @pytest.mark.parametrize("output", [None, Path("/path/to/output.puml")])
-def test_build_render_cli_options(mocker: MockerFixture, output: Path | None):
+def test_build_render_cli_options__plantuml(
+    mocker: MockerFixture, output: Path | None
+):
     mocker.patch(
         "c4.cli.options._get_renderer_name",
         return_value=RendererEnum.PLANTUML,
@@ -404,7 +414,7 @@ def test_build_render_cli_options(mocker: MockerFixture, output: Path | None):
 
 
 @pytest.mark.parametrize("use_new_c4_style", [True, False])
-def test_build_render_cli_options_c4_style(
+def test_build_render_cli_options__plantuml__c4_style(
     mocker: MockerFixture,
     use_new_c4_style: bool,
 ):
@@ -424,8 +434,30 @@ def test_build_render_cli_options_c4_style(
     assert result.renderer_options.use_new_c4_style is use_new_c4_style
 
 
+@pytest.mark.parametrize("output", [None, Path("/path/to/output.mmd")])
+def test_build_render_cli_options__mermaid(
+    mocker: MockerFixture, output: Path | None
+):
+    mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=RendererEnum.MERMAID,
+    )
+    args = argparse.Namespace(
+        target="module:diagram",
+        output=output,
+    )
+
+    result = build_render_cli_options(args)
+
+    assert result.renderer == RendererEnum.MERMAID
+    assert result.target == "module:diagram"
+    assert result.output is output
+    assert result.renderer_options is None
+
+
 @pytest.mark.parametrize(
-    "renderer", [renderer for renderer in RendererEnum if renderer != PLANTUML]
+    "renderer",
+    [renderer for renderer in RendererEnum if renderer not in KNOWN_RENDERERS],
 )
 def test_build_render_cli_options_unsupported_renderer(
     mocker: MockerFixture,
@@ -469,8 +501,21 @@ def test_build_renderer_plantuml():
     assert isinstance(result, PlantUMLRenderer)
 
 
+def test_build_renderer_mermaid():
+    cli_options = RenderCLIOptions(
+        renderer=RendererEnum.MERMAID,
+        target="x",
+        renderer_options=None,
+    )
+
+    result = build_renderer(cli_options)
+
+    assert isinstance(result, MermaidRenderer)
+
+
 @pytest.mark.parametrize(
-    "renderer", [renderer for renderer in RendererEnum if renderer != PLANTUML]
+    "renderer",
+    [renderer for renderer in RendererEnum if renderer not in KNOWN_RENDERERS],
 )
 def test_build_renderer_unsupported_renderer(renderer: RendererEnum):
     cli_options = RenderCLIOptions(
@@ -552,6 +597,26 @@ def test_build_plantuml_export_cli_options_c4_style(
     assert result.use_new_c4_style == use_new_c4_style
 
 
+@pytest.mark.parametrize("use_bundled_c4_plantuml", [True, False])
+def test_build_plantuml_export_cli_options_use_bundled_c4_plantuml(
+    use_bundled_c4_plantuml: bool,
+    mocker: MockerFixture,
+):
+    args = argparse.Namespace(
+        plantuml_backend=mocker.ANY,
+        plantuml_server_url=mocker.ANY,
+        plantuml_bin=mocker.ANY,
+        plantuml_jar=mocker.ANY,
+        java_bin=mocker.ANY,
+        plantuml_skinparam_dpi=mocker.ANY,
+        plantuml_use_bundled_c4_plantuml=use_bundled_c4_plantuml,
+    )
+
+    result = _build_plantuml_export_cli_options(args)
+
+    assert result.use_bundled_c4_plantuml == use_bundled_c4_plantuml
+
+
 def test_build_plantuml_export_cli_options_remote_backend():
     args = argparse.Namespace(
         plantuml_backend=REMOTE_BACKEND,
@@ -601,6 +666,40 @@ def test_build_plantuml_exporter_local_backend(
         plantuml_bin="plantuml",
         plantuml_jar=None,
         java_bin="java",
+    )
+
+
+def test_build_plantuml_exporter_local_backend__use_bundled_c4_plantuml(
+    mocker: MockerFixture,
+):
+    mocker.patch("c4.cli.options.LocalPlantUMLBackend._resolve_backend")
+    backend_init = mocker.spy(LocalPlantUMLBackend, "__init__")
+    renderer_options = PlantUMLExportCLIOptions(
+        plantuml_backend=LOCAL_BACKEND,
+        plantuml_server_url=None,
+        plantuml_bin="plantuml",
+        java_bin="java",
+        use_bundled_c4_plantuml=True,
+    )
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.PLANTUML,
+        target="x",
+        renderer_options=renderer_options,
+        format=DiagramFormat.PNG,
+        timeout=12.5,
+    )
+
+    result = _build_plantuml_exporter(cli_options)
+
+    assert isinstance(result, PlantUMLRenderer)
+    assert isinstance(result._plantuml_backend, LocalPlantUMLBackend)
+    backend_init.assert_called_once_with(
+        result._plantuml_backend,
+        timeout_seconds=12.5,
+        plantuml_bin="plantuml",
+        plantuml_jar=None,
+        java_bin="java",
+        plantuml_args=["-DRELATIVE_INCLUDE=."],
     )
 
 
@@ -679,6 +778,57 @@ def test_build_plantuml_exporter_new_c4_style(mocker: MockerFixture):
     assert result._use_new_c4_style is True
 
 
+def test_build_mermaid_exporter(
+    mocker: MockerFixture,
+):
+    mocker.patch("c4.cli.options.LocalMermaidBackend._resolve_backend")
+    backend_init = mocker.spy(LocalMermaidBackend, "__init__")
+    renderer_options = MermaidExportCLIOptions(
+        mermaid_bin="mmdc",
+    )
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.MERMAID,
+        target="x",
+        renderer_options=renderer_options,
+        format=DiagramFormat.PNG,
+        timeout=12.5,
+    )
+
+    result = _build_mermaid_exporter(cli_options)
+
+    assert isinstance(result, MermaidRenderer)
+    assert isinstance(result._mermaid_backend, LocalMermaidBackend)
+    backend_init.assert_called_once_with(
+        result._mermaid_backend,
+        timeout_seconds=12.5,
+        mermaid_bin="mmdc",
+        mermaid_args=["--scale=1"],
+    )
+
+
+def test_build_mermaid_export_cli_options():
+    args = argparse.Namespace(
+        mermaid_bin="mmdc",
+    )
+
+    result = _build_mermaid_export_cli_options(args)
+
+    assert result.mermaid_bin == "mmdc"
+    assert result.scale_factor == 1
+
+
+def test_build_mermaid_export_cli_options__scale_factor():
+    args = argparse.Namespace(
+        mermaid_bin="mmdc",
+        mermaid_scale_factor=5,
+    )
+
+    result = _build_mermaid_export_cli_options(args)
+
+    assert result.mermaid_bin == "mmdc"
+    assert result.scale_factor == 5
+
+
 @pytest.mark.parametrize(
     "cli_args",
     [
@@ -686,7 +836,7 @@ def test_build_plantuml_exporter_new_c4_style(mocker: MockerFixture):
         {"timeout": 10, "output": None},
     ],
 )
-def test_build_export_cli_options_maps_args_and_validates_format(
+def test_build_export_cli_options__plantuml__maps_args_and_validates_format(
     mocker: MockerFixture,
     cli_args: dict[str, Any],
 ):
@@ -728,7 +878,56 @@ def test_build_export_cli_options_maps_args_and_validates_format(
 
 
 @pytest.mark.parametrize(
-    "renderer", [renderer for renderer in RendererEnum if renderer != PLANTUML]
+    "cli_args",
+    [
+        {"timeout": 10, "output": Path("/path/to/diagram.puml")},
+        {"timeout": 10, "output": None},
+    ],
+)
+def test_build_export_cli_options__mermaid__maps_args_and_validates_format(
+    mocker: MockerFixture,
+    cli_args: dict[str, Any],
+):
+    mocked_get_renderer_name = mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=MERMAID,
+    )
+    mocked_validate_output_format = mocker.patch(
+        "c4.cli.options._validate_output_format",
+        return_value=PNG,
+    )
+    render_options = MermaidExportCLIOptions()
+    mocked_build_mermaid_export_cli_options = mocker.patch(
+        "c4.cli.options._build_mermaid_export_cli_options",
+        return_value=render_options,
+    )
+    expected_output = cli_args.get("output")
+    expected_timeout = cli_args.get("timeout")
+    args = argparse.Namespace(
+        target="module:diagram",
+        format=PNG,
+        **cli_args,
+    )
+
+    result = build_export_cli_options(args)
+
+    assert result.renderer == RendererEnum.MERMAID
+    assert result.target == "module:diagram"
+    assert result.format == PNG
+    assert result.timeout == expected_timeout
+    assert result.output == expected_output
+    assert result.renderer_options is render_options
+    mocked_get_renderer_name.assert_called_once_with(args)
+    mocked_validate_output_format.assert_called_once_with(
+        result.renderer, fmt=PNG
+    )
+    assert result.format == mocked_validate_output_format.return_value
+    mocked_build_mermaid_export_cli_options.assert_called_once_with(args)
+
+
+@pytest.mark.parametrize(
+    "renderer",
+    [renderer for renderer in RendererEnum if renderer not in KNOWN_RENDERERS],
 )
 def test_build_export_cli_options_unsupported_renderer(
     mocker: MockerFixture,
@@ -764,8 +963,26 @@ def test_build_exporter_plantuml(
     assert isinstance(result, PlantUMLRenderer)
 
 
+def test_build_exporter_mermaid(
+    mocker: MockerFixture,
+):
+    mocker.patch("c4.cli.options.LocalMermaidBackend._resolve_backend")
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.MERMAID,
+        target="x",
+        renderer_options=MermaidExportCLIOptions(),
+        format=DiagramFormat.PNG,
+        timeout=1.0,
+    )
+
+    result = build_exporter(cli_options)
+
+    assert isinstance(result, MermaidRenderer)
+
+
 @pytest.mark.parametrize(
-    "renderer", [renderer for renderer in RendererEnum if renderer != PLANTUML]
+    "renderer",
+    [renderer for renderer in RendererEnum if renderer not in KNOWN_RENDERERS],
 )
 def test_build_exporter_unsupported_renderer(renderer: RendererEnum):
     cli_options = ExportCLIOptions(

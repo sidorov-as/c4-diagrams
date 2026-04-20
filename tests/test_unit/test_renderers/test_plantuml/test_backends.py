@@ -458,3 +458,111 @@ def test_local_plantuml_backend__to_bytes__output_not_generated(
         match="Expected output was not generated",
     ):
         backend.to_bytes("@startuml\n@enduml", format=DiagramFormat.SVG)
+
+
+def test_local_plantuml_backend__init__uses_explicit_plantuml_bin_over_env(
+    mocker: MockerFixture,
+):
+    mocker.patch.object(
+        LocalPlantUMLBackend,
+        "_resolve_backend",
+        autospec=True,
+        return_value=None,
+    )
+
+    backend = LocalPlantUMLBackend(
+        plantuml_bin="explicit-plantuml",
+        env={"PLANTUML_BIN": "env-plantuml"},
+    )
+
+    assert backend._plantuml_bin == "explicit-plantuml"
+
+
+def test_local_plantuml_backend__init__uses_env_plantuml_bin_when_not_explicit(
+    mocker: MockerFixture,
+):
+    mocker.patch.object(
+        LocalPlantUMLBackend,
+        "_resolve_backend",
+        autospec=True,
+        return_value=None,
+    )
+
+    backend = LocalPlantUMLBackend(env={"PLANTUML_BIN": "env-plantuml"})
+
+    assert backend._plantuml_bin == "env-plantuml"
+
+
+def test_local_plantuml_backend__init__uses_explicit_plantuml_jar_over_env(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    mocker.patch.object(
+        LocalPlantUMLBackend,
+        "_resolve_backend",
+        autospec=True,
+        return_value=None,
+    )
+    explicit_jar = tmp_path / "explicit.jar"
+    env_jar = tmp_path / "env.jar"
+
+    backend = LocalPlantUMLBackend(
+        plantuml_jar=explicit_jar,
+        env={"PLANTUML_JAR": str(env_jar)},
+    )
+
+    assert backend._plantuml_jar == explicit_jar
+
+
+def test_local_plantuml_backend__init__uses_env_plantuml_jar_when_not_explicit(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    mocker.patch.object(
+        LocalPlantUMLBackend,
+        "_resolve_backend",
+        autospec=True,
+        return_value=None,
+    )
+    env_jar = tmp_path / "env.jar"
+
+    backend = LocalPlantUMLBackend(
+        env={"PLANTUML_JAR": str(env_jar)},
+    )
+
+    assert backend._plantuml_jar == env_jar
+
+
+def test_local_plantuml_backend__init__uses_explicit_timeout_over_env(
+    mocker: MockerFixture,
+):
+    mocker.patch.object(
+        LocalPlantUMLBackend,
+        "_resolve_backend",
+        autospec=True,
+        return_value=None,
+    )
+
+    backend = LocalPlantUMLBackend(
+        timeout_seconds=12.5,
+        env={"RENDERING_TIMEOUT_SECONDS": "30"},
+    )
+
+    assert backend._timeout_seconds == 12.5
+
+
+def test_local_plantuml_backend__init__uses_env_timeout_when_not_explicit(
+    mocker: MockerFixture,
+):
+    mocker.patch.object(
+        LocalPlantUMLBackend,
+        "_resolve_backend",
+        autospec=True,
+        return_value=None,
+    )
+
+    backend = LocalPlantUMLBackend(
+        env={"RENDERING_TIMEOUT_SECONDS": "30"},
+    )
+
+    assert backend._timeout_seconds == 30.0

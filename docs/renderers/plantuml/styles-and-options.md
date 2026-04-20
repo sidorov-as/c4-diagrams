@@ -8,23 +8,23 @@ for additional information.
 
 ## Layout Options
 
-Layout behavior is configured via the [`LayoutOptions`][c4.renderers.plantuml.layout_options.LayoutOptions]
+Layout behavior is configured via the [`PlantUMLRenderOptionsBuilder`][c4.renderers.plantuml.options.PlantUMLRenderOptionsBuilder]
 builder:
 
 ```python
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
-layout_config = (
-    LayoutOptions()
+render_options = (
+    PlantUMLRenderOptionsBuilder()
     .layout_landscape()   # Horizontal layout
     .show_legend()        # Display legend
     .build()
 )
 ```
 
-You can pass `layout_config` to [`PlantUMLRenderer`][c4.renderers.plantuml.renderer.PlantUMLRenderer].
+You can pass `render_options` to [`PlantUMLRenderer`][c4.renderers.plantuml.renderer.PlantUMLRenderer].
 
-See the [Layout Options reference][c4.renderers.plantuml.layout_options.LayoutOptions] section for the complete list of
+See the [PlantUMLRenderOptionsBuilder reference][c4.renderers.plantuml.options.PlantUMLRenderOptionsBuilder] section for the complete list of
 available methods and configuration options.
 
 Layout configuration can also be set via [RenderOptions](../render-options.md).
@@ -43,8 +43,11 @@ The PlantUML renderer supports both:
 
 ```python
 from c4 import *
-from c4.renderers.plantuml import PlantUMLRenderer, LocalPlantUMLBackend
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import (
+    PlantUMLRenderer,
+    LocalPlantUMLBackend,
+    PlantUMLRenderOptionsBuilder,
+)
 
 
 with ComponentDiagram() as diagram:
@@ -62,11 +65,11 @@ with ComponentDiagram() as diagram:
     admin >> RelRight("Uses", technology="HTTPS") >> web_app
     twitter_facade >> RelRight("Gets tweets from", technology="HTTPS") >> twitter
 
-    layout_config = LayoutOptions().layout_landscape().show_legend().build()
+    render_options = PlantUMLRenderOptionsBuilder().layout_landscape().show_legend().build()
 
     renderer = PlantUMLRenderer(
         backend=LocalPlantUMLBackend(),
-        layout_config=layout_config,
+        render_options=render_options,
     )
 
 
@@ -92,7 +95,7 @@ to [`PlantUMLRenderer`][c4.renderers.plantuml.renderer.PlantUMLRenderer]:
 ```python hl_lines="25"
 from c4 import *
 from c4.renderers.plantuml import PlantUMLRenderer, LocalPlantUMLBackend
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 
 with ComponentDiagram() as diagram:
@@ -110,11 +113,11 @@ with ComponentDiagram() as diagram:
     admin >> RelRight("Uses", technology="HTTPS") >> web_app
     twitter_facade >> RelRight("Gets tweets from", technology="HTTPS") >> twitter
 
-    layout_config = LayoutOptions().layout_landscape().show_legend().build()
+    render_options = PlantUMLRenderOptionsBuilder().layout_landscape().show_legend().build()
 
     renderer = PlantUMLRenderer(
         backend=LocalPlantUMLBackend(),
-        layout_config=layout_config,
+        render_options=render_options,
         use_new_c4_style=True,
     )
 

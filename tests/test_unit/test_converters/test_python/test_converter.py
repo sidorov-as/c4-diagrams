@@ -19,11 +19,11 @@ from c4 import (
     set_index,
 )
 from c4.converters.python.converter import PythonCodegen, diagram_to_python_code
-from c4.converters.python.renderers.plantuml import LayoutOptionsCodegen
+from c4.converters.python.renderers.plantuml import PlantUMLRenderOptionsCodegen
 from c4.diagrams.core import DiagramElementProperties, LayUp, RelLeft
-from c4.renderers import RenderOptions
+from c4.renderers import MermaidRenderOptions, RenderOptions
 from c4.renderers.base import IndentedStringBuilder
-from c4.renderers.plantuml.layout_options import LayoutConfig
+from c4.renderers.plantuml.options import PlantUMLRenderOptions
 
 
 @pytest.fixture()
@@ -225,14 +225,17 @@ def test_python_codegen__render_boundary(
         "with SystemBoundary('Boundary', alias='sb'):",
         "    user = Person('User', alias='user')",
         "    system = System('System', alias='system')",
+        "",
         "    with SystemBoundary('Nested', alias='nb') as nb:",
         "        nb.set_property_header('A', 'B')",
         "        nb.add_property('k', 'v')",
         "",
         "        ext_system = System('External System', alias='ext_system')",
+        "",
         "        system >> RelLeft('Interacts with') >> ext_system",
         "",
         "    user >> Rel('Uses') >> system",
+        "",
     ]
 
 
@@ -470,27 +473,25 @@ def test_python_codegen__render_layouts(
     ]
 
 
-def test_python_codegen__render_plantuml_layout_options(
+def test_python_codegen__render_plantuml_render_options(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
     mocker: MockerFixture,
 ):
-    layout_config = LayoutConfig()
-    spied_layout_options_codegen = mocker.spy(
-        LayoutOptionsCodegen,
+    render_options = PlantUMLRenderOptions()
+    spied_render_options_codegen = mocker.spy(
+        PlantUMLRenderOptionsCodegen,
         "generate",
     )
 
-    python_codegen._render_plantuml_layout_options(layout_config)
+    python_codegen._render_plantuml_render_options(render_options)
 
     assert builder.lines == [
-        "",
-        "",
-        "plantuml_layout_options = LayoutOptions().build()",
+        "plantuml_render_options = PlantUMLRenderOptionsBuilder().build()",
     ]
-    spied_layout_options_codegen.assert_called_once_with(
-        mocker.ANY,  # LayoutOptionsCodegen self
-        layout_config,
+    spied_render_options_codegen.assert_called_once_with(
+        mocker.ANY,  # PlantUMLRenderOptionsCodegen self
+        render_options,
     )
 
 
@@ -678,6 +679,7 @@ def test_python_codegen__render_relationship_with_properties(
             user = Person('User', alias='user')
             system = System('System', alias='system')
             email_provider = SystemExt('Email Provider', alias='email_provider')
+
             rel_user_system = user >> RelUp('Uses') >> system
             rel_user_system.set_property_header('Key', 'Value')
             rel_user_system.add_property('Channel', 'Web')
@@ -717,6 +719,7 @@ def test_python_codegen__render_relationships__diagram(
     assert builder.lines == [
         "user >> Rel('Send requests') >> system",
         "system >> Rel('Send responses') >> user",
+        "",
     ]
 
 
@@ -745,13 +748,14 @@ def test_python_codegen__render_relationships__boundary(
     assert builder.lines == [
         "user >> Rel('Send requests') >> system",
         "system >> Rel('Send responses') >> user",
+        "",
     ]
 
 
 def test_python_codegen__generate(
     python_codegen: PythonCodegen,
 ):
-    render_options = RenderOptions(plantuml=LayoutConfig())
+    render_options = RenderOptions(plantuml=PlantUMLRenderOptions())
     with DynamicDiagram("D", render_options=render_options) as diagram:
         user = Person("User", alias="user")
         system = System("System", alias="system")
@@ -768,22 +772,26 @@ def test_python_codegen__generate(
             System,
             increment,
         )
-        from c4.renderers import RenderOptions
-        from c4.renderers.plantuml import LayoutOptions
+        from c4.renderers import (
+            PlantUMLRenderOptionsBuilder,
+            RenderOptions,
+        )
 
 
         with DynamicDiagram(title='D') as diagram:
             user = Person('User', alias='user')
             system = System('System', alias='system')
+
             user >> Rel('Uses') >> system
             increment(1)
+
             LayDown(user, system)
 
 
-        plantuml_layout_options = LayoutOptions().build()
+        plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
 
         render_options = RenderOptions(
-            plantuml=plantuml_layout_options,
+            plantuml=plantuml_render_options,
         )
 
         diagram.render_options = render_options
@@ -798,25 +806,27 @@ def test_python_codegen__generate(
 def test_python_codegen__generate_empty_diagram(
     python_codegen: PythonCodegen,
 ):
-    render_options = RenderOptions(plantuml=LayoutConfig())
+    render_options = RenderOptions(plantuml=PlantUMLRenderOptions())
     diagram = DynamicDiagram("D", render_options=render_options)
     expected_result = textwrap.dedent(
         """
         from c4 import (
             DynamicDiagram,
         )
-        from c4.renderers import RenderOptions
-        from c4.renderers.plantuml import LayoutOptions
+        from c4.renderers import (
+            PlantUMLRenderOptionsBuilder,
+            RenderOptions,
+        )
 
 
         with DynamicDiagram(title='D') as diagram:
             pass
 
 
-        plantuml_layout_options = LayoutOptions().build()
+        plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
 
         render_options = RenderOptions(
-            plantuml=plantuml_layout_options,
+            plantuml=plantuml_render_options,
         )
 
         diagram.render_options = render_options
@@ -852,8 +862,10 @@ def test_python_codegen__generate__no_render_options(
         with DynamicDiagram(title='D'):
             user = Person('User', alias='user')
             system = System('System', alias='system')
+
             user >> Rel('Uses') >> system
             increment(1)
+
             LayDown(user, system)
         """
     ).strip()
@@ -863,10 +875,10 @@ def test_python_codegen__generate__no_render_options(
     assert result == expected_result
 
 
-def test_diagram_to_python_code(
+def test_diagram_to_python_code__render_options_plantuml(
     python_codegen: PythonCodegen,
 ):
-    render_options = RenderOptions(plantuml=LayoutConfig())
+    render_options = RenderOptions(plantuml=PlantUMLRenderOptions())
     with DynamicDiagram("D", render_options=render_options) as diagram:
         user = Person("User", alias="user")
         system = System("System", alias="system")
@@ -883,22 +895,133 @@ def test_diagram_to_python_code(
             System,
             increment,
         )
-        from c4.renderers import RenderOptions
-        from c4.renderers.plantuml import LayoutOptions
+        from c4.renderers import (
+            PlantUMLRenderOptionsBuilder,
+            RenderOptions,
+        )
 
 
         with DynamicDiagram(title='D') as diagram:
             user = Person('User', alias='user')
             system = System('System', alias='system')
+
             user >> Rel('Uses') >> system
             increment(1)
+
             LayDown(user, system)
 
 
-        plantuml_layout_options = LayoutOptions().build()
+        plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
 
         render_options = RenderOptions(
-            plantuml=plantuml_layout_options,
+            plantuml=plantuml_render_options,
+        )
+
+        diagram.render_options = render_options
+        """
+    ).strip()
+
+    result = diagram_to_python_code(diagram)
+
+    assert result == expected_result
+
+
+def test_diagram_to_python_code__render_options_mermaid(
+    python_codegen: PythonCodegen,
+):
+    render_options = RenderOptions(mermaid=MermaidRenderOptions())
+    with DynamicDiagram("D", render_options=render_options) as diagram:
+        user = Person("User", alias="user")
+        system = System("System", alias="system")
+        user >> Rel("Uses") >> system
+        increment()
+        LayDown(user, system)
+    expected_result = textwrap.dedent(
+        """
+        from c4 import (
+            DynamicDiagram,
+            LayDown,
+            Person,
+            Rel,
+            System,
+            increment,
+        )
+        from c4.renderers import (
+            MermaidRenderOptionsBuilder,
+            RenderOptions,
+        )
+
+
+        with DynamicDiagram(title='D') as diagram:
+            user = Person('User', alias='user')
+            system = System('System', alias='system')
+
+            user >> Rel('Uses') >> system
+            increment(1)
+
+            LayDown(user, system)
+
+
+        mermaid_render_options = MermaidRenderOptionsBuilder().build()
+
+        render_options = RenderOptions(
+            mermaid=mermaid_render_options,
+        )
+
+        diagram.render_options = render_options
+        """
+    ).strip()
+
+    result = diagram_to_python_code(diagram)
+
+    assert result == expected_result
+
+
+def test_diagram_to_python_code__all_render_options(
+    python_codegen: PythonCodegen,
+):
+    render_options = RenderOptions(
+        plantuml=PlantUMLRenderOptions(), mermaid=MermaidRenderOptions()
+    )
+    with DynamicDiagram("D", render_options=render_options) as diagram:
+        user = Person("User", alias="user")
+        system = System("System", alias="system")
+        user >> Rel("Uses") >> system
+        increment()
+        LayDown(user, system)
+    expected_result = textwrap.dedent(
+        """
+        from c4 import (
+            DynamicDiagram,
+            LayDown,
+            Person,
+            Rel,
+            System,
+            increment,
+        )
+        from c4.renderers import (
+            MermaidRenderOptionsBuilder,
+            PlantUMLRenderOptionsBuilder,
+            RenderOptions,
+        )
+
+
+        with DynamicDiagram(title='D') as diagram:
+            user = Person('User', alias='user')
+            system = System('System', alias='system')
+
+            user >> Rel('Uses') >> system
+            increment(1)
+
+            LayDown(user, system)
+
+
+        plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
+        mermaid_render_options = MermaidRenderOptionsBuilder().build()
+
+        render_options = RenderOptions(
+            plantuml=plantuml_render_options,
+            mermaid=mermaid_render_options,
         )
 
         diagram.render_options = render_options
@@ -934,8 +1057,10 @@ def test_diagram_to_python_code__no_render_options(
         with DynamicDiagram(title='D'):
             user = Person('User', alias='user')
             system = System('System', alias='system')
+
             user >> Rel('Uses') >> system
             increment(1)
+
             LayDown(user, system)
         """
     ).strip()
@@ -970,8 +1095,10 @@ def test_diagram_to_python_code__empty_renderer_options(
         with DynamicDiagram(title='D'):
             user = Person('User', alias='user')
             system = System('System', alias='system')
+
             user >> Rel('Uses') >> system
             increment(1)
+
             LayDown(user, system)
         """
     ).strip()

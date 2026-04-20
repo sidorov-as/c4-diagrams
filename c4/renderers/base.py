@@ -130,7 +130,7 @@ class BaseRenderer(ABC, Generic[_TDiagram]):
         Returns:
             A string containing the formatted diagram in the target syntax.
         """
-        raise NotImplementedError(
+        raise NotImplementedError(  # pragma: no cover
             "Renderer class requires .render() to be implemented"
         )
 
@@ -155,7 +155,7 @@ class BaseRenderer(ABC, Generic[_TDiagram]):
         Returns:
             The rendered diagram content as raw bytes.
         """
-        raise NotImplementedError(
+        raise NotImplementedError(  # pragma: no cover
             "Renderer class requires .render_bytes() to be implemented"
         )
 
@@ -182,6 +182,6 @@ class BaseRenderer(ABC, Generic[_TDiagram]):
         Returns:
             Path to the written output file.
         """
-        raise NotImplementedError(
+        raise NotImplementedError(  # pragma: no cover
             "Renderer class requires .render_file() to be implemented"
         )

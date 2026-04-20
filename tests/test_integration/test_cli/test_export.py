@@ -812,7 +812,7 @@ def test_export_plantuml_invalid_format(
     )
     expected_error = (
         "c4 export: error: argument -f/--format: invalid choice: 'unknown' "
-        "(choose from eps, latex, png, svg, txt, utxt)\n"
+        "(choose from eps, latex, pdf, png, svg, txt, utxt)\n"
     )
 
     result = cli([
@@ -1016,7 +1016,7 @@ def test_export_unknown_renderer(
     module_path.unlink()
     expected_error = (
         "c4 export: error: argument --renderer: invalid choice: 'unknown' "
-        "(choose from plantuml)\n"
+        "(choose from plantuml, mermaid)\n"
     )
 
     result = cli([

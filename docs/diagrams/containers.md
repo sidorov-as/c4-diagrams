@@ -43,7 +43,7 @@ from c4 import (
     RelUp,
     SystemBoundary,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 
 with ContainerDiagram() as diagram:
@@ -120,8 +120,8 @@ with ContainerDiagram() as diagram:
 
     LayRight(reporting_service, audit_service)
 
-    layout_config = (
-        LayoutOptions()
+    render_options = (
+        PlantUMLRenderOptionsBuilder()
         .add_element_tag(
             "microService",
             shape="EightSidedShape",
@@ -140,7 +140,7 @@ with ContainerDiagram() as diagram:
         .build()
     )
 
-diagram_code = diagram.as_plantuml(layout_config=layout_config)
+diagram_code = diagram.as_plantuml(render_options=render_options)
 ```
 
 <details>

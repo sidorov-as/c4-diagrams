@@ -9,9 +9,11 @@ from c4.cli import main
 from c4.cli.parser import (
     HelpFormatter,
     _env_default,
+    _mermaid_bin_type,
     _output_file_path,
     _plantuml_bin_type,
     _plantuml_jar_type,
+    str2bool,
 )
 from tests.conftest import MakeTmpPyFile
 
@@ -48,7 +50,7 @@ def test_help_formatter__split_lines_wraps_each_line_separately(
     assert result == expected
 
 
-def test_plantuml_bin_type_returns_value_when_found(mocker: MockerFixture):
+def test_plantuml_binary_type_returns_value_when_found(mocker: MockerFixture):
     mocker.patch("shutil.which", return_value="/usr/bin/plantuml")
 
     result = _plantuml_bin_type("plantuml")
@@ -90,6 +92,24 @@ def test_plantuml_jar_type_raises_when_path_is_not_a_file(tmp_path: Path):
 
     with pytest.raises(argparse.ArgumentTypeError, match=expected_error):
         _plantuml_jar_type(str(jar_dir))
+
+
+def test_mermaid_binary_type_returns_value_when_found(mocker: MockerFixture):
+    mocker.patch("shutil.which", return_value="/usr/bin/mmdc")
+
+    result = _mermaid_bin_type("mmdc")
+
+    assert result == "mmdc"
+
+
+def test_mermaid_bin_type_raises_when_not_found(mocker: MockerFixture):
+    mocker.patch("shutil.which", return_value=None)
+    expected_error = (
+        "Mermaid binary 'mmdc' was not found in PATH or is not executable."
+    )
+
+    with pytest.raises(argparse.ArgumentTypeError, match=expected_error):
+        _mermaid_bin_type("mmdc")
 
 
 @pytest.mark.parametrize(
@@ -232,7 +252,9 @@ def test_render_default_cli_args(
     args = mocked_handle_render.call_args.args[0]
     assert isinstance(args, argparse.Namespace)
     assert args.target == str(module_path)
-    assert args.renderer == "plantuml"
+    assert args.renderer is None
+    assert args.plantuml is False
+    assert args.mermaid is False
 
 
 def test_export_default_cli_args(
@@ -263,10 +285,66 @@ def test_export_default_cli_args(
     args = mocked_handle_render.call_args.args[0]
     assert isinstance(args, argparse.Namespace)
     assert args.target == str(module_path)
-    assert args.renderer == "plantuml"
+    assert args.renderer is None
+    assert args.plantuml is False
+    assert args.mermaid is False
     assert args.format == "png"
     assert args.timeout == 30.0
     assert args.plantuml_backend == "local"
     assert args.plantuml_bin == "plantuml"
+    assert args.mermaid_bin == "mmdc"
+    assert args.mermaid_scale_factor is None
     assert args.java_bin == "java"
     assert args.plantuml_server_url == "https://www.plantuml.com/plantuml"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected_result"),
+    [
+        (True, True),
+        (False, False),
+        *(
+            (value, True)
+            for value in [
+                "yes",
+                "true",
+                "t",
+                "y",
+                "1",
+                "YES",
+                "True",
+                "T",
+                "Y",
+                "1",
+            ]
+        ),
+        *(
+            (value, False)
+            for value in [
+                "no",
+                "false",
+                "f",
+                "n",
+                "0",
+                "NO",
+                "False",
+                "F",
+                "N",
+                "0",
+            ]
+        ),
+    ],
+)
+def test_str2bool(value: str, expected_result: bool):
+    assert str2bool(value) is expected_result
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["", " ", "abc", "2", "truth", "none"],
+)
+def test_str2bool_invalid_values(value):
+    with pytest.raises(
+        argparse.ArgumentTypeError, match="Boolean value expected"
+    ):
+        str2bool(value)

@@ -35,6 +35,10 @@ nav = [
       {"Styles and layout options" = "renderers/plantuml/styles-and-options.md"},
       {"Macros" = "renderers/plantuml/macros.md"},
     ]},
+    {"Mermaid" = [
+      {"Renderers" = "renderers/mermaid/renderers.md"},
+      {"Styles and layout options" = "renderers/mermaid/styles-and-options.md"},
+    ]},
     {"Render options" = "renderers/render-options.md"},
   ]},
   {"Converters" = [
@@ -52,6 +56,7 @@ nav = [
   ]},
   {"Examples" = [
     {"PlantUML" = "examples/plantuml/plantuml.md"},
+    {"Mermaid" = "examples/mermaid/mermaid.md"},
   ]},
   {"API Reference" = [
     {"Core" = [
@@ -73,7 +78,11 @@ nav = [
       {"PlantUML" = [
         {"Renderers" = "api_docs/plantuml/renderers.md"},
         {"Macros" = "api_docs/plantuml/macros.md"},
-        {"Layout options" = "api_docs/plantuml/layout-options.md"},
+        {"Render options" = "api_docs/plantuml/render-options.md"},
+      ]},
+      {"Mermaid" = [
+        {"Renderers" = "api_docs/mermaid/renderers.md"},
+        {"Render options" = "api_docs/mermaid/render-options.md"},
       ]},
     ]},
   ]},

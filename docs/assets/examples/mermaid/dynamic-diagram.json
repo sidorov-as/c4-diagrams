@@ -1,0 +1,95 @@
+{
+  "type": "DynamicDiagram",
+  "title": "Dynamic diagram for Internet Banking System - API Application",
+  "elements": [
+    {
+      "type": "ContainerDb",
+      "label": "Database",
+      "description": "Stores user registration information, hashed authentication credentials, access logs, etc.",
+      "technology": "Relational Database Schema",
+      "alias": "c4"
+    },
+    {
+      "type": "Container",
+      "label": "Single-Page Application",
+      "description": "Provides all of the Internet banking functionality to customers via their web browser.",
+      "technology": "JavaScript and Angular",
+      "alias": "c1"
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "ContainerBoundary",
+      "label": "API Application",
+      "alias": "b",
+      "elements": [
+        {
+          "type": "Component",
+          "label": "Security Component",
+          "description": "Provides functionality Related to signing in, changing passwords, etc.",
+          "technology": "Spring Bean",
+          "alias": "c3"
+        },
+        {
+          "type": "Component",
+          "label": "Sign In Controller",
+          "description": "Allows users to sign in to the Internet Banking System.",
+          "technology": "Spring MVC Rest Controller",
+          "alias": "c2"
+        }
+      ],
+      "boundaries": []
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "c1",
+      "to": "c2",
+      "label": "Submits credentials to",
+      "technology": "JSON/HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "c2",
+      "to": "c3",
+      "label": "Calls isAuthenticated() on"
+    },
+    {
+      "type": "REL",
+      "from": "c3",
+      "to": "c4",
+      "label": "select * from users where username = ?",
+      "technology": "JDBC"
+    }
+  ],
+  "render_options": {
+    "mermaid": {
+      "styles": [
+        {
+          "type": "RelStyle",
+          "from_element": "c1",
+          "to_element": "c2",
+          "text_color": "red",
+          "offset_y": -40
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "c2",
+          "to_element": "c3",
+          "text_color": "red",
+          "offset_x": -40,
+          "offset_y": 60
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "c3",
+          "to_element": "c4",
+          "text_color": "red",
+          "offset_x": 10,
+          "offset_y": -40
+        }
+      ]
+    }
+  }
+}

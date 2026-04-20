@@ -1,0 +1,194 @@
+{
+  "type": "SystemContextDiagram",
+  "title": "System Context diagram for Internet Banking System",
+  "elements": [],
+  "boundaries": [
+    {
+      "type": "EnterpriseBoundary",
+      "label": "BankBoundary0",
+      "alias": "b0",
+      "elements": [
+        {
+          "type": "Person",
+          "label": "Banking Customer A",
+          "description": "A customer of the bank, with personal bank accounts.",
+          "alias": "customerA"
+        },
+        {
+          "type": "Person",
+          "label": "Banking Customer B",
+          "alias": "customerB"
+        },
+        {
+          "type": "PersonExt",
+          "label": "Banking Customer C",
+          "description": "desc",
+          "alias": "customerC"
+        },
+        {
+          "type": "Person",
+          "label": "Banking Customer D",
+          "description": "A customer of the bank, <br/> with personal bank accounts.",
+          "alias": "customerD"
+        },
+        {
+          "type": "System",
+          "label": "Internet Banking System",
+          "description": "Allows customers to view information about their bank accounts, and make payments.",
+          "alias": "SystemAA"
+        }
+      ],
+      "relationships": [],
+      "boundaries": [
+        {
+          "type": "EnterpriseBoundary",
+          "label": "BankBoundary",
+          "alias": "b1",
+          "elements": [
+            {
+              "type": "SystemDbExt",
+              "label": "Mainframe Banking System",
+              "description": "Stores all of the core banking information about customers, accounts, transactions, etc.",
+              "alias": "SystemE"
+            },
+            {
+              "type": "SystemExt",
+              "label": "E-mail system",
+              "description": "The internal Microsoft Exchange e-mail system.",
+              "alias": "SystemC"
+            },
+            {
+              "type": "SystemDb",
+              "label": "Banking System D Database",
+              "description": "A system of the bank, with personal bank accounts.",
+              "alias": "SystemD"
+            }
+          ],
+          "relationships": [],
+          "boundaries": [
+            {
+              "type": "SystemBoundary",
+              "label": "BankBoundary2",
+              "alias": "b2",
+              "elements": [
+                {
+                  "type": "System",
+                  "label": "Banking System A",
+                  "alias": "SystemA"
+                },
+                {
+                  "type": "System",
+                  "label": "Banking System B",
+                  "description": "A system of the bank, with personal bank accounts. next line.",
+                  "alias": "SystemB"
+                }
+              ],
+              "relationships": [],
+              "boundaries": []
+            },
+            {
+              "type": "Boundary",
+              "label": "BankBoundary3",
+              "alias": "b3",
+              "stereotype": "boundary",
+              "elements": [
+                {
+                  "type": "SystemQueue",
+                  "label": "Banking System F Queue",
+                  "description": "A system of the bank.",
+                  "alias": "SystemF"
+                },
+                {
+                  "type": "SystemQueueExt",
+                  "label": "Banking System G Queue",
+                  "description": "A system of the bank, with personal bank accounts.",
+                  "alias": "SystemG"
+                }
+              ],
+              "relationships": [],
+              "boundaries": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "BI_REL",
+      "from": "customerA",
+      "to": "SystemAA",
+      "label": "Uses"
+    },
+    {
+      "type": "BI_REL",
+      "from": "SystemAA",
+      "to": "SystemE",
+      "label": "Uses"
+    },
+    {
+      "type": "REL",
+      "from": "SystemAA",
+      "to": "SystemC",
+      "label": "Sends e-mails",
+      "technology": "SMTP"
+    },
+    {
+      "type": "REL",
+      "from": "SystemC",
+      "to": "customerA",
+      "label": "Sends e-mails to"
+    }
+  ],
+  "render_options": {
+    "mermaid": {
+      "styles": [
+        {
+          "type": "ElementStyle",
+          "element": "customerA",
+          "font_color": "red",
+          "bg_color": "grey",
+          "border_color": "red"
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "customerA",
+          "to_element": "SystemAA",
+          "text_color": "blue",
+          "line_color": "blue",
+          "offset_x": 5
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "SystemAA",
+          "to_element": "SystemE",
+          "text_color": "blue",
+          "line_color": "blue",
+          "offset_x": -10
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "SystemAA",
+          "to_element": "SystemC",
+          "text_color": "blue",
+          "line_color": "blue",
+          "offset_x": -40,
+          "offset_y": -50
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "SystemC",
+          "to_element": "customerA",
+          "text_color": "red",
+          "line_color": "red",
+          "offset_x": -50,
+          "offset_y": 20
+        }
+      ],
+      "update_layout_config": {
+        "c4_shape_in_row": 3,
+        "c4_boundary_in_row": 1
+      }
+    }
+  }
+}

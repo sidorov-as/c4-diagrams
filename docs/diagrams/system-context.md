@@ -21,7 +21,7 @@ from c4 import (
     System,
     SystemContextDiagram,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 
 with SystemContextDiagram() as diagram:
@@ -76,9 +76,9 @@ with SystemContextDiagram() as diagram:
 
     LayDown(customer, braintree)
 
-    layout_config = LayoutOptions().layout_top_down(with_legend=True).build()
+    render_options = PlantUMLRenderOptionsBuilder().layout_top_down(with_legend=True).build()
 
-diagram_code = diagram.as_plantuml(layout_config=layout_config)
+diagram_code = diagram.as_plantuml(render_options=render_options)
 ```
 
 <details>

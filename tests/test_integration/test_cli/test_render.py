@@ -756,7 +756,7 @@ def test_render_unknown_renderer(
     module_path.unlink()
     expected_error = (
         "c4 render: error: argument --renderer: invalid choice: 'unknown' "
-        "(choose from plantuml)"
+        "(choose from plantuml, mermaid)"
     )
 
     result = cli(["render", str(module_path), "--renderer", "unknown"])

@@ -16,8 +16,10 @@ from c4 import (
     SystemBoundary,
     SystemExt,
 )
-from c4.renderers import RenderOptions
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers import (
+    PlantUMLRenderOptionsBuilder,
+    RenderOptions,
+)
 
 
 with ContainerDiagram(title='Online Shop - Container Diagram') as diagram:
@@ -31,6 +33,7 @@ with ContainerDiagram(title='Online Shop - Container Diagram') as diagram:
     recommendation_api = ContainerExt('Recommendation API', 'Returns personalized product recommendations.', tags=['ExternalContainer'], technology='REST API', alias='recommendation_api')
     fraud_db = ContainerDbExt('Fraud Signals DB', 'External datastore containing fraud intelligence.', tags=['ExternalDataStore'], technology='Vendor DB', alias='fraud_db')
     shipping_events = ContainerQueueExt('Shipping Events Topic', 'External topic used by logistics partner.', tags=['ExternalAsyncChannel'], technology='Kafka', alias='shipping_events')
+
     with EnterpriseBoundary('Acme Corp', 'Enterprise boundary for internal platforms.', tags=['EnterpriseBoundary'], alias='acme'):
         with SystemBoundary('Online Shop Platform', 'Main system boundary for the commerce platform.', tags=['SystemBoundary'], alias='shop_boundary'):
             web_app = Container('Web Application', 'Serves the storefront and checkout UI.', tags=['Frontend'], technology='React + Next.js', alias='web_app')
@@ -52,6 +55,7 @@ with ContainerDiagram(title='Online Shop - Container Diagram') as diagram:
             with ContainerBoundary('Checkout Subsystem', 'Groups checkout-related containers.', tags=['ContainerBoundary'], alias='checkout_boundary'):
                 checkout_api = Container('Checkout API', 'Handles checkout and payment orchestration.', tags=['Backend'], technology='Python / FastAPI', alias='checkout_api')
                 checkout_db = ContainerDb('Checkout DB', 'Stores checkout sessions.', tags=['DataStore'], technology='PostgreSQL', alias='checkout_db')
+
                 checkout_api >> Rel('Reads and writes', technology='SQL', tags=['DataAccess']) >> checkout_db
 
     customer >> Rel('Uses', technology='HTTPS', tags=['SyncRequest']) >> web_app
@@ -63,6 +67,7 @@ with ContainerDiagram(title='Online Shop - Container Diagram') as diagram:
     backend_api >> Rel('Checks fraud signals', technology='JDBC', tags=['ExternalCall']) >> fraud_db
     shipping_events >> Rel('Delivers shipping updates', technology='Kafka', tags=['AsyncRequest']) >> backend_api
     support_agent >> Rel('Queries order state', technology='HTTPS', tags=['SupportFlow']) >> backend_api
+
     LayR(customer, web_app)
     LayR(web_app, backend_api)
     LayD(backend_api, orders_db)
@@ -70,8 +75,8 @@ with ContainerDiagram(title='Online Shop - Container Diagram') as diagram:
     LayR(backend_api, payment_provider)
 
 
-plantuml_layout_options = (
-    LayoutOptions()
+plantuml_render_options = (
+    PlantUMLRenderOptionsBuilder()
     .layout_left_right(
         with_legend=True,
     )
@@ -346,7 +351,7 @@ plantuml_layout_options = (
 )
 
 render_options = RenderOptions(
-    plantuml=plantuml_layout_options,
+    plantuml=plantuml_render_options,
 )
 
 diagram.render_options = render_options

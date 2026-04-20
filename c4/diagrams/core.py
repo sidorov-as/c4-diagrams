@@ -6,7 +6,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from enum import Enum, auto, unique
+from enum import unique
 from itertools import repeat
 from pathlib import Path
 from types import TracebackType
@@ -14,10 +14,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     ClassVar,
-    Final,
-    Literal,
     NoReturn,
-    TypeAlias,
     TypeVar,
     cast,
     overload,
@@ -26,9 +23,15 @@ from typing import (
 from typing_extensions import Self, override
 
 from c4.compat import StrEnum
+from c4.utils import MISSING, REQUIRED, Maybe, Required
 
 if TYPE_CHECKING:  # pragma: no cover
-    from c4.renderers import BaseRenderer, PlantUMLRenderer, RenderOptions
+    from c4.renderers import (
+        BaseRenderer,
+        MermaidRenderer,
+        PlantUMLRenderer,
+        RenderOptions,
+    )
 
 __diagram: ContextVar[Diagram | None] = ContextVar("diagram")
 __boundary: ContextVar[Boundary | None] = ContextVar("boundary")
@@ -352,21 +355,6 @@ def set_boundary(boundary: Boundary | None) -> None:
     __boundary.set(boundary)
 
 
-class _Required(Enum):
-    required = auto()
-
-
-Required: TypeAlias = _T | Literal[_Required.required]
-REQUIRED: Final[Literal[_Required.required]] = _Required.required
-
-
-class _Missing(Enum):
-    missing = auto()
-
-
-Maybe: TypeAlias = _T | Literal[_Missing.missing]
-MISSING: Final[Literal[_Missing.missing]] = _Missing.missing
-
 DEFAULT_PROPERTIES_HEADER: tuple[str, str] = ("Property", "Value")
 
 
@@ -424,6 +412,8 @@ class BaseDiagramElement:
                 f"{element_name} is not allowed in {diagram_type}. "
                 f"Allowed diagram types: {allowed}."
             )
+
+        return None
 
     def _contribute_to_diagram(self) -> None:
         self._check_diagram_type()
@@ -1139,6 +1129,8 @@ class Boundary(Element):
         self._relationships: list[Relationship] = []
         self._boundaries: list[Boundary] = []
 
+        self.__ordered_elements: list[BaseDiagramElement] = []
+
     @override
     def _contribute_to_diagram(self) -> None:
         self._check_diagram_type()
@@ -1163,6 +1155,14 @@ class Boundary(Element):
             Child boundaries nested within this boundary.
         """
         return self._boundaries
+
+    @property
+    def ordered_elements(self) -> list[BaseDiagramElement]:
+        """
+        Return the boundary elements in their order of definition,
+        preserving the original declaration order for rendering.
+        """
+        return self.__ordered_elements
 
     @property
     def relationships(self) -> list[Relationship]:
@@ -1203,6 +1203,7 @@ class Boundary(Element):
             The added element.
         """
         self._elements.append(element)
+        self.__ordered_elements.append(element)
 
         return element
 
@@ -1217,6 +1218,7 @@ class Boundary(Element):
             The added boundary.
         """
         self._boundaries.append(boundary)
+        self.__ordered_elements.append(boundary)
 
         return boundary
 
@@ -1231,6 +1233,7 @@ class Boundary(Element):
             The added relationship.
         """
         self._relationships.append(relationship)
+        self.__ordered_elements.append(relationship)
 
         return relationship
 
@@ -1275,6 +1278,7 @@ class Diagram:
         self.__elements_by_label: dict[str, list[Element]] = {}
         self.__alias_generator = AliasGenerator()
         self.__referenced_elements: list[str] = []
+        self.__ordered_elements: list[BaseDiagramElement] = []
 
     def __enter__(self) -> Self:
         """
@@ -1365,6 +1369,14 @@ class Diagram:
         return self._layouts
 
     @property
+    def ordered_elements(self) -> list[BaseDiagramElement]:
+        """
+        Return the diagram elements in their order of definition,
+        preserving the original declaration order for rendering.
+        """
+        return self.__ordered_elements
+
+    @property
     def relationships(self) -> list[Relationship]:
         """
         Returns all relationships defined in the diagram.
@@ -1412,6 +1424,7 @@ class Diagram:
             The added base element.
         """
         self._base_elements.append(element)
+        self.__ordered_elements.append(element)
 
         return element
 
@@ -1432,6 +1445,7 @@ class Diagram:
             boundary.add(element)
         else:
             self._elements.append(element)
+            self.__ordered_elements.append(element)
 
         return element
 
@@ -1452,6 +1466,7 @@ class Diagram:
             parent.add_boundary(boundary)
         else:
             self._boundaries.append(boundary)
+            self.__ordered_elements.append(boundary)
 
         return boundary
 
@@ -1465,13 +1480,15 @@ class Diagram:
         Returns:
             The added relationship.
         """
-        self.__referenced_elements.append(relationship.from_element.alias)  # type: ignore[union-attr]
-        self.__referenced_elements.append(relationship.to_element.alias)  # type: ignore[union-attr]
+        from_element, to_element = relationship.get_participants()  # type: ignore[var-annotated]
+        self.__referenced_elements.append(from_element.alias)
+        self.__referenced_elements.append(to_element.alias)
 
         if boundary := get_boundary():
             boundary.add_relationship(relationship)
         else:
             self._relationships.append(relationship)
+            self.__ordered_elements.append(relationship)
 
         return relationship
 
@@ -1490,6 +1507,8 @@ class Diagram:
 
         self._layouts.append(layout)
 
+        self.__ordered_elements.append(layout)
+
         return layout
 
     def as_plantuml(self, **kwargs: Any) -> str:
@@ -1504,6 +1523,21 @@ class Diagram:
             The rendered PlantUML code.
         """
         renderer = self._build_plantuml_renderer(**kwargs)
+
+        return self.render(renderer)
+
+    def as_mermaid(self, **kwargs: Any) -> str:
+        """
+        Render the diagram using the built-in Mermaid renderer.
+
+        Args:
+            **kwargs: Optional keyword arguments passed to the
+                [Mermaid renderer][c4.renderers.MermaidRenderer].
+
+        Returns:
+            The rendered Mermaid code.
+        """
+        renderer = self._build_mermaid_renderer(**kwargs)
 
         return self.render(renderer)
 
@@ -1570,6 +1604,19 @@ class Diagram:
 
         return self.save(path, renderer=renderer)
 
+    def save_as_mermaid(self, path: str | Path, **kwargs: Any) -> None:
+        """
+        Render and save the diagram using the Mermaid renderer.
+
+        Args:
+            path: Target file path.
+            **kwargs: Optional kwargs passed to the
+                [Mermaid renderer][c4.renderers.MermaidRenderer].
+        """
+        renderer = self._build_mermaid_renderer(**kwargs)
+
+        return self.save(path, renderer=renderer)
+
     @property
     def render_options(self) -> RenderOptions | None:
         """Return rendering options for the diagram."""
@@ -1585,12 +1632,12 @@ class Diagram:
         Create and configure a `PlantUMLRenderer` instance.
 
         If diagram render options are set and include PlantUML-specific
-        settings, they are applied as default `layout_options` unless
+        settings, they are applied as default `render_options` unless
         explicitly provided in `kwargs`.
 
         Args:
             **kwargs: Additional keyword arguments passed directly to
-                ``PlantUMLRenderer``.
+                `PlantUMLRenderer`.
 
         Returns:
             A configured `PlantUMLRenderer` instance.
@@ -1598,9 +1645,31 @@ class Diagram:
         from c4.renderers import PlantUMLRenderer
 
         if self._render_options and self._render_options.plantuml:
-            kwargs.setdefault("layout_config", self._render_options.plantuml)
+            kwargs.setdefault("render_options", self._render_options.plantuml)
 
         return PlantUMLRenderer(**kwargs)
+
+    def _build_mermaid_renderer(self, **kwargs: Any) -> MermaidRenderer:
+        """
+        Create and configure a `MermaidRenderer` instance.
+
+        If diagram render options are set and include Mermaid-specific
+        settings, they are applied as default `render_options` unless
+        explicitly provided in `kwargs`.
+
+        Args:
+            **kwargs: Additional keyword arguments passed directly to
+                `MermaidRenderer`.
+
+        Returns:
+            A configured `MermaidRenderer` instance.
+        """
+        from c4.renderers import MermaidRenderer
+
+        if self._render_options and self._render_options.mermaid:
+            kwargs.setdefault("render_options", self._render_options.mermaid)
+
+        return MermaidRenderer(**kwargs)
 
 
 class Relationship(BaseDiagramElement):
@@ -1695,10 +1764,14 @@ class Relationship(BaseDiagramElement):
         return self.from_element, self.to_element  # type: ignore[return-value]
 
     @overload
-    def __rshift__(self, other: _TElement) -> Relationship: ...
+    def __rshift__(
+        self, other: _TElement
+    ) -> Relationship: ...  # pragma: no cover
 
     @overload
-    def __rshift__(self, other: list[_TElement]) -> list[Relationship]: ...
+    def __rshift__(
+        self, other: list[_TElement]
+    ) -> list[Relationship]: ...  # pragma: no cover
 
     def __rshift__(
         self, other: _TElement | list[_TElement]
@@ -1709,10 +1782,14 @@ class Relationship(BaseDiagramElement):
         return self._connect(source=self.from_element, destination=other)  # type: ignore[arg-type,type-var]
 
     @overload
-    def __lshift__(self, other: _TElement) -> Relationship: ...
+    def __lshift__(
+        self, other: _TElement
+    ) -> Relationship: ...  # pragma: no cover
 
     @overload
-    def __lshift__(self, other: list[_TElement]) -> list[Relationship]: ...
+    def __lshift__(
+        self, other: list[_TElement]
+    ) -> list[Relationship]: ...  # pragma: no cover
 
     def __lshift__(
         self, other: _TElement | list[_TElement]
@@ -1723,10 +1800,14 @@ class Relationship(BaseDiagramElement):
         return self._connect(source=other, destination=self.to_element)  # type: ignore[arg-type,type-var]
 
     @overload
-    def __rrshift__(self, other: _TElement) -> Relationship: ...
+    def __rrshift__(
+        self, other: _TElement
+    ) -> Relationship: ...  # pragma: no cover
 
     @overload
-    def __rrshift__(self, other: list[_TElement]) -> list[Relationship]: ...
+    def __rrshift__(
+        self, other: list[_TElement]
+    ) -> list[Relationship]: ...  # pragma: no cover
 
     def __rrshift__(
         self, other: _TElement | list[_TElement]
@@ -1737,10 +1818,14 @@ class Relationship(BaseDiagramElement):
         return self._connect(source=other, destination=self.to_element)  # type: ignore[arg-type,type-var]
 
     @overload
-    def __rlshift__(self, other: _TElement) -> Relationship: ...
+    def __rlshift__(
+        self, other: _TElement
+    ) -> Relationship: ...  # pragma: no cover
 
     @overload
-    def __rlshift__(self, other: list[_TElement]) -> list[Relationship]: ...
+    def __rlshift__(
+        self, other: list[_TElement]
+    ) -> list[Relationship]: ...  # pragma: no cover
 
     def __rlshift__(
         self, other: _TElement | list[_TElement]
@@ -1776,43 +1861,49 @@ class Relationship(BaseDiagramElement):
         return f"{cls_name}({args})"
 
     @overload
-    def _connect(self, source: None, destination: None) -> NoReturn: ...
+    def _connect(
+        self, source: None, destination: None
+    ) -> NoReturn: ...  # pragma: no cover
 
     @overload
-    def _connect(self, source: _TElement, destination: None) -> NoReturn: ...
+    def _connect(
+        self, source: _TElement, destination: None
+    ) -> NoReturn: ...  # pragma: no cover
 
     @overload
-    def _connect(self, source: None, destination: _TElement) -> NoReturn: ...
+    def _connect(
+        self, source: None, destination: _TElement
+    ) -> NoReturn: ...  # pragma: no cover
 
     @overload
     def _connect(
         self, source: _TElement, destination: _TElement
-    ) -> Relationship: ...
+    ) -> Relationship: ...  # pragma: no cover
 
     @overload
     def _connect(
         self, source: list[_TElement], destination: None
-    ) -> NoReturn: ...
+    ) -> NoReturn: ...  # pragma: no cover
 
     @overload
     def _connect(
         self, source: None, destination: list[_TElement]
-    ) -> NoReturn: ...
+    ) -> NoReturn: ...  # pragma: no cover
 
     @overload
     def _connect(
         self, source: list[_TElement], destination: list[_TElement]
-    ) -> NoReturn: ...
+    ) -> NoReturn: ...  # pragma: no cover
 
     @overload
     def _connect(
         self, source: list[_TElement], destination: _TElement
-    ) -> list[Relationship]: ...
+    ) -> list[Relationship]: ...  # pragma: no cover
 
     @overload
     def _connect(
         self, source: _TElement, destination: list[_TElement]
-    ) -> list[Relationship]: ...
+    ) -> list[Relationship]: ...  # pragma: no cover
 
     def _connect(
         self,

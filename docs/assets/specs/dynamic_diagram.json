@@ -115,6 +115,9 @@
       "items": {
         "anyOf": [
           {
+            "$ref": "#/$defs/DynamicBoundarySchema"
+          },
+          {
             "$ref": "#/$defs/DynamicEnterpriseBoundarySchema"
           },
           {
@@ -464,19 +467,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Shape macro used for rendering."
         },
         "sprite": {
           "anyOf": [
@@ -533,21 +531,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -677,19 +668,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "technology": {
           "anyOf": [
@@ -707,21 +693,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -1685,19 +1664,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "technology": {
           "anyOf": [
@@ -1715,21 +1689,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -1833,19 +1800,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Shape macro used for rendering."
         },
         "sprite": {
           "anyOf": [
@@ -1902,21 +1864,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -2884,19 +2839,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "technology": {
           "anyOf": [
@@ -2914,21 +2864,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -2950,6 +2893,16 @@
       ],
       "title": "ContainerTagSchema",
       "type": "object"
+    },
+    "Details": {
+      "description": "Defines PlantUML legend details.",
+      "enum": [
+        "Small",
+        "Normal",
+        "None"
+      ],
+      "title": "Details",
+      "type": "string"
     },
     "DiagramElementPropertiesSchema": {
       "properties": {
@@ -2991,7 +2944,7 @@
       "type": "object"
     },
     "DiagramLayout": {
-      "description": "Defines layout direction options for a PlantUML diagram.\n\nThis enum controls how diagram elements are arranged visually using\npredefined PlantUML layout macros.\n\nMembers:\n    - LAYOUT_TOP_DOWN: Arrange elements vertically from top to bottom.\n    - LAYOUT_LEFT_RIGHT: Arrange elements horizontally from left to right.\n    - LAYOUT_LANDSCAPE: Apply PlantUML's landscape layout orientation.",
+      "description": "Defines layout direction options for a PlantUML diagram.\n\nThis enum controls how diagram elements are arranged visually using\npredefined PlantUML layout macros.",
       "enum": [
         "LAYOUT_TOP_DOWN",
         "LAYOUT_LEFT_RIGHT",
@@ -2999,6 +2952,230 @@
       ],
       "title": "DiagramLayout",
       "type": "string"
+    },
+    "DynamicBoundarySchema": {
+      "examples": [
+        {
+          "alias": "commerce_platform",
+          "boundaries": [],
+          "description": "Boundary for the commerce system and its internal components.",
+          "elements": [
+            {
+              "alias": "web_storefront",
+              "description": "Frontend for browsing and checkout.",
+              "label": "Web Storefront",
+              "type": "System"
+            },
+            {
+              "alias": "orders_db",
+              "description": "Stores orders and payment state.",
+              "label": "Orders DB",
+              "type": "SystemDb"
+            }
+          ],
+          "label": "Commerce Platform",
+          "link": "https://docs.example.com/commerce",
+          "properties": {
+            "properties": [
+              [
+                "Owner",
+                "Commerce Team"
+              ],
+              [
+                "Environment",
+                "Production"
+              ]
+            ]
+          },
+          "stereotype": "boundary",
+          "tags": [
+            "system_boundary"
+          ],
+          "type": "Boundary"
+        }
+      ],
+      "properties": {
+        "stereotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom type/stereotype label.",
+          "title": "Stereotype"
+        },
+        "type": {
+          "const": "Boundary",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "tags": {
+          "description": "Optional tags for grouping/styling. These tags can be referenced by `tag_stereo` in tag definitions.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional URL associated with the element.",
+          "title": "Link"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "elements": {
+          "description": "Elements may be nested arbitrarily.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/PersonSchema"
+              },
+              {
+                "$ref": "#/$defs/PersonExtSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemExtSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemDbSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemDbExtSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemQueueSchema"
+              },
+              {
+                "$ref": "#/$defs/SystemQueueExtSchema"
+              },
+              {
+                "$ref": "#/$defs/ContainerSchema"
+              },
+              {
+                "$ref": "#/$defs/ContainerExtSchema"
+              },
+              {
+                "$ref": "#/$defs/ContainerDbSchema"
+              },
+              {
+                "$ref": "#/$defs/ContainerDbExtSchema"
+              },
+              {
+                "$ref": "#/$defs/ContainerQueueSchema"
+              },
+              {
+                "$ref": "#/$defs/ContainerQueueExtSchema"
+              },
+              {
+                "$ref": "#/$defs/ComponentSchema"
+              },
+              {
+                "$ref": "#/$defs/ComponentExtSchema"
+              },
+              {
+                "$ref": "#/$defs/ComponentDbSchema"
+              },
+              {
+                "$ref": "#/$defs/ComponentDbExtSchema"
+              },
+              {
+                "$ref": "#/$defs/ComponentQueueSchema"
+              },
+              {
+                "$ref": "#/$defs/ComponentQueueExtSchema"
+              }
+            ]
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "boundaries": {
+          "description": "Boundaries may be nested arbitrarily.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DynamicBoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/DynamicEnterpriseBoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/DynamicSystemBoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/DynamicContainerBoundarySchema"
+              }
+            ]
+          },
+          "title": "Boundaries",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "Boundary",
+      "type": "object"
     },
     "DynamicContainerBoundarySchema": {
       "examples": [
@@ -3196,6 +3373,9 @@
           "description": "Boundaries may be nested arbitrarily.",
           "items": {
             "anyOf": [
+              {
+                "$ref": "#/$defs/DynamicBoundarySchema"
+              },
               {
                 "$ref": "#/$defs/DynamicEnterpriseBoundarySchema"
               },
@@ -3421,6 +3601,9 @@
           "description": "Boundaries may be nested arbitrarily.",
           "items": {
             "anyOf": [
+              {
+                "$ref": "#/$defs/DynamicBoundarySchema"
+              },
               {
                 "$ref": "#/$defs/DynamicEnterpriseBoundarySchema"
               },
@@ -3770,6 +3953,9 @@
           "items": {
             "anyOf": [
               {
+                "$ref": "#/$defs/DynamicBoundarySchema"
+              },
+              {
                 "$ref": "#/$defs/DynamicEnterpriseBoundarySchema"
               },
               {
@@ -3859,19 +4045,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Shape macro used for rendering."
         },
         "sprite": {
           "anyOf": [
@@ -3928,21 +4109,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -4072,19 +4246,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "technology": {
           "anyOf": [
@@ -4102,21 +4271,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -4220,19 +4382,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Shape macro used for rendering."
         },
         "sprite": {
           "anyOf": [
@@ -4289,21 +4446,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -4433,19 +4583,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "technology": {
           "anyOf": [
@@ -4463,21 +4608,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -4607,19 +4745,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "technology": {
           "anyOf": [
@@ -4637,21 +4770,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -4794,38 +4920,26 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -4968,38 +5082,26 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -5097,6 +5199,196 @@
       ],
       "title": "LayoutType",
       "type": "string"
+    },
+    "LineStyle": {
+      "description": "Defines PlantUML line style.",
+      "enum": [
+        "DashedLine",
+        "DottedLine",
+        "BoldLine",
+        "SolidLine"
+      ],
+      "title": "LineStyle",
+      "type": "string"
+    },
+    "MermaidElementStyleSchema": {
+      "properties": {
+        "type": {
+          "const": "ElementStyle",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "element": {
+          "description": "Alias of the element to style.",
+          "title": "Element",
+          "type": "string"
+        },
+        "bg_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Background color.",
+          "title": "Bg Color"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Font/text color.",
+          "title": "Font Color"
+        },
+        "border_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Border line color.",
+          "title": "Border Color"
+        }
+      },
+      "required": [
+        "type",
+        "element"
+      ],
+      "title": "MermaidElementStyleSchema",
+      "type": "object"
+    },
+    "MermaidRelStyleSchema": {
+      "properties": {
+        "type": {
+          "const": "RelStyle",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "from_element": {
+          "description": "Alias of the source element to style.",
+          "title": "From Element",
+          "type": "string"
+        },
+        "to_element": {
+          "description": "Alias of the target element to style.",
+          "title": "To Element",
+          "type": "string"
+        },
+        "text_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the relationship label text.",
+          "title": "Text Color"
+        },
+        "line_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Color of the relationship line.",
+          "title": "Line Color"
+        },
+        "offset_x": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional horizontal offset for the label position.",
+          "title": "Offset X"
+        },
+        "offset_y": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional horizontal offset for the label position.",
+          "title": "Offset Y"
+        }
+      },
+      "required": [
+        "type",
+        "from_element",
+        "to_element"
+      ],
+      "title": "MermaidRelStyleSchema",
+      "type": "object"
+    },
+    "MermaidRenderOptionsSchema": {
+      "properties": {
+        "styles": {
+          "description": "List of style update macro configurations.",
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "ElementStyle": "#/$defs/MermaidElementStyleSchema",
+                "RelStyle": "#/$defs/MermaidRelStyleSchema"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/MermaidElementStyleSchema"
+              },
+              {
+                "$ref": "#/$defs/MermaidRelStyleSchema"
+              }
+            ]
+          },
+          "title": "Styles",
+          "type": "array"
+        },
+        "update_layout_config": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UpdateLayoutConfigSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Configuration for updating default layout behavior."
+        }
+      },
+      "title": "MermaidRenderOptionsSchema",
+      "type": "object"
     },
     "NodeTagSchema": {
       "properties": {
@@ -5205,19 +5497,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "technology": {
           "anyOf": [
@@ -5235,21 +5522,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -5660,38 +5940,26 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -5714,8 +5982,16 @@
       "title": "PersonTagSchema",
       "type": "object"
     },
-    "PlantUMLLayoutOptionsSchema": {
+    "PlantUMLRenderOptionsSchema": {
       "properties": {
+        "includes": {
+          "description": "A list of PlantUML `!include` directives to be injected at the beginning of the diagram.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Includes",
+          "type": "array"
+        },
         "layout": {
           "anyOf": [
             {
@@ -5932,7 +6208,7 @@
           "type": "array"
         }
       },
-      "title": "PlantUMLLayoutOptionsSchema",
+      "title": "PlantUMLRenderOptionsSchema",
       "type": "object"
     },
     "RelStyleSchema": {
@@ -6057,21 +6333,14 @@
         "line_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Relationship line style macro.",
-          "title": "Line Style"
+          "description": "Relationship line style macro."
         },
         "line_thickness": {
           "anyOf": [
@@ -6141,7 +6410,7 @@
         "plantuml": {
           "anyOf": [
             {
-              "$ref": "#/$defs/PlantUMLLayoutOptionsSchema"
+              "$ref": "#/$defs/PlantUMLRenderOptionsSchema"
             },
             {
               "type": "null"
@@ -6149,6 +6418,18 @@
           ],
           "default": null,
           "description": "PlantUML-specific render options."
+        },
+        "mermaid": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MermaidRenderOptionsSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Mermaid-specific render options."
         }
       },
       "title": "RenderOptionsSchema",
@@ -6281,15 +6562,9 @@
           "title": "Hide Stereotype"
         },
         "details": {
+          "$ref": "#/$defs/Details",
           "default": "Small",
-          "description": "Legend detail level.",
-          "enum": [
-            "Small",
-            "Normal",
-            "None"
-          ],
-          "title": "Details",
-          "type": "string"
+          "description": "Legend detail level."
         },
         "alias": {
           "anyOf": [
@@ -6324,15 +6599,9 @@
           "title": "Hide Stereotype"
         },
         "details": {
+          "$ref": "#/$defs/Details",
           "default": "Small",
-          "description": "Legend detail level.",
-          "enum": [
-            "Small",
-            "Normal",
-            "None"
-          ],
-          "title": "Details",
-          "type": "string"
+          "description": "Legend detail level."
         }
       },
       "title": "ShowLegendSchema",
@@ -6438,19 +6707,14 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Shape macro used for rendering."
         },
         "sprite": {
           "anyOf": [
@@ -6507,21 +6771,14 @@
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -7494,38 +7751,26 @@
         "shape": {
           "anyOf": [
             {
-              "enum": [
-                "EightSidedShape",
-                "RoundedBoxShape"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/TagShape"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Optional shape macro used for rendering.",
-          "title": "Shape"
+          "description": "Optional shape macro used for rendering."
         },
         "border_style": {
           "anyOf": [
             {
-              "enum": [
-                "DashedLine",
-                "DottedLine",
-                "BoldLine",
-                "SolidLine"
-              ],
-              "type": "string"
+              "$ref": "#/$defs/LineStyle"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "description": "Border line style macro.",
-          "title": "Border Style"
+          "description": "Border line style macro."
         },
         "border_thickness": {
           "anyOf": [
@@ -7546,6 +7791,47 @@
         "tag_stereo"
       ],
       "title": "SystemTagSchema",
+      "type": "object"
+    },
+    "TagShape": {
+      "description": "Defines PlantUML tag shape.",
+      "enum": [
+        "EightSidedShape",
+        "RoundedBoxShape"
+      ],
+      "title": "TagShape",
+      "type": "string"
+    },
+    "UpdateLayoutConfigSchema": {
+      "properties": {
+        "c4_shape_in_row": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum number of non-boundary elements (e.g. systems, containers, components) per row.",
+          "title": "C4 Shape In Row"
+        },
+        "c4_boundary_in_row": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum number of boundaries per row.",
+          "title": "C4 Boundary In Row"
+        }
+      },
+      "title": "UpdateLayoutConfigSchema",
       "type": "object"
     }
   }

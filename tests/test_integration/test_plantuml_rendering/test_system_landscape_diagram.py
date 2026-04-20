@@ -17,7 +17,7 @@ from c4 import (
     SystemExt,
     SystemLandscapeDiagram,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover
     from tests.conftest import AssertMatchSnapshot
@@ -89,9 +89,11 @@ def test_render_system_landscape_diagram(
         LayD(atm, customer)
         LayU(mail_system, customer)
 
-        layout_config = LayoutOptions().layout_with_legend().build()
+        render_options = (
+            PlantUMLRenderOptionsBuilder().layout_with_legend().build()
+        )
 
-    diagram_code = diagram.as_plantuml(layout_config=layout_config)
+    diagram_code = diagram.as_plantuml(render_options=render_options)
 
     assert_match_snapshot(
         snapshot_name="plantuml/system_landscape_diagram.puml",

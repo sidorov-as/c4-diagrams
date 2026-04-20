@@ -14,11 +14,6 @@ class DiagramLayout(StrEnum):
 
     This enum controls how diagram elements are arranged visually using
     predefined PlantUML layout macros.
-
-    Members:
-        - LAYOUT_TOP_DOWN: Arrange elements vertically from top to bottom.
-        - LAYOUT_LEFT_RIGHT: Arrange elements horizontally from left to right.
-        - LAYOUT_LANDSCAPE: Apply PlantUML's landscape layout orientation.
     """
 
     LAYOUT_TOP_DOWN = "LAYOUT_TOP_DOWN"
@@ -242,7 +237,7 @@ class BaseStyle:
 @dataclass
 class ElementStyle(BaseStyle):
     """
-    Style update for an individual diagram element.
+    Defines style overrides for an individual diagram element.
 
     Attributes:
         element_name: Alias of the element to style.
@@ -276,7 +271,7 @@ class ElementStyle(BaseStyle):
 @dataclass
 class RelStyle(BaseStyle):
     """
-    Style update for relationship lines.
+    Defines style overrides for relationship lines.
 
     Attributes:
         text_color: Color of the relationship label.
@@ -290,7 +285,7 @@ class RelStyle(BaseStyle):
 @dataclass
 class BoundaryStyle(ElementStyle):
     """
-    Style update for a boundary element (e.g. container, system).
+    Defines style overrides for a boundary element (e.g. container, system).
 
     Attributes:
         type_: The type of boundary (e.g., "System", "Container").
@@ -302,7 +297,7 @@ class BoundaryStyle(ElementStyle):
 @dataclass
 class ContainerBoundaryStyle(BoundaryStyle):
     """
-    Style update for container boundaries.
+    Defines style overrides for container boundaries.
 
     Inherits common styling options from BoundaryStyle.
     """
@@ -311,7 +306,7 @@ class ContainerBoundaryStyle(BoundaryStyle):
 @dataclass
 class SystemBoundaryStyle(BoundaryStyle):
     """
-    Style update for system boundaries.
+    Defines style overrides for system boundaries.
 
     Inherits common styling options from BoundaryStyle.
     """
@@ -320,7 +315,7 @@ class SystemBoundaryStyle(BoundaryStyle):
 @dataclass
 class EnterpriseBoundaryStyle(BoundaryStyle):
     """
-    Style update for enterprise boundaries.
+    Defines style overrides for enterprise boundaries.
 
     Inherits common styling options from BoundaryStyle.
     """
@@ -398,14 +393,16 @@ class SetSketchStyle:
 
 
 @dataclass
-class LayoutConfig:
+class PlantUMLRenderOptions:
     """
-    Final layout configuration for rendering a C4-PlantUML diagram.
+    Final render options for rendering a C4-PlantUML diagram.
 
     This class encapsulates all layout directives, macros, tag definitions,
     and visual styles that should be applied to a diagram at render time.
 
     Attributes:
+        includes: A list of PlantUML `!include` directives
+            to be injected at the beginning of the diagram.
         layout: Layout direction (e.g., top-down, left-right, landscape).
         layout_with_legend: Whether to apply the LAYOUT_WITH_LEGEND macro.
         layout_as_sketch: Whether to apply the LAYOUT_AS_SKETCH macro.
@@ -424,6 +421,7 @@ class LayoutConfig:
         styles: List of style update macros (e.g., UpdateElementStyle).
     """
 
+    includes: list[str] = field(default_factory=list)
     layout: DiagramLayout | None = None
     layout_with_legend: bool = False
     layout_as_sketch: bool = False
@@ -441,22 +439,18 @@ class LayoutConfig:
     styles: list[BaseStyle] = field(default_factory=list)
 
 
-class LayoutOptions:
+class PlantUMLRenderOptionsBuilder:
     """
-    Builder class for generating PlantUML layout configuration macros and tags.
+    Builder class for constructing PlantUMLRenderOptions.
 
-    Supports defining layout direction (e.g., top-down, left-right, landscape),
-    toggling macros like sketch mode and legend display, and applying
-    custom tag and style macros for diagram elements (e.g., components,
-    systems, people, containers).
+    Provides a fluent API for incrementally defining styles and layout
+    configuration.
     """
 
     def __init__(
         self,
     ) -> None:
-        """
-        Initialize an empty layout configuration.
-        """
+        """Initialize an empty render options."""
         self._layout: DiagramLayout | None = None
         self._layout_with_legend = False
         self._layout_as_sketch = False
@@ -496,6 +490,7 @@ class LayoutOptions:
         self._without_property_header = False
         self._tags: list[BaseTag] = []
         self._styles: list[BaseStyle] = []
+        self._includes: list[str] = []
 
     @property
     def sketch_style_defaults(self) -> dict[str, Any]:
@@ -546,7 +541,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = ElementTag(
             tag_stereo=tag_stereo,
@@ -599,7 +594,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = BoundaryTag(
             tag_stereo=tag_stereo,
@@ -616,6 +611,21 @@ class LayoutOptions:
             border_thickness=border_thickness,
         )
         self._tags.append(tag)
+
+        return self
+
+    def add_includes(
+        self,
+        *includes: str,
+    ) -> Self:
+        """
+        Adds a list of PlantUML `!include` directives to be injected
+        at the beginning of the diagram.
+
+        Returns:
+            The updated render options.
+        """
+        self._includes.extend(includes)
 
         return self
 
@@ -646,7 +656,7 @@ class LayoutOptions:
             line_thickness: Line thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = RelTag(
             tag_stereo=tag_stereo,
@@ -696,7 +706,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = ComponentTag(
             tag_stereo=tag_stereo,
@@ -749,7 +759,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = ExternalComponentTag(
             tag_stereo=tag_stereo,
@@ -802,7 +812,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = ContainerTag(
             tag_stereo=tag_stereo,
@@ -855,7 +865,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = ExternalContainerTag(
             tag_stereo=tag_stereo,
@@ -908,7 +918,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = NodeTag(
             tag_stereo=tag_stereo,
@@ -961,7 +971,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = PersonTag(
             tag_stereo=tag_stereo,
@@ -1014,7 +1024,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = ExternalPersonTag(
             tag_stereo=tag_stereo,
@@ -1067,7 +1077,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = SystemTag(
             tag_stereo=tag_stereo,
@@ -1120,7 +1130,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         tag = ExternalSystemTag(
             tag_stereo=tag_stereo,
@@ -1174,7 +1184,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         style = ElementStyle(
             element_name=element_name,
@@ -1230,7 +1240,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         style = BoundaryStyle(
             element_name=element_name,
@@ -1264,7 +1274,7 @@ class LayoutOptions:
             line_color: Line color.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         style = RelStyle(
             text_color=text_color,
@@ -1310,7 +1320,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         style = ContainerBoundaryStyle(
             element_name=element_name,
@@ -1367,7 +1377,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         style = SystemBoundaryStyle(
             element_name=element_name,
@@ -1424,7 +1434,7 @@ class LayoutOptions:
             border_thickness: Border thickness.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         style = EnterpriseBoundaryStyle(
             element_name=element_name,
@@ -1453,7 +1463,7 @@ class LayoutOptions:
             with_legend: Whether to include LAYOUT_WITH_LEGEND.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         return self._set_layout(DiagramLayout.LAYOUT_TOP_DOWN, with_legend)
 
@@ -1465,7 +1475,7 @@ class LayoutOptions:
             with_legend: Whether to include LAYOUT_WITH_LEGEND.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         return self._set_layout(DiagramLayout.LAYOUT_LEFT_RIGHT, with_legend)
 
@@ -1477,7 +1487,7 @@ class LayoutOptions:
             with_legend: Whether to include LAYOUT_WITH_LEGEND.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         return self._set_layout(DiagramLayout.LAYOUT_LANDSCAPE, with_legend)
 
@@ -1486,7 +1496,7 @@ class LayoutOptions:
         Enables LAYOUT_WITH_LEGEND macro.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._layout_with_legend = True
 
@@ -1497,7 +1507,7 @@ class LayoutOptions:
         Enables LAYOUT_AS_SKETCH macro.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._layout_as_sketch = True
 
@@ -1508,7 +1518,7 @@ class LayoutOptions:
         Enables WithoutPropertyHeader macro.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._without_property_header = True
 
@@ -1535,7 +1545,7 @@ class LayoutOptions:
             footer_text: Custom footer text.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._set_sketch_style = True
 
@@ -1569,7 +1579,7 @@ class LayoutOptions:
             details: Level of detail to show.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._show_legend = True
 
@@ -1596,7 +1606,7 @@ class LayoutOptions:
             details: Level of detail to show.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._show_floating_legend = True
         defaults = self._show_floating_legend_defaults
@@ -1620,7 +1630,7 @@ class LayoutOptions:
             new_title: The title to display above the legend.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._legend_title = new_title
 
@@ -1631,7 +1641,7 @@ class LayoutOptions:
         Enables SHOW_PERSON_OUTLINE macro.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._show_person_outline = True
 
@@ -1648,7 +1658,7 @@ class LayoutOptions:
             alias: Optional sprite alias.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._show_person_sprite = True
         defaults = self._show_person_sprite_defaults
@@ -1663,7 +1673,7 @@ class LayoutOptions:
         Enables HIDE_STEREOTYPE macro.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._hide_stereotype = True
 
@@ -1674,7 +1684,7 @@ class LayoutOptions:
         Enables HIDE_PERSON_SPRITE macro.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._hide_person_sprite = True
 
@@ -1685,7 +1695,7 @@ class LayoutOptions:
         Enables SHOW_PERSON_PORTRAIT macro.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._show_person_portrait = True
 
@@ -1702,7 +1712,7 @@ class LayoutOptions:
             with_legend: Whether to enable LAYOUT_WITH_LEGEND in addition.
 
         Returns:
-            The updated layout configuration.
+            The updated render options.
         """
         self._layout = layout
 
@@ -1711,14 +1721,13 @@ class LayoutOptions:
 
         return self
 
-    def build(self) -> LayoutConfig:
+    def build(self) -> PlantUMLRenderOptions:
         """
-        Finalizes and compiles the layout configuration into
-        a LayoutConfig object.
+        Build and return the final PlantUMLRenderOptions instance.
 
         Returns:
-            A fully populated `LayoutConfig` instance that can be passed
-            to renderers.
+            A fully populated `PlantUMLRenderOptions` instance that can be
+            passed to renderers.
         """
         show_legend = None
         set_sketch_style = None
@@ -1741,7 +1750,8 @@ class LayoutOptions:
                 **self._show_person_sprite_args
             )
 
-        return LayoutConfig(
+        return PlantUMLRenderOptions(
+            includes=self._includes,
             layout=self._layout,
             layout_with_legend=self._layout_with_legend,
             layout_as_sketch=self._layout_as_sketch,

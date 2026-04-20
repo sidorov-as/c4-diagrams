@@ -15,6 +15,7 @@ class DiagramFormat(StrEnum):
     PNG = "png"
     TXT = "txt"
     UTXT = "utxt"
+    PDF = "pdf"
 
 
 EPS = DiagramFormat.EPS
@@ -23,6 +24,7 @@ SVG = DiagramFormat.SVG
 PNG = DiagramFormat.PNG
 TXT = DiagramFormat.TXT
 UTXT = DiagramFormat.UTXT
+PDF = DiagramFormat.PDF
 
 PLANTUML_DIAGRAM_FORMATS = {
     EPS,
@@ -31,6 +33,12 @@ PLANTUML_DIAGRAM_FORMATS = {
     PNG,
     TXT,
     UTXT,
+}
+
+MERMAID_DIAGRAM_FORMATS = {
+    SVG,
+    PNG,
+    PDF,
 }
 
 

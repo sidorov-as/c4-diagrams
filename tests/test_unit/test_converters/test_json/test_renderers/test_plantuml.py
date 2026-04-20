@@ -5,17 +5,17 @@ import pytest
 from c4.converters.json.schemas.renderers.plantuml import (
     ElementStyleSchema,
     ElementTagSchema,
-    PlantUMLLayoutOptionsSchema,
+    PlantUMLRenderOptionsSchema,
     SetSketchStyleSchema,
     ShowFloatingLegendSchema,
     ShowLegendSchema,
     ShowPersonSpriteSchema,
 )
-from c4.renderers.plantuml.layout_options import (
+from c4.renderers.plantuml.options import (
     DiagramLayout,
     ElementStyle,
     ElementTag,
-    LayoutConfig,
+    PlantUMLRenderOptions,
     SetSketchStyle,
     ShowFloatingLegend,
     ShowLegend,
@@ -23,11 +23,11 @@ from c4.renderers.plantuml.layout_options import (
 )
 
 
-def test_plantuml_layout_options_schema__to_layout_config__empty():
-    schema = PlantUMLLayoutOptionsSchema()
-    expected_result = LayoutConfig()
+def test_plantuml_render_options_schema__to_render_options__empty():
+    schema = PlantUMLRenderOptionsSchema()
+    expected_result = PlantUMLRenderOptions()
 
-    result = schema.to_layout_config()
+    result = schema.to_render_options()
 
     assert result == expected_result
 
@@ -46,22 +46,22 @@ def test_plantuml_layout_options_schema__to_layout_config__empty():
         ("legend_title", "Main legend"),
     ],
 )
-def test_plantuml_layout_options_schema__to_layout_config__plain_fields(
+def test_plantuml_render_options_schema__to_render_options__plain_fields(
     field_name: str,
     field_value: Any,
 ):
-    schema = PlantUMLLayoutOptionsSchema.model_construct(**{
+    schema = PlantUMLRenderOptionsSchema.model_construct(**{
         field_name: field_value
     })
-    expected_result = LayoutConfig(**{field_name: field_value})
+    expected_result = PlantUMLRenderOptions(**{field_name: field_value})
 
-    result = schema.to_layout_config()
+    result = schema.to_render_options()
 
     assert result == expected_result
 
 
-def test_plantuml_layout_options_schema__to_layout_config__nested_models():
-    schema = PlantUMLLayoutOptionsSchema(
+def test_plantuml_render_options_schema__to_render_options__nested_models():
+    schema = PlantUMLRenderOptionsSchema(
         set_sketch_style=SetSketchStyleSchema(
             bg_color="#ffffff",
             font_color="#222222",
@@ -81,7 +81,7 @@ def test_plantuml_layout_options_schema__to_layout_config__nested_models():
         ),
         show_person_sprite=ShowPersonSpriteSchema(alias="person_sprite"),
     )
-    expected_result = LayoutConfig(
+    expected_result = PlantUMLRenderOptions(
         set_sketch_style=SetSketchStyle(
             bg_color="#ffffff",
             font_color="#222222",
@@ -102,13 +102,13 @@ def test_plantuml_layout_options_schema__to_layout_config__nested_models():
         show_person_sprite=ShowPersonSprite(alias="person_sprite"),
     )
 
-    result = schema.to_layout_config()
+    result = schema.to_render_options()
 
     assert result == expected_result
 
 
-def test_plantuml_layout_options_schema__to_layout_config__tags():
-    schema = PlantUMLLayoutOptionsSchema(
+def test_plantuml_render_options_schema__to_render_options__tags():
+    schema = PlantUMLRenderOptionsSchema(
         tags=[
             ElementTagSchema(
                 type="ElementTag",
@@ -127,7 +127,7 @@ def test_plantuml_layout_options_schema__to_layout_config__tags():
             )
         ]
     )
-    expected_result = LayoutConfig(
+    expected_result = PlantUMLRenderOptions(
         tags=[
             ElementTag(
                 tag_stereo="critical",
@@ -146,13 +146,13 @@ def test_plantuml_layout_options_schema__to_layout_config__tags():
         ]
     )
 
-    result = schema.to_layout_config()
+    result = schema.to_render_options()
 
     assert result == expected_result
 
 
-def test_plantuml_layout_options_schema__to_layout_config__styles():
-    schema = PlantUMLLayoutOptionsSchema(
+def test_plantuml_render_options_schema__to_render_options__styles():
+    schema = PlantUMLRenderOptionsSchema(
         styles=[
             ElementStyleSchema(
                 type="ElementStyle",
@@ -171,7 +171,7 @@ def test_plantuml_layout_options_schema__to_layout_config__styles():
             )
         ]
     )
-    expected_result = LayoutConfig(
+    expected_result = PlantUMLRenderOptions(
         styles=[
             ElementStyle(
                 element_name="api",
@@ -190,13 +190,13 @@ def test_plantuml_layout_options_schema__to_layout_config__styles():
         ]
     )
 
-    result = schema.to_layout_config()
+    result = schema.to_render_options()
 
     assert result == expected_result
 
 
-def test_plantuml_layout_options_schema__to_layout_config__styles__empty():
-    schema = PlantUMLLayoutOptionsSchema(
+def test_plantuml_render_options_schema__to_render_options__styles__empty():
+    schema = PlantUMLRenderOptionsSchema(
         styles=[
             ElementStyleSchema(
                 type="ElementStyle",
@@ -204,7 +204,7 @@ def test_plantuml_layout_options_schema__to_layout_config__styles__empty():
             )
         ]
     )
-    expected_result = LayoutConfig(
+    expected_result = PlantUMLRenderOptions(
         styles=[
             ElementStyle(
                 element_name="api",
@@ -223,13 +223,13 @@ def test_plantuml_layout_options_schema__to_layout_config__styles__empty():
         ]
     )
 
-    result = schema.to_layout_config()
+    result = schema.to_render_options()
 
     assert result == expected_result
 
 
-def test_plantuml_layout_options_schema__to_layout_config__complex():
-    schema = PlantUMLLayoutOptionsSchema(
+def test_plantuml_render_options_schema__to_render_options__complex():
+    schema = PlantUMLRenderOptionsSchema(
         layout=DiagramLayout.LAYOUT_LEFT_RIGHT,
         layout_with_legend=True,
         layout_as_sketch=True,
@@ -289,7 +289,7 @@ def test_plantuml_layout_options_schema__to_layout_config__complex():
             )
         ],
     )
-    expected_result = LayoutConfig(
+    expected_result = PlantUMLRenderOptions(
         layout=DiagramLayout.LAYOUT_LEFT_RIGHT,
         layout_with_legend=True,
         layout_as_sketch=True,
@@ -348,6 +348,6 @@ def test_plantuml_layout_options_schema__to_layout_config__complex():
         ],
     )
 
-    result = schema.to_layout_config()
+    result = schema.to_render_options()
 
     assert result == expected_result

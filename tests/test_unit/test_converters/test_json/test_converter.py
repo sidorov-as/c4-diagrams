@@ -35,10 +35,16 @@ from c4.converters.json.converter import (
     diagram_from_json,
 )
 from c4.diagrams.core import LayoutType
-from c4.renderers.plantuml.layout_options import (
+from c4.renderers import MermaidRenderOptions
+from c4.renderers.mermaid.options import (
+    ElementStyle,
+    RelStyle,
+    UpdateLayoutConfig,
+)
+from c4.renderers.plantuml.options import (
     DiagramLayout,
     ElementTag,
-    LayoutConfig,
+    PlantUMLRenderOptions,
     ShowLegend,
 )
 
@@ -327,6 +333,223 @@ def diagram_with_plantuml_render_options():
                         "legend_text": "External dependency",
                         "sprite": "cloud",
                     }
+                ],
+            }
+        },
+    }
+
+
+@pytest.fixture()
+def diagram_with_render_options():
+    return {
+        "type": "SystemContextDiagram",
+        "title": "Retail Platform",
+        "elements": [
+            {
+                "type": "Person",
+                "label": "Customer",
+                "alias": "customer",
+                "description": "Places orders through the storefront.",
+                "tags": ["person", "primary"],
+            },
+            {
+                "type": "PersonExt",
+                "label": "Support Agent",
+                "alias": "support_agent",
+                "description": "Handles issues in an external CRM.",
+                "tags": ["person", "external"],
+            },
+            {
+                "type": "System",
+                "label": "Retail Platform",
+                "alias": "retail_platform",
+                "description": (
+                    "Core platform for catalog, checkout, and order management."
+                ),
+                "tags": ["system", "core"],
+                "link": "https://retail.example.com",
+            },
+            {
+                "type": "SystemExt",
+                "label": "Payment Gateway",
+                "alias": "payment_gateway",
+                "description": "Processes card payments.",
+                "tags": ["system", "external"],
+                "base_shape": "RoundedBox",
+            },
+        ],
+        "boundaries": [
+            {
+                "type": "EnterpriseBoundary",
+                "label": "Acme Corp",
+                "alias": "acme_enterprise",
+                "description": "Internal systems owned by Acme.",
+                "tags": ["enterprise"],
+                "elements": [
+                    {
+                        "type": "System",
+                        "label": "Retail Platform",
+                        "alias": "retail_platform",
+                        "description": "Core commerce system.",
+                    }
+                ],
+                "boundaries": [],
+            }
+        ],
+        "relationships": [
+            {
+                "type": "REL",
+                "from": "customer",
+                "to": "retail_platform",
+                "label": "Browses and places orders",
+                "technology": "HTTPS",
+            },
+            {
+                "type": "REL",
+                "from": "retail_platform",
+                "to": "payment_gateway",
+                "label": "Charges card",
+                "technology": "REST API",
+            },
+        ],
+        "layouts": [
+            {"type": "LAY_R", "from": "customer", "to": "retail_platform"},
+            {
+                "type": "LAY_R",
+                "from": "retail_platform",
+                "to": "payment_gateway",
+            },
+        ],
+        "render_options": {
+            "plantuml": {
+                "layout": "LAYOUT_LEFT_RIGHT",
+                "layout_with_legend": True,
+                "show_legend": {"details": "Normal", "hide_stereotype": False},
+                "legend_title": "System",
+                "hide_stereotype": False,
+                "tags": [
+                    {
+                        "type": "ElementTag",
+                        "tag_stereo": "external",
+                        "legend_text": "External dependency",
+                        "sprite": "cloud",
+                    }
+                ],
+            },
+            "mermaid": {
+                "update_layout_config": {
+                    "c4_shape_in_row": 2,
+                    "c4_boundary_in_row": 4,
+                },
+            },
+        },
+    }
+
+
+@pytest.fixture()
+def diagram_with_mermaid_render_options():
+    return {
+        "type": "SystemContextDiagram",
+        "title": "Retail Platform",
+        "elements": [
+            {
+                "type": "Person",
+                "label": "Customer",
+                "alias": "customer",
+                "description": "Places orders through the storefront.",
+                "tags": ["person", "primary"],
+            },
+            {
+                "type": "PersonExt",
+                "label": "Support Agent",
+                "alias": "support_agent",
+                "description": "Handles issues in an external CRM.",
+                "tags": ["person", "external"],
+            },
+            {
+                "type": "System",
+                "label": "Retail Platform",
+                "alias": "retail_platform",
+                "description": (
+                    "Core platform for catalog, checkout, and order management."
+                ),
+                "tags": ["system", "core"],
+                "link": "https://retail.example.com",
+            },
+            {
+                "type": "SystemExt",
+                "label": "Payment Gateway",
+                "alias": "payment_gateway",
+                "description": "Processes card payments.",
+                "tags": ["system", "external"],
+                "base_shape": "RoundedBox",
+            },
+        ],
+        "boundaries": [
+            {
+                "type": "EnterpriseBoundary",
+                "label": "Acme Corp",
+                "alias": "acme_enterprise",
+                "description": "Internal systems owned by Acme.",
+                "tags": ["enterprise"],
+                "elements": [
+                    {
+                        "type": "System",
+                        "label": "Retail Platform",
+                        "alias": "retail_platform",
+                        "description": "Core commerce system.",
+                    }
+                ],
+                "boundaries": [],
+            }
+        ],
+        "relationships": [
+            {
+                "type": "REL",
+                "from": "customer",
+                "to": "retail_platform",
+                "label": "Browses and places orders",
+                "technology": "HTTPS",
+            },
+            {
+                "type": "REL",
+                "from": "retail_platform",
+                "to": "payment_gateway",
+                "label": "Charges card",
+                "technology": "REST API",
+            },
+        ],
+        "layouts": [
+            {"type": "LAY_R", "from": "customer", "to": "retail_platform"},
+            {
+                "type": "LAY_R",
+                "from": "retail_platform",
+                "to": "payment_gateway",
+            },
+        ],
+        "render_options": {
+            "mermaid": {
+                "update_layout_config": {
+                    "c4_shape_in_row": 2,
+                    "c4_boundary_in_row": 4,
+                },
+                "styles": [
+                    {
+                        "type": "ElementStyle",
+                        "element": "customer",
+                        "bg_color": "#e8f5e9",
+                        "border_color": "#66bb6a",
+                        "font_color": "#1b5e20",
+                    },
+                    {
+                        "type": "RelStyle",
+                        "from_element": "customer",
+                        "to_element": "retail_platform",
+                        "text_color": "#e8f5e9",
+                        "line_color": "#66bb6a",
+                        "offset_x": 10,
+                        "offset_y": 20,
+                    },
                 ],
             }
         },
@@ -785,7 +1008,7 @@ def test_json_to_diagram_converter__set_render_options__plantuml(
 ):
     converter = JSONToDiagramConverter(diagram_with_plantuml_render_options)
     diagram = converter._diagram
-    expected_plantuml_layout_config = LayoutConfig(
+    expected_plantuml_render_options = PlantUMLRenderOptions(
         layout=DiagramLayout.LAYOUT_LEFT_RIGHT,
         layout_with_legend=True,
         layout_as_sketch=False,
@@ -824,7 +1047,100 @@ def test_json_to_diagram_converter__set_render_options__plantuml(
 
     assert diagram.render_options is not None
     assert diagram.render_options.plantuml is not None
-    assert diagram.render_options.plantuml == expected_plantuml_layout_config
+    assert diagram.render_options.plantuml == expected_plantuml_render_options
+
+
+def test_json_to_diagram_converter__set_render_options__mermaid(
+    diagram_with_mermaid_render_options: dict[str, Any],
+):
+    converter = JSONToDiagramConverter(diagram_with_mermaid_render_options)
+    diagram = converter._diagram
+    expected_mermaid_render_options = MermaidRenderOptions(
+        update_layout_config=UpdateLayoutConfig(
+            c4_shape_in_row=2,
+            c4_boundary_in_row=4,
+        ),
+        styles=[
+            ElementStyle(
+                element="customer",
+                bg_color="#e8f5e9",
+                font_color="#1b5e20",
+                border_color="#66bb6a",
+            ),
+            RelStyle(
+                from_element="customer",
+                to_element="retail_platform",
+                text_color="#e8f5e9",
+                line_color="#66bb6a",
+                offset_x=10,
+                offset_y=20,
+            ),
+        ],
+    )
+    with diagram:
+        converter._add_elements(converter._diagram_schema)
+
+    with diagram:
+        converter._set_render_options()
+
+    assert diagram.render_options is not None
+    assert diagram.render_options.mermaid is not None
+    assert diagram.render_options.mermaid == expected_mermaid_render_options
+
+
+def test_json_to_diagram_converter__set_render_options(
+    diagram_with_render_options: dict[str, Any],
+):
+    converter = JSONToDiagramConverter(diagram_with_render_options)
+    diagram = converter._diagram
+    expected_plantuml_render_options = PlantUMLRenderOptions(
+        layout=DiagramLayout.LAYOUT_LEFT_RIGHT,
+        layout_with_legend=True,
+        layout_as_sketch=False,
+        set_sketch_style=None,
+        show_legend=ShowLegend(hide_stereotype=False, details="Normal"),
+        show_floating_legend=None,
+        hide_stereotype=False,
+        hide_person_sprite=False,
+        show_person_sprite=None,
+        show_person_portrait=False,
+        show_person_outline=False,
+        without_property_header=False,
+        legend_title="System",
+        tags=[
+            ElementTag(
+                tag_stereo="external",
+                legend_text="External dependency",
+                legend_sprite=None,
+                sprite="cloud",
+                font_color=None,
+                border_color=None,
+                shadowing=False,
+                shape=None,
+                technology=None,
+                border_style=None,
+                border_thickness=None,
+            )
+        ],
+        styles=[],
+    )
+    expected_mermaid_render_options = MermaidRenderOptions(
+        update_layout_config=UpdateLayoutConfig(
+            c4_shape_in_row=2,
+            c4_boundary_in_row=4,
+        )
+    )
+    with diagram:
+        converter._add_elements(converter._diagram_schema)
+
+    with diagram:
+        converter._set_render_options()
+
+    assert diagram.render_options is not None
+    assert diagram.render_options.plantuml is not None
+    assert diagram.render_options.plantuml == expected_plantuml_render_options
+    assert diagram.render_options.mermaid is not None
+    assert diagram.render_options.mermaid == expected_mermaid_render_options
 
 
 def test_json_to_diagram_converter__convert(

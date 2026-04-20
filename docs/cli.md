@@ -1,6 +1,7 @@
 ## Getting Started
 
-Diagrams can be defined using the [Python DSL](concepts/diagrams.md) or a [JSON representation](converters/json/json.md).
+Diagrams can be defined using the [Python DSL](concepts/diagrams.md) or
+a [JSON representation](converters/json/json.md).
 
 ### Python Example
 
@@ -9,7 +10,6 @@ Create a diagram using the Python DSL:
 ```python
 # diagram.py
 from c4 import Person, Rel, System, SystemContextDiagram
-
 
 with SystemContextDiagram() as diagram:
     user = Person("User", "System user")
@@ -72,29 +72,29 @@ The same diagram expressed in JSON:
 
 ```json
 {
-    "type": "SystemContextDiagram",
-    "elements": [
-        {
-          "type": "Person",
-          "alias": "user",
-          "label": "User",
-          "description": "System user"
-        },
-        {
-          "type": "System",
-          "alias": "app",
-          "label": "Backend API",
-          "description": "Main application backend"
-        }
-    ],
-    "relationships": [
-        {
-            "type": "REL",
-            "from": "user",
-            "to": "app",
-            "label": "Uses HTTP API"
-        }
-    ]
+  "type": "SystemContextDiagram",
+  "elements": [
+    {
+      "type": "Person",
+      "alias": "user",
+      "label": "User",
+      "description": "System user"
+    },
+    {
+      "type": "System",
+      "alias": "app",
+      "label": "Backend API",
+      "description": "Main application backend"
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "user",
+      "to": "app",
+      "label": "Uses HTTP API"
+    }
+  ]
 }
 ```
 
@@ -103,7 +103,6 @@ JSON diagrams are treated the same way as Python diagrams:
 - `c4 render diagram.json` — generate textual output (e.g. PlantUML)
 - `c4 export diagram.json` — generate rendered artifacts (e.g. PNG)
 - `c4 convert diagram.json` — convert to another representation (e.g. Python)
-
 
 <br/>
 
@@ -123,7 +122,6 @@ from c4 import (
     System,
     SystemContextDiagram,
 )
-
 
 with SystemContextDiagram():
     user = Person('User', 'System user', alias='user')
@@ -186,15 +184,18 @@ The available formats depend on the selected `renderer`.
 **Usage:**
 
 ```shell
-c4 export [-h] [-o OUTPUT] [-f {eps,latex,png,svg,txt,utxt}] \
+c4 export [-h] [-o OUTPUT] [-f {eps,latex,pdf,png,svg,txt,utxt}] \
           [--timeout TIMEOUT] \
-          [--renderer {plantuml} | --plantuml] \
+          [--renderer {plantuml,mermaid} | --plantuml | --mermaid] \
           [--plantuml-backend {local,remote}] \
           [--plantuml-server-url PLANTUML_SERVER_URL] \
           [--plantuml-bin PLANTUML_BIN | --plantuml-jar PLANTUML_JAR] \
           [--java-bin JAVA_BIN] \
           [--plantuml-skinparam-dpi PLANTUML_SKINPARAM_DPI] \
           [--plantuml-use-new-c4-style] \
+          [--plantuml-use-bundled-c4-plantuml] \
+          [--mermaid-bin MERMAID_BIN] \
+          [--mermaid-scale-factor MERMAID_SCALE_FACTOR] \
           target
 ```
 
@@ -212,23 +213,33 @@ c4 export [-h] [-o OUTPUT] [-f {eps,latex,png,svg,txt,utxt}] \
 | `--timeout`                                                | integer                                              | Render timeout in seconds.<br/>Can also be set via the `RENDERING_TIMEOUT_SECONDS` environment variable.             | 30         |
 | `--renderer`                                               | choice (`plantuml`)                                  | Renderer to use (overrides the diagram's default renderer).                                                          | `plantuml` |
 | `--plantuml`                                               | boolean                                              | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>).             | False      |
+| `--mermaid`                                                | boolean                                              | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>).               | False      |
 | <span style="white-space: nowrap;">`-o`, `--output`</span> | path                                                 | Redirect output to a file.                                                                                           | `stdout`   |
 | `-h`, `--help`                                             | boolean                                              | Show this help message and exit.                                                                                     | False      |
 
 **PlantUML Options**:
 
-These options apply when using the plantuml renderer.
+These options apply when using the **plantuml** renderer.
 
-| Name                                                                    | Type                       | Description                                                                                                                                                                                                           | Default                                           |
-|-------------------------------------------------------------------------|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
-| <span style="white-space: nowrap;">`--plantuml-backend`</span>          | choice (`local`, `remote`) | How to run PlantUML: local execution or remote server.                                                                                                                                                                | `local`                                           |
-| <span style="white-space: nowrap;">`--plantuml-server-url`</span>       | string                     | PlantUML server URL.<br/>If not provided, the `PLANTUML_SERVER_URL` environment variable will be used.                                                                                                                | [plantuml.com](https://www.plantuml.com/plantuml) |
-| <span style="white-space: nowrap;">`--plantuml-bin`</span>              | string (path or command)   | PlantUML executable (command name or full path).<br/>If not provided, the `PLANTUML_BIN` environment variable will be used.                                                                                           | `plantuml`                                        |
-| <span style="white-space: nowrap;">`--plantuml-jar`</span>              | path                       | Path to the PlantUML JAR file (runs via Java).<br/>If provided, the `PLANTUML_BIN` environment variable is ignored.<br/>Can also be set via the `PLANTUML_JAR` environment variable.                                  | None                                              |
-| <span style="white-space: nowrap;">`--java-bin`</span>                  | string (path or command)   | Java executable to use when running PlantUML via JAR.<br/>If not provided, the `JAVA_BIN` environment variable will be used.                                                                                          | `java`                                            |
-| <span style="white-space: nowrap;">`--plantuml-skinparam-dpi`</span>    | integer                    | Set PlantUML `skinparam dpi` value to control raster (PNG) resolution.<br/>This modifies diagram rendering and affects all output formats.<br/>Can also be set via the `PLANTUML_SKINPARAM_DPI` environment variable. | None                                              |
-| <span style="white-space: nowrap;">`--plantuml-use-new-c4-style`</span> | boolean                    | Activates the new C4-PlantUML style.                                                                                                                                                                                  | False                                             |
+| Name                                                                           | Type                       | Description                                                                                                                                                                                                           | Default                                           |
+|--------------------------------------------------------------------------------|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| <span style="white-space: nowrap;">`--plantuml-backend`</span>                 | choice (`local`, `remote`) | How to run PlantUML: local execution or remote server.                                                                                                                                                                | `local`                                           |
+| <span style="white-space: nowrap;">`--plantuml-server-url`</span>              | string                     | PlantUML server URL.<br/>If not provided, the `PLANTUML_SERVER_URL` environment variable will be used.                                                                                                                | [plantuml.com](https://www.plantuml.com/plantuml) |
+| <span style="white-space: nowrap;">`--plantuml-bin`</span>                     | string (path or command)   | PlantUML executable (command name or full path).<br/>If not provided, the `PLANTUML_BIN` environment variable will be used.                                                                                           | `plantuml`                                        |
+| <span style="white-space: nowrap;">`--plantuml-jar`</span>                     | path                       | Path to the PlantUML JAR file (runs via Java).<br/>If provided, the `PLANTUML_BIN` environment variable is ignored.<br/>Can also be set via the `PLANTUML_JAR` environment variable.                                  | None                                              |
+| <span style="white-space: nowrap;">`--java-bin`</span>                         | string (path or command)   | Java executable to use when running PlantUML via JAR.<br/>If not provided, the `JAVA_BIN` environment variable will be used.                                                                                          | `java`                                            |
+| <span style="white-space: nowrap;">`--plantuml-skinparam-dpi`</span>           | integer                    | Set PlantUML `skinparam dpi` value to control raster (PNG) resolution.<br/>This modifies diagram rendering and affects all output formats.<br/>Can also be set via the `PLANTUML_SKINPARAM_DPI` environment variable. | None                                              |
+| <span style="white-space: nowrap;">`--plantuml-use-new-c4-style`</span>        | boolean                    | Activates the new C4-PlantUML style.                                                                                                                                                                                  | False                                             |
+| <span style="white-space: nowrap;">`--plantuml-use-bundled-c4-plantuml`</span> | boolean                    | Use [bundled C4-PlantUML library](https://github.com/plantuml-stdlib/C4-PlantUML#including-the-c4-plantuml-library) files instead of fetching them from remote sources.                                               | **True**                                          |
 
+**Mermaid Options**:
+
+These options apply when using the **mermaid** renderer.
+
+| Name                                                               | Type                     | Description                                                                                                                         | Default |
+|--------------------------------------------------------------------|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------|---------|
+| <span style="white-space: nowrap;">`--mermaid-bin`</span>          | string (path or command) | Mermaid executable (command name or full path).<br/>If not provided, the `MERMAID_BIN` environment variable will be used.           | `mmdc`  |
+| <span style="white-space: nowrap;">`--mermaid-scale-factor`</span> | integer                  | Set Mermaid scale value to control Puppeteer scale factor.<br/>Can also be set via the `MERMAID_SCALE_FACTOR` environment variable. | 1       |
 
 ### c4 convert
 

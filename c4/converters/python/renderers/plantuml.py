@@ -1,9 +1,8 @@
-import ast
-from dataclasses import asdict, dataclass, fields, is_dataclass
-from inspect import Parameter, signature
+from dataclasses import asdict, fields, is_dataclass
 from typing import Any
 
-from c4.renderers.plantuml.layout_options import (
+from c4.converters.python.formatters import MethodCallFormatter
+from c4.renderers.plantuml.options import (
     BaseStyle,
     BaseTag,
     BoundaryStyle,
@@ -19,10 +18,10 @@ from c4.renderers.plantuml.layout_options import (
     ExternalContainerTag,
     ExternalPersonTag,
     ExternalSystemTag,
-    LayoutConfig,
-    LayoutOptions,
     NodeTag,
     PersonTag,
+    PlantUMLRenderOptions,
+    PlantUMLRenderOptionsBuilder,
     RelStyle,
     RelTag,
     SystemBoundaryStyle,
@@ -62,15 +61,17 @@ _STYLE_METHODS: dict[type[BaseStyle], str] = {
 }
 
 
-_layout_options = LayoutOptions()
+_render_options_builder = PlantUMLRenderOptionsBuilder()
 
 
-_SHOW_LEGEND_DEFAULTS = LayoutOptions().legend_defaults
-_SHOW_FLOATING_LEGEND_DEFAULTS = _layout_options.floating_legend_defaults
-_SET_SKETCH_STYLE_DEFAULTS = LayoutOptions().sketch_style_defaults
-_SHOW_PERSON_SPRITE_DEFAULTS = LayoutOptions().person_sprite_defaults
+_SHOW_LEGEND_DEFAULTS = _render_options_builder.legend_defaults
+_SHOW_FLOATING_LEGEND_DEFAULTS = (
+    _render_options_builder.floating_legend_defaults
+)
+_SET_SKETCH_STYLE_DEFAULTS = _render_options_builder.sketch_style_defaults
+_SHOW_PERSON_SPRITE_DEFAULTS = _render_options_builder.person_sprite_defaults
 
-LAYOUT_OPTIONS_VARIABLE_NAME = "plantuml_layout_options"
+RENDER_OPTIONS_VARIABLE_NAME = "plantuml_render_options"
 
 
 def _resolve_method(mapping: dict[type[Any], str], obj: Any) -> str:
@@ -80,200 +81,24 @@ def _resolve_method(mapping: dict[type[Any], str], obj: Any) -> str:
     raise KeyError(type(obj))
 
 
-@dataclass
-class ChainCall:
-    method: str
-    args: list[ast.expr]
-    keywords: list[ast.keyword]
-
-
-@dataclass
-class _MethodSignature:
-    ordered_args: list[tuple[str, Any]]
-    is_single_arg: bool
-    is_single_kwonly_arg: bool
-
-
-class MethodCallFormatter:
-    def __init__(
-        self,
-        max_line: int = 79,
-        owner_cls: type[Any] | None = None,
-    ) -> None:
-        self._max_line = max_line
-        self._indent = " " * 4
-        self._nested_indent = " " * 8
-        self._owner_cls = owner_cls
-
-    @staticmethod
-    def _inspect_signature(
-        cls: type[Any],
-        method_name: str,
-        kwargs: dict[str, Any],
-    ) -> _MethodSignature:
-        """
-        Order kwargs in the same order as the method signature.
-
-        Unknown kwargs (not present in the signature) are appended at the end,
-        preserving their original insertion order.
-        """
-        method = getattr(cls, method_name)
-        sig = signature(method)
-
-        param_order: list[str] = []
-        kwonly_params: list[Parameter] = []
-        for param in sig.parameters.values():
-            if param.name not in {"self", "cls"}:
-                param_order.append(param.name)
-
-            if param.kind is Parameter.KEYWORD_ONLY:
-                kwonly_params.append(param)
-
-        is_single_arg = len(param_order) == 1
-        is_single_kwonly_arg = is_single_arg and len(kwonly_params) == 1
-
-        ordered: list[tuple[str, Any]] = []
-        seen: set[str] = set()
-
-        for name in param_order:
-            if name in kwargs:
-                ordered.append((name, kwargs[name]))
-                seen.add(name)
-
-        for name, value in kwargs.items():
-            if name not in seen:
-                ordered.append((name, value))
-
-        return _MethodSignature(
-            ordered_args=ordered,
-            is_single_arg=is_single_arg,
-            is_single_kwonly_arg=is_single_kwonly_arg,
-        )
-
-    def format_call(
-        self,
-        method_name: str,
-        call_args: dict[str, Any] | None = None,
-    ) -> str:
-        """
-        Format a chained method call.
-
-        Notes:
-            - Arguments are rendered using `repr()` to keep
-              output valid Python.
-        """
-        call_args = call_args or {}
-
-        items: list[tuple[str, Any]] = list(call_args.items())
-        is_single_arg = False
-        is_single_kwonly_arg = False
-
-        if self._owner_cls is not None and call_args:
-            sig = self._inspect_signature(
-                self._owner_cls, method_name, call_args
-            )
-            items = sig.ordered_args
-            is_single_arg = sig.is_single_arg
-            is_single_kwonly_arg = sig.is_single_kwonly_arg
-
-        if not items:
-            args_repr = ""
-        elif is_single_arg and not is_single_kwonly_arg:
-            _, value = items[0]
-            args_repr = repr(value)
-        else:
-            args_repr = ", ".join(f"{arg}={value!r}" for arg, value in items)
-
-        return f".{method_name}({args_repr})"
-
-    def format_chain_call(self, code: str) -> str:
-        if len(code) <= self._max_line:
-            return code.strip()
-
-        tree = ast.parse(code)
-
-        if len(tree.body) != 1 or not isinstance(tree.body[0], ast.Assign):
-            raise ValueError("Expected a single module-level assignment.")
-
-        assign = tree.body[0]
-        if len(assign.targets) != 1 or not isinstance(
-            assign.targets[0], ast.Name
-        ):
-            raise ValueError("Expected simple `name = expr` assignment.")
-
-        lhs = assign.targets[0].id
-        base, chain = self._extract_chain(assign.value)
-
-        lines: list[str] = [f"{lhs} = (", f"{self._indent}{self._expr(base)}"]
-
-        for call in chain:
-            lines.extend(self._render_chained_call(call))
-
-        lines.append(")")
-        return "\n".join(lines)
-
-    def _extract_chain(
-        self, expr: ast.expr
-    ) -> tuple[ast.expr, list[ChainCall]]:
-        chain: list[ChainCall] = []
-        cur: ast.expr = expr
-
-        while isinstance(cur, ast.Call) and isinstance(cur.func, ast.Attribute):
-            chain.append(
-                ChainCall(
-                    method=cur.func.attr,
-                    args=list(cur.args),
-                    keywords=list(cur.keywords),
-                )
-            )
-            cur = cur.func.value  # move "left" in the chain
-
-        chain.reverse()
-        return cur, chain
-
-    def _render_chained_call(self, call: ChainCall) -> list[str]:
-        if not call.args and not call.keywords:
-            return [f"{self._indent}.{call.method}()"]
-
-        lines: list[str] = [f"{self._indent}.{call.method}("]
-
-        for arg in call.args:
-            lines.append(f"{self._nested_indent}{self._expr(arg)},")
-
-        for kw in call.keywords:
-            if kw.arg is None:
-                lines.append(f"{self._nested_indent}**{self._expr(kw.value)},")
-            else:
-                lines.append(
-                    f"{self._nested_indent}{kw.arg}={self._expr(kw.value)},"
-                )
-
-        lines.append(f"{self._indent})")
-        return lines
-
-    @staticmethod
-    def _expr(node: ast.AST) -> str:
-        return ast.unparse(node)
-
-
-class LayoutOptionsCodegen:
+class PlantUMLRenderOptionsCodegen:
     """
-    Render a :class:`~c4.renderers.plantuml.layout_options.LayoutConfig`
+    Render a :class:`~c4.renderers.plantuml.options.PlantUMLRenderOptions`
     instance into Python code that builds the same configuration using
-    the fluent :class:`~c4.renderers.plantuml.layout_options.LayoutOptions`
-    API.
+    the fluent
+    :class:`~c4.renderers.plantuml.options.PlantUMLRenderOptionsBuilder` API.
 
     Output is intended to be human-readable and stable:
     - Skips default/empty values where possible.
-    - Preserves tag/style ordering from the input config.
+    - Preserves tag/style ordering from the input options.
     - Can render either a single-line expression or a multi-line chained call.
       (Single-line mode is used only for trivially small configs.)
 
     Example:
-        LayoutConfig(layout_with_legend=True, layout_as_sketch=True)
+        PlantUMLRenderOptions(layout_with_legend=True, layout_as_sketch=True)
 
-        >>> layout_options = (
-        >>>     LayoutOptions()
+        >>> render_options_builder = (
+        >>>     PlantUMLRenderOptionsBuilder()
         >>>     .layout_with_legend()
         >>>     .layout_landscape()
         >>> )
@@ -281,78 +106,97 @@ class LayoutOptionsCodegen:
 
     def __init__(
         self,
-        variable_name: str = LAYOUT_OPTIONS_VARIABLE_NAME,
+        variable_name: str = RENDER_OPTIONS_VARIABLE_NAME,
     ) -> None:
         self._variable_name = variable_name
         self._method_call_formatter = MethodCallFormatter(
-            owner_cls=LayoutOptions,
+            owner_cls=PlantUMLRenderOptionsBuilder,
         )
 
-    def generate(self, config: LayoutConfig) -> str:
+    def generate(self, options: PlantUMLRenderOptions) -> str:
         """
-        Convert `config` into Python source code that constructs the same
-        layout options using chained ``LayoutOptions`` method calls.
+        Convert `options` into Python source code that constructs the same
+        render options using chained
+        `PlantUMLRenderOptionsBuilder` method calls.
 
         Args:
-            config: Final layout configuration produced
-                by `LayoutOptions.build()`.
+            options: Final layout configuration produced
+                by `PlantUMLRenderOptionsBuilder.build()`.
 
         Returns:
             A string containing valid Python code (one assignment statement)
-            that assigns a `LayoutOptions` expression to `layout_options`.
+            that assigns a `PlantUMLRenderOptionsBuilder` expression
+            to `plantuml_render_options`.
         """
-        chained_calls = self._render_chained_calls(config)
+        chained_calls = self._render_chained_calls(options)
+        builder_call = f"PlantUMLRenderOptionsBuilder(){chained_calls}"
 
-        layout_options = (
-            f"{self._variable_name} = LayoutOptions(){chained_calls}"
-        )
+        render_options = f"{self._variable_name} = {builder_call}"
 
-        return self._method_call_formatter.format_chain_call(layout_options)
+        return self._method_call_formatter.format_chain_call(render_options)
 
     def _render_chained_calls(
         self,
-        config: LayoutConfig,
+        options: PlantUMLRenderOptions,
     ) -> str:
         parts = [
-            *self._render_layout_with_legend(config),
-            *self._render_layout_as_sketch(config),
-            *self._render_set_sketch_style(config),
-            *self._render_show_legend(config),
-            *self._render_show_floating_legend(config),
-            *self._render_legend_title(config),
-            *self._render_bool_calls(config),
-            *self._render_show_person_sprite(config),
-            *self._render_tags(config),
-            *self._render_styles(config),
+            *self._render_includes(options),
+            *self._render_layout_with_legend(options),
+            *self._render_layout_as_sketch(options),
+            *self._render_set_sketch_style(options),
+            *self._render_show_legend(options),
+            *self._render_show_floating_legend(options),
+            *self._render_legend_title(options),
+            *self._render_bool_calls(options),
+            *self._render_show_person_sprite(options),
+            *self._render_tags(options),
+            *self._render_styles(options),
             *self._render_build(),
         ]
 
         return "".join(parts)
 
+    def _render_includes(
+        self,
+        options: PlantUMLRenderOptions,
+    ) -> list[str]:
+        parts: list[str] = []
+
+        if options.includes:
+            parts.append(
+                self._format_call("add_includes", call_args=options.includes)
+            )
+
+        return parts
+
     def _render_layout_with_legend(
         self,
-        config: LayoutConfig,
+        options: PlantUMLRenderOptions,
     ) -> list[str]:
         parts: list[str] = []
 
         layout_with_legend_consumed = False
-        if config.layout is not None:
-            method = self._layout_method_name(config.layout)
-            if config.layout_with_legend:
-                parts.append(self._format_call(method, {"with_legend": True}))
+        if options.layout is not None:
+            method = self._layout_method_name(options.layout)
+            if options.layout_with_legend:
+                parts.append(
+                    self._format_call(method, call_kwargs={"with_legend": True})
+                )
                 layout_with_legend_consumed = True
             else:
                 parts.append(self._format_call(method))
 
-        if config.layout_with_legend and not layout_with_legend_consumed:
+        if options.layout_with_legend and not layout_with_legend_consumed:
             parts.append(self._format_call("layout_with_legend"))
 
         return parts
 
-    def _render_layout_as_sketch(self, config: LayoutConfig) -> list[str]:
+    def _render_layout_as_sketch(
+        self, options: PlantUMLRenderOptions
+    ) -> list[str]:
         parts = []
 
-        if config.layout_as_sketch:
+        if options.layout_as_sketch:
             parts.append(self._format_call("layout_as_sketch"))
 
         return parts
@@ -370,14 +214,14 @@ class LayoutOptionsCodegen:
 
     def _render_set_sketch_style(
         self,
-        config: LayoutConfig,
+        options: PlantUMLRenderOptions,
     ) -> list[str]:
         parts = []
 
-        if config.set_sketch_style:
+        if options.set_sketch_style:
             method_call = self._call_with_filtered_kwargs(
                 "set_sketch_style",
-                config.set_sketch_style,
+                options.set_sketch_style,
                 defaults=_SET_SKETCH_STYLE_DEFAULTS,
             )
 
@@ -385,13 +229,13 @@ class LayoutOptionsCodegen:
 
         return parts
 
-    def _render_show_legend(self, config: LayoutConfig) -> list[str]:
+    def _render_show_legend(self, options: PlantUMLRenderOptions) -> list[str]:
         parts = []
 
-        if config.show_legend is not None:
+        if options.show_legend is not None:
             method_call = self._call_from_optional_dataclass(
                 "show_legend",
-                config.show_legend,
+                options.show_legend,
                 none_means_default=_SHOW_LEGEND_DEFAULTS,
             )
 
@@ -400,16 +244,16 @@ class LayoutOptionsCodegen:
 
     def _render_show_floating_legend(
         self,
-        config: LayoutConfig,
+        options: PlantUMLRenderOptions,
     ) -> list[str]:
         parts = []
 
-        if config.show_floating_legend is not None:
-            # LayoutOptions.show_floating_legend defaults:
+        if options.show_floating_legend is not None:
+            # PlantUMLRenderOptionsBuilder.show_floating_legend defaults:
             # alias=None, hide_stereotype=True, details="Small"
             method_call = self._call_from_optional_dataclass(
                 "show_floating_legend",
-                config.show_floating_legend,
+                options.show_floating_legend,
                 none_means_default=_SHOW_FLOATING_LEGEND_DEFAULTS,
             )
 
@@ -419,14 +263,14 @@ class LayoutOptionsCodegen:
 
     def _render_legend_title(
         self,
-        config: LayoutConfig,
+        options: PlantUMLRenderOptions,
     ) -> list[str]:
         parts = []
 
-        if config.legend_title is not None:
+        if options.legend_title is not None:
             method_call = self._format_call(
                 "update_legend_title",
-                {"new_title": config.legend_title},
+                call_kwargs={"new_title": options.legend_title},
             )
 
             parts.extend(method_call.splitlines())
@@ -435,14 +279,14 @@ class LayoutOptionsCodegen:
 
     def _render_show_person_sprite(
         self,
-        config: LayoutConfig,
+        options: PlantUMLRenderOptions,
     ) -> list[str]:
         parts = []
 
-        if config.show_person_sprite is not None:
+        if options.show_person_sprite is not None:
             method_call = self._call_from_optional_dataclass(
                 "show_person_sprite",
-                config.show_person_sprite,
+                options.show_person_sprite,
                 none_means_default=_SHOW_PERSON_SPRITE_DEFAULTS,
             )
 
@@ -450,20 +294,20 @@ class LayoutOptionsCodegen:
 
         return parts
 
-    def _render_tags(self, config: LayoutConfig) -> list[str]:
+    def _render_tags(self, options: PlantUMLRenderOptions) -> list[str]:
         parts = []
 
-        for tag in config.tags:
+        for tag in options.tags:
             method_call = self._tag_to_call(tag)
 
             parts.extend(method_call.splitlines())
 
         return parts
 
-    def _render_styles(self, config: LayoutConfig) -> list[str]:
+    def _render_styles(self, options: PlantUMLRenderOptions) -> list[str]:
         parts = []
 
-        for style in config.styles:
+        for style in options.styles:
             method_call = self._style_to_call(style)
 
             parts.extend(method_call.splitlines())
@@ -473,7 +317,8 @@ class LayoutOptionsCodegen:
     def _format_call(
         self,
         method_name: str,
-        call_args: dict[str, Any] | None = None,
+        call_args: tuple[Any, ...] | list[Any] | None = None,
+        call_kwargs: dict[str, Any] | None = None,
     ) -> str:
         """
         Format a method call.
@@ -482,7 +327,9 @@ class LayoutOptionsCodegen:
             - Arguments are rendered using `repr()` to keep
               output valid Python.
         """
-        return self._method_call_formatter.format_call(method_name, call_args)
+        return self._method_call_formatter.format_call(
+            method_name, call_args, call_kwargs
+        )
 
     def _call_with_filtered_kwargs(
         self,
@@ -502,7 +349,7 @@ class LayoutOptionsCodegen:
             if value != defaults[arg]:
                 kwargs[arg] = value
 
-        return self._format_call(method_name, kwargs)
+        return self._format_call(method_name, call_kwargs=kwargs)
 
     def _call_from_optional_dataclass(
         self,
@@ -515,10 +362,10 @@ class LayoutOptionsCodegen:
         Render calls for dataclasses where `None` means "use builder default".
 
         This matches how your builder currently works:
-        - The presence of `config.show_legend` indicates the
+        - The presence of `options.show_legend` indicates the
           feature is enabled.
         - Fields inside may be `None` because the builder did not store them
-          (meaning "use LayoutOptions default").
+          (meaning "use PlantUMLRenderOptionsBuilder default").
 
         Only arguments that differ from the builder defaults are emitted.
         """
@@ -539,11 +386,13 @@ class LayoutOptionsCodegen:
             if effective != default_value:
                 kwargs[arg] = effective
 
-        return self._format_call(method_name, kwargs)
+        return self._format_call(method_name, call_kwargs=kwargs)
 
     def _tag_to_call(self, tag: BaseTag) -> str:
         """
-        Map tag dataclass type -> corresponding LayoutOptions.add_*_tag call.
+        Map tag dataclass type -> corresponding
+        PlantUMLRenderOptionsBuilder.add_*_tag call.
+
         Filters out empty-string defaults to keep output clean.
         """
         try:
@@ -596,7 +445,7 @@ class LayoutOptionsCodegen:
             keep={"tag_stereo"},
         )
 
-        return self._format_call(method_name, kwargs)
+        return self._format_call(method_name, call_kwargs=kwargs)
 
     def _style_to_call(self, style: BaseStyle) -> str:
         try:
@@ -618,7 +467,7 @@ class LayoutOptionsCodegen:
         else:
             kwargs = self._style_element_kwargs(style)
 
-        return self._format_call(method_name, kwargs)
+        return self._format_call(method_name, call_kwargs=kwargs)
 
     def _style_element_kwargs(self, style: Any) -> dict[str, Any]:
         base = {
@@ -646,11 +495,11 @@ class LayoutOptionsCodegen:
             keep={"element_name"},
         )
 
-    def _render_bool_calls(self, config: LayoutConfig) -> list[str]:
+    def _render_bool_calls(self, options: PlantUMLRenderOptions) -> list[str]:
         parts = []
 
         for attr, method in _BOOL_CALLS:
-            if getattr(config, attr):
+            if getattr(options, attr):
                 method_call = self._format_call(method)
 
                 parts.extend(method_call.splitlines())

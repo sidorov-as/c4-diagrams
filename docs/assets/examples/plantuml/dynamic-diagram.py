@@ -8,8 +8,10 @@ from c4 import (
     System,
     SystemExt,
 )
-from c4.renderers import RenderOptions
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers import (
+    PlantUMLRenderOptionsBuilder,
+    RenderOptions,
+)
 
 
 with DynamicDiagram(title='Order Fulfillment Flow') as diagram:
@@ -17,18 +19,20 @@ with DynamicDiagram(title='Order Fulfillment Flow') as diagram:
     online_store = System('Online Store', 'Customer-facing commerce platform.', type_='Software System', tags=['system', 'core'], alias='online_store')
     payment_gateway = SystemExt('Payment Gateway', 'External provider that authorizes card payments.', type_='External System', tags=['system', 'external'], alias='payment_gateway')
     warehouse_system = SystemExt('Warehouse System', 'External warehouse platform that reserves and ships items.', type_='External System', tags=['system', 'external', 'fulfillment'], alias='warehouse_system')
+
     customer >> Rel('Places order', technology='HTTPS', tags=['request'], index='1') >> online_store
     online_store >> Rel('Authorizes payment', technology='REST API', tags=['payment_call', 'request'], index='2') >> payment_gateway
     payment_gateway >> RelBack('Returns authorization result', technology='HTTPS', tags=['payment_call', 'response'], index='3') >> online_store
     online_store >> Rel('Sends fulfillment request', technology='AMQP', tags=['fulfillment_call'], index='4') >> warehouse_system
     warehouse_system >> RelBack('Confirms reservation', technology='AMQP', tags=['fulfillment_call', 'response'], index='5') >> online_store
+
     LayR(customer, online_store)
     LayR(online_store, payment_gateway)
     LayD(payment_gateway, warehouse_system)
 
 
-plantuml_layout_options = (
-    LayoutOptions()
+plantuml_render_options = (
+    PlantUMLRenderOptionsBuilder()
     .layout_left_right()
     .show_legend(
         details='Normal',
@@ -96,7 +100,7 @@ plantuml_layout_options = (
 )
 
 render_options = RenderOptions(
-    plantuml=plantuml_layout_options,
+    plantuml=plantuml_render_options,
 )
 
 diagram.render_options = render_options

@@ -5,6 +5,7 @@ import os
 import shutil
 import textwrap
 from collections.abc import Callable, Iterable
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
 
@@ -15,14 +16,16 @@ from c4.constants import (
     CONVERT_FROM_FORMATS,
     CONVERT_TO_FORMATS,
     DEFAULT_JAVA_BIN,
+    DEFAULT_MERMAID_BIN,
     DEFAULT_PLANTUML_BIN,
     DEFAULT_PLANTUML_SERVER_URL,
-    DEFAULT_RENDERER,
     DEFAULT_RENDERING_TIMEOUT_SECONDS,
     FORMATS_BY_RENDERER_HELP_TEXT,
     JAVA_BIN_ENV_VAR,
     KNOWN_RENDERERS,
     LOCAL_BACKEND,
+    MERMAID_BIN_ENV_VAR,
+    MERMAID_SCALE_FACTOR_ENV_VAR,
     PLANTUML_BIN_ENV_VAR,
     PLANTUML_JAR_ENV_VAR,
     PLANTUML_SERVER_URL_ENV_VAR,
@@ -62,19 +65,34 @@ class HelpFormatter(argparse.HelpFormatter):
         return lines
 
 
-def _plantuml_bin_type(value: str) -> str:
+def _exporter_binary_type(value: str, backend: str) -> str:
     """
-    Validate a PlantUML executable reference.
+    Validate a binary executable reference.
 
     The value may be either a command name available in PATH or a full path.
     """
     resolved = shutil.which(value)
     if not resolved:
         raise argparse.ArgumentTypeError(
-            f"PlantUML binary {value!r} was not found in PATH or "
+            f"{backend} binary {value!r} was not found in PATH or "
             f"is not executable."
         )
     return value
+
+
+def str2bool(value: str) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif value.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
+
+
+_plantuml_bin_type = partial(_exporter_binary_type, backend="PlantUML")
+_mermaid_bin_type = partial(_exporter_binary_type, backend="Mermaid")
 
 
 def _plantuml_jar_type(value: str | Path) -> Path:
@@ -187,13 +205,17 @@ def _add_renderer_flags(parser: argparse.ArgumentParser) -> None:
     group.add_argument(
         "--renderer",
         choices=[choice.value for choice in KNOWN_RENDERERS],
-        default=DEFAULT_RENDERER,
         help="Renderer to use (overrides the diagram's default renderer).",
     )
     group.add_argument(
         "--plantuml",
         action="store_true",
         help="Use PlantUML renderer (alias for --renderer plantuml).",
+    )
+    group.add_argument(
+        "--mermaid",
+        action="store_true",
+        help="Use Mermaid renderer (alias for --renderer mermaid).",
     )
 
 
@@ -319,6 +341,49 @@ def _add_plantuml_export_flags(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Activates the new C4-PlantUML style.",
     )
+    group.add_argument(
+        "--plantuml-use-bundled-c4-plantuml",
+        type=str2bool,
+        default=True,
+        help=(
+            "Use bundled C4-PlantUML library files instead of fetching them "
+            "from remote sources."
+        ),
+    )
+
+
+def _add_mermaid_export_flags(parser: argparse.ArgumentParser) -> None:
+    """
+    Add Mermaid-specific export flags.
+
+    These flags configure the local Mermaid backend and the underlying
+    execution details.
+    """
+    group = parser.add_argument_group("Mermaid options")
+
+    group.add_argument(
+        "--mermaid-bin",
+        default=DEFAULT_MERMAID_BIN,
+        type=_mermaid_bin_type,
+        help=(
+            "Mermaid executable (command name or full path). "
+            f"If not provided, the {MERMAID_BIN_ENV_VAR} "
+            f"environment variable will be used."
+        ),
+    )
+    group.add_argument(
+        "--mermaid-scale-factor",
+        type=int,
+        default=_env_default(
+            [MERMAID_SCALE_FACTOR_ENV_VAR],
+            cast=int,
+        ),
+        help=(
+            "Set Mermaid scale value to control Puppeteer scale factor"
+            " (default: 1). Can also be set via the "
+            f"{MERMAID_SCALE_FACTOR_ENV_VAR} environment variable."
+        ),
+    )
 
 
 def _build_export_parser(
@@ -378,6 +443,7 @@ def _build_export_parser(
 
     _add_renderer_flags(export_parser)
     _add_plantuml_export_flags(export_parser)
+    _add_mermaid_export_flags(export_parser)
 
     export_parser.set_defaults(func=handle_export)
 

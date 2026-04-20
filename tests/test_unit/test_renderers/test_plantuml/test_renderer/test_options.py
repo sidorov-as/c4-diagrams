@@ -4,13 +4,13 @@ import pytest
 from pytest_mock import MockerFixture
 
 import c4.renderers.plantuml.renderer as renderer_module
-from c4.renderers.plantuml.layout_options import (
-    LayoutConfig,
+from c4.renderers.plantuml.options import (
+    PlantUMLRenderOptions,
     SetSketchStyle,
     ShowFloatingLegend,
     ShowLegend,
 )
-from c4.renderers.plantuml.renderer import LayoutOptionsRenderer
+from c4.renderers.plantuml.renderer import PlantUMLRenderOptionsRenderer
 
 
 @pytest.mark.parametrize(
@@ -28,14 +28,16 @@ from c4.renderers.plantuml.renderer import LayoutOptionsRenderer
         ),
     ],
 )
-def test_layout_options_renderer__render_tags__renders_tag_macros_in_order(
+def test_plantuml_render_options_renderer__render_tags__renders_tag_macros_in_order(
     mocker: MockerFixture,
     tags: list[str],
     rendered_values: list[str],
     expected: str,
 ):
-    config = LayoutConfig(tags=tags)
-    renderer = LayoutOptionsRenderer(includes=[], layout_config=config)
+    options = PlantUMLRenderOptions(tags=tags)
+    renderer = PlantUMLRenderOptionsRenderer(
+        includes=[], render_options=options
+    )
     macros = [
         mocker.Mock(render=mocker.Mock(return_value=value))
         for value in rendered_values
@@ -68,14 +70,16 @@ def test_layout_options_renderer__render_tags__renders_tag_macros_in_order(
         ),
     ],
 )
-def test_layout_options_renderer__render_styles__renders_style_macros_in_order(
+def test_plantuml_render_options_renderer__render_styles__renders_style_macros_in_order(
     mocker: MockerFixture,
     styles: list[str],
     rendered_values: list[str],
     expected: str,
 ):
-    config = LayoutConfig(styles=styles)
-    renderer = LayoutOptionsRenderer(includes=[], layout_config=config)
+    options = PlantUMLRenderOptions(styles=styles)
+    renderer = PlantUMLRenderOptionsRenderer(
+        includes=[], render_options=options
+    )
     macros = [
         mocker.Mock(render=mocker.Mock(return_value=value))
         for value in rendered_values
@@ -95,18 +99,18 @@ def test_layout_options_renderer__render_styles__renders_style_macros_in_order(
     assert all(macro.render.call_count == 1 for macro in macros)
 
 
-def test_layout_options_renderer__render_layout__empty():
-    renderer = LayoutOptionsRenderer(includes=[])
+def test_plantuml_render_options_renderer__render_layout__empty():
+    renderer = PlantUMLRenderOptionsRenderer(includes=[])
 
     result = renderer._render_layout()
 
     assert result == ""
 
 
-def test_layout_options_renderer__render_layout__renders_enabled_macros(
+def test_plantuml_render_options_renderer__render_layout__renders_enabled_macros(
     mocker: MockerFixture,
 ):
-    config = LayoutConfig(
+    options = PlantUMLRenderOptions(
         layout="LAYOUT_TOP_DOWN",  # type: ignore[arg-type]
         layout_with_legend=True,
         layout_as_sketch=True,
@@ -117,7 +121,9 @@ def test_layout_options_renderer__render_layout__renders_enabled_macros(
         hide_stereotype=True,
         without_property_header=True,
     )
-    renderer = LayoutOptionsRenderer(includes=[], layout_config=config)
+    renderer = PlantUMLRenderOptionsRenderer(
+        includes=[], render_options=options
+    )
     diagram_layout_macro = mocker.patch.object(
         renderer_module,
         "DiagramLayoutPlantUMLMacro",
@@ -204,12 +210,14 @@ def test_layout_options_renderer__render_layout__renders_enabled_macros(
     without_property_header_macro.assert_called_once_with()
 
 
-def test_layout_options_renderer_render_sketch_style__renders_macro(
+def test_plantuml_render_options_renderer_render_sketch_style__renders_macro(
     mocker: MockerFixture,
 ):
     sketch_style = SetSketchStyle()
-    config = LayoutConfig(set_sketch_style=sketch_style)
-    renderer = LayoutOptionsRenderer(includes=[], layout_config=config)
+    options = PlantUMLRenderOptions(set_sketch_style=sketch_style)
+    renderer = PlantUMLRenderOptionsRenderer(
+        includes=[], render_options=options
+    )
     sketch_style_macro = mocker.patch.object(
         renderer_module,
         "SetSketchStylePlantUMLMacro",
@@ -224,18 +232,20 @@ def test_layout_options_renderer_render_sketch_style__renders_macro(
     sketch_style_macro.assert_called_once_with(sketch_style)
 
 
-def test_layout_options_renderer__render_sketch_style__empty():
-    renderer = LayoutOptionsRenderer(includes=[])
+def test_plantuml_render_options_renderer__render_sketch_style__empty():
+    renderer = PlantUMLRenderOptionsRenderer(includes=[])
 
     result = renderer._render_sketch_style()
 
     assert result == ""
 
 
-def test_layout_options_renderer__render_header__renders_sections_and_title(
+def test_plantuml_render_options_renderer__render_header__renders_sections_and_title(
     mocker: MockerFixture,
 ):
-    renderer = LayoutOptionsRenderer(includes=["!include a", "!include b"])
+    renderer = PlantUMLRenderOptionsRenderer(
+        includes=["!include a", "!include b"]
+    )
     diagram = SimpleNamespace(title="Orders Diagram")
     render_tags = mocker.patch.object(
         renderer,
@@ -280,10 +290,10 @@ def test_layout_options_renderer__render_header__renders_sections_and_title(
     render_sketch_style.assert_called_once_with()
 
 
-def test_layout_options_renderer__render_header__skips_title(
+def test_plantuml_render_options_renderer__render_header__skips_title(
     mocker: MockerFixture,
 ):
-    renderer = LayoutOptionsRenderer(includes=["!include a"])
+    renderer = PlantUMLRenderOptionsRenderer(includes=["!include a"])
     diagram = SimpleNamespace(title="")
     mocker.patch.object(renderer, "_render_tags", return_value="")
     mocker.patch.object(renderer, "_render_styles", return_value="")
@@ -295,16 +305,18 @@ def test_layout_options_renderer__render_header__skips_title(
     assert result == "!include a\n"
 
 
-def test_layout_options_renderer__render_footer(
+def test_plantuml_render_options_renderer__render_footer(
     mocker: MockerFixture,
 ):
     show_legend = ShowLegend()
     show_floating_legend = ShowFloatingLegend()
-    config = LayoutConfig(
+    options = PlantUMLRenderOptions(
         show_legend=show_legend,
         show_floating_legend=show_floating_legend,
     )
-    renderer = LayoutOptionsRenderer(includes=[], layout_config=config)
+    renderer = PlantUMLRenderOptionsRenderer(
+        includes=[], render_options=options
+    )
     show_legend_macro = mocker.patch.object(
         renderer_module,
         "ShowLegendPlantUMLMacro",
@@ -327,29 +339,29 @@ def test_layout_options_renderer__render_footer(
     show_floating_legend_macro.assert_called_once_with(show_floating_legend)
 
 
-def test_layout_options_renderer__render_footer__empty():
-    renderer = LayoutOptionsRenderer(includes=[])
+def test_plantuml_render_options_renderer__render_footer__empty():
+    renderer = PlantUMLRenderOptionsRenderer(includes=[])
 
     result = renderer.render_footer()
 
     assert result == ""
 
 
-def test_layout_options_renderer__init__uses_default_layout_config():
-    default_config = LayoutConfig()
-    renderer = LayoutOptionsRenderer(includes=["!include default"])
+def test_plantuml_render_options_renderer__init__uses_default_render_options():
+    default_options = PlantUMLRenderOptions()
+    renderer = PlantUMLRenderOptionsRenderer(includes=["!include default"])
 
     assert renderer._includes == ["!include default"]
-    assert renderer._config == default_config
+    assert renderer._render_options == default_options
 
 
-def test_layout_options_renderer__init__uses_provided_layout_config():
-    config = LayoutConfig(layout_with_legend=True)
+def test_plantuml_render_options_renderer__init__uses_provided_render_options():
+    options = PlantUMLRenderOptions(layout_with_legend=True)
 
-    renderer = LayoutOptionsRenderer(
+    renderer = PlantUMLRenderOptionsRenderer(
         includes=["!include custom"],
-        layout_config=config,
+        render_options=options,
     )
 
     assert renderer._includes == ["!include custom"]
-    assert renderer._config is config
+    assert renderer._render_options is options

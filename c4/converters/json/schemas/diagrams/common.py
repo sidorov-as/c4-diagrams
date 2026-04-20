@@ -10,8 +10,11 @@ from c4.converters.json.schemas.base import (
     TDiagramElement,
     TypeDiagramElement,
 )
+from c4.converters.json.schemas.renderers.mermaid import (
+    MermaidRenderOptionsSchema,
+)
 from c4.converters.json.schemas.renderers.plantuml import (
-    PlantUMLLayoutOptionsSchema,
+    PlantUMLRenderOptionsSchema,
 )
 from c4.diagrams.core import (
     DEFAULT_PROPERTIES_HEADER,
@@ -136,6 +139,11 @@ class ElementBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
 
 
 class RelationshipSchema(BaseSchemaItem[Relationship], PropertiesMixin):
+    """
+    This schema describes the [`Relationship`][c4.diagrams.core.Relationship]
+    diagram component.
+    """
+
     type: RelationshipType = Field(..., description="Type of the relationship.")
     from_: str = Field(
         ...,
@@ -190,6 +198,11 @@ class RelationshipSchema(BaseSchemaItem[Relationship], PropertiesMixin):
 
 
 class LayoutSchema(BaseSchemaItem[Layout]):
+    """
+    This schema describes the [`Layout`][c4.diagrams.core.Layout]
+    diagram component.
+    """
+
     type: LayoutType = Field(..., description="Type of the layout.")
     from_: str = Field(
         ...,
@@ -208,8 +221,17 @@ class LayoutSchema(BaseSchemaItem[Layout]):
 
 
 class RenderOptionsSchema(BaseSchemaItem):
-    plantuml: PlantUMLLayoutOptionsSchema | None = Field(
+    """
+    This schema describes the
+    [`RenderOptions`][c4.renderers.common.RenderOptions]
+    diagram component.
+    """
+
+    plantuml: PlantUMLRenderOptionsSchema | None = Field(
         None, description="PlantUML-specific render options."
+    )
+    mermaid: MermaidRenderOptionsSchema | None = Field(
+        None, description="Mermaid-specific render options."
     )
 
 

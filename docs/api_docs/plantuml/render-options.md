@@ -1,9 +1,9 @@
-# Layout options
+# Render options
 
 See the official [C4-PlantUML Layout Options documentation](https://github.com/plantuml-stdlib/C4-PlantUML/blob/master/LayoutOptions.md)
 for additional information.
 
-::: c4.renderers.plantuml.layout_options.LayoutOptions
+::: c4.renderers.plantuml.options.PlantUMLRenderOptionsBuilder
     options:
         show_root_heading: true
         merge_init_into_class: false
@@ -48,9 +48,34 @@ for additional information.
             - hide_stereotype
             - hide_person_sprite
             - show_person_portrait
+            - build
 
 
-::: c4.renderers.plantuml.layout_options.LayoutConfig
+::: c4.renderers.plantuml.options.PlantUMLRenderOptions
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.TagShape
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.LineStyle
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.Details
     options:
         show_root_heading: true
         merge_init_into_class: false

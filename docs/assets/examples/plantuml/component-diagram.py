@@ -8,8 +8,10 @@ from c4 import (
     LayR,
     Rel,
 )
-from c4.renderers import RenderOptions
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers import (
+    PlantUMLRenderOptionsBuilder,
+    RenderOptions,
+)
 
 
 with ComponentDiagram(title='Order Processing API - Component Diagram') as diagram:
@@ -20,12 +22,14 @@ with ComponentDiagram(title='Order Processing API - Component Diagram') as diagr
     order_db = ComponentDb('Order Database', 'Stores orders, line items, and order status history.', tags=['ComponentDatabase'], technology='PostgreSQL', alias='order_db')
     payment_gateway_api = ComponentExt('Payment Gateway API', 'External provider API for payment authorization and capture.', tags=['ExternalComponent'], technology='REST API', alias='payment_gateway_api')
     order_events_bus = ComponentQueue('Order Events Bus', 'Publishes order-created and order-paid events.', tags=['AsyncComponent'], technology='Kafka', alias='order_events_bus')
+
     order_controller >> Rel('Invokes', technology='Python call', tags=['SyncCall']) >> order_app_service
     order_app_service >> Rel('Checks stock via', technology='Python call', tags=['SyncCall']) >> inventory_checker
     order_app_service >> Rel('Requests payment through', technology='Python call', tags=['SyncCall']) >> payment_adapter
     payment_adapter >> Rel('Authorizes payment via', technology='HTTPS/JSON', tags=['ExternalCall']) >> payment_gateway_api
     order_app_service >> Rel('Reads and writes', technology='SQL', tags=['DataAccess']) >> order_db
     order_app_service >> Rel('Publishes events to', technology='Kafka', tags=['AsyncFlow']) >> order_events_bus
+
     LayR(order_controller, order_app_service)
     LayR(order_app_service, inventory_checker)
     LayD(order_app_service, order_db)
@@ -34,8 +38,8 @@ with ComponentDiagram(title='Order Processing API - Component Diagram') as diagr
     LayD(payment_adapter, order_events_bus)
 
 
-plantuml_layout_options = (
-    LayoutOptions()
+plantuml_render_options = (
+    PlantUMLRenderOptionsBuilder()
     .layout_left_right(
         with_legend=True,
     )
@@ -187,7 +191,7 @@ plantuml_layout_options = (
 )
 
 render_options = RenderOptions(
-    plantuml=plantuml_layout_options,
+    plantuml=plantuml_render_options,
 )
 
 diagram.render_options = render_options

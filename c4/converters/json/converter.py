@@ -196,16 +196,21 @@ class JSONToDiagramConverter:
 
     def _set_render_options(self) -> None:
         """Set rendering options for the diagram."""
-        render_options_kwargs = {}
         render_options_schema = self._diagram_schema.render_options
 
-        if render_options_schema and render_options_schema.plantuml:
-            layout_config = render_options_schema.plantuml.to_layout_config()
-            render_options_kwargs["plantuml"] = layout_config
+        plantuml = None
+        mermaid = None
 
-        if render_options_kwargs:
+        if render_options_schema:
+            if render_options_schema.plantuml:
+                plantuml = render_options_schema.plantuml.to_render_options()
+
+            if render_options_schema.mermaid:
+                mermaid = render_options_schema.mermaid.to_render_options()
+
             self._diagram.render_options = RenderOptions(
-                **render_options_kwargs,
+                plantuml=plantuml,
+                mermaid=mermaid,
             )
 
     def convert(self) -> Diagram:

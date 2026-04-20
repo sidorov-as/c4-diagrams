@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from c4.converters.python.renderers.plantuml import (
+from c4.converters.python.formatters import (
     ChainCall,
     MethodCallFormatter,
 )
@@ -43,53 +43,71 @@ def test_method_call_formatter__inspect_signature__many_params():
         Owner,
         "m",
         kwargs,
+        positional_args=(),
     )
 
-    assert result.ordered_args == [("a", 1), ("b", 2), ("c", 3), ("x", 9)]
-    assert result.is_single_arg is False
-    assert result.is_single_kwonly_arg is False
+    assert result.ordered_kwargs == [("a", 1), ("b", 2), ("c", 3), ("x", 9)]
+    assert result.render_single_as_positional is False
 
 
 def test_method_call_formatter__inspect_signature__no_params():
-    result = MethodCallFormatter._inspect_signature(Owner, "no_args", {})
+    result = MethodCallFormatter._inspect_signature(
+        Owner,
+        "no_args",
+        {},
+        positional_args=(),
+    )
 
-    assert result.ordered_args == []
-    assert result.is_single_arg is False
-    assert result.is_single_kwonly_arg is False
+    assert result.ordered_kwargs == []
+    assert result.render_single_as_positional is False
 
 
 def test_method_call_formatter__inspect_signature__one_param():
-    result = MethodCallFormatter._inspect_signature(Owner, "single", {"a": 1})
+    result = MethodCallFormatter._inspect_signature(
+        Owner,
+        "single",
+        {"a": 1},
+        positional_args=(),
+    )
 
-    assert result.ordered_args == [("a", 1)]
-    assert result.is_single_arg is True
-    assert result.is_single_kwonly_arg is False
+    assert result.ordered_kwargs == [("a", 1)]
+    assert result.render_single_as_positional is True
 
 
 def test_method_call_formatter__inspect_signature__defaults():
-    result = MethodCallFormatter._inspect_signature(Owner, "defaults", {"a": 1})
+    result = MethodCallFormatter._inspect_signature(
+        Owner,
+        "defaults",
+        {"a": 1},
+        positional_args=(),
+    )
 
-    assert result.ordered_args == [("a", 1)]
-    assert result.is_single_arg is False
-    assert result.is_single_kwonly_arg is False
+    assert result.ordered_kwargs == [("a", 1)]
+    assert result.render_single_as_positional is False
 
 
 def test_method_call_formatter__inspect_signature__defaults_no_args():
-    result = MethodCallFormatter._inspect_signature(Owner, "defaults", {})
+    result = MethodCallFormatter._inspect_signature(
+        Owner,
+        "defaults",
+        {},
+        positional_args=(),
+    )
 
-    assert result.ordered_args == []
-    assert result.is_single_arg is False
-    assert result.is_single_kwonly_arg is False
+    assert result.ordered_kwargs == []
+    assert result.render_single_as_positional is False
 
 
 def test_method_call_formatter__inspect_signature__one_kwonly_param():
     result = MethodCallFormatter._inspect_signature(
-        Owner, "single_kwonly", {"a": 1}
+        Owner,
+        "single_kwonly",
+        {"a": 1},
+        positional_args=(),
     )
 
-    assert result.ordered_args == [("a", 1)]
-    assert result.is_single_arg is True
-    assert result.is_single_kwonly_arg is True
+    assert result.ordered_kwargs == [("a", 1)]
+    assert result.render_single_as_positional is False
 
 
 def test_method_call_formatter__format_call_empty_args():
@@ -103,16 +121,36 @@ def test_method_call_formatter__format_call_empty_args():
 def test_method_call_formatter__format_call_renders_kwargs():
     formatter = MethodCallFormatter()
 
-    result = formatter.format_call("m", {"a": 1, "b": "x"})
+    result = formatter.format_call("m", call_kwargs={"a": 1, "b": "x"})
 
     assert result == ".m(a=1, b='x')"
 
 
+def test_method_call_formatter__format_call_renders_positional_args():
+    formatter = MethodCallFormatter()
+
+    result = formatter.format_call("m", call_args=(1, "x"))
+
+    assert result == ".m(1, 'x')"
+
+
+def test_method_call_formatter__format_call_renders_args_and_kwargs():
+    formatter = MethodCallFormatter()
+
+    result = formatter.format_call(
+        "m",
+        call_args=(1,),
+        call_kwargs={"b": "x"},
+    )
+
+    assert result == ".m(1, b='x')"
+
+
 def test_method_call_formatter__format_call_orders_kwargs_with_owner_cls():
     formatter = MethodCallFormatter(owner_cls=Owner)
-    call_args = {"c": 3, "a": 1, "b": 2}
+    call_kwargs = {"c": 3, "a": 1, "b": 2}
 
-    result = formatter.format_call("m", call_args)
+    result = formatter.format_call("m", call_kwargs=call_kwargs)
 
     assert result == ".m(a=1, b=2, c=3)"
 
@@ -153,25 +191,26 @@ def test_method_call_formatter_inspect_signature__orders_kwargs(
         cls=cls,
         method_name=method_name,
         kwargs=kwargs,
+        positional_args=(),
     )
 
-    assert result.ordered_args == expected
+    assert result.ordered_kwargs == expected
 
 
 @pytest.mark.parametrize(
-    ("call_args", "expected"),
+    ("call_kwargs", "expected"),
     [
         (None, ".foo()"),
         ({}, ".foo()"),
     ],
 )
 def test_method_call_formatter__format_call__no_args(
-    call_args: dict[str, Any] | None,
+    call_kwargs: dict[str, Any] | None,
     expected: str,
 ):
     formatter = MethodCallFormatter()
 
-    result = formatter.format_call("foo", call_args)
+    result = formatter.format_call("foo", call_kwargs=call_kwargs)
 
     assert result == expected
 
@@ -179,7 +218,7 @@ def test_method_call_formatter__format_call__no_args(
 def test_method_call_formatter__format_call__renders_kwargs_with_repr():
     formatter = MethodCallFormatter()
 
-    result = formatter.format_call("m", {"a": "x", "b": 2})
+    result = formatter.format_call("m", call_kwargs={"a": "x", "b": 2})
 
     assert result == ".m(a='x', b=2)"
 
@@ -187,15 +226,23 @@ def test_method_call_formatter__format_call__renders_kwargs_with_repr():
 def test_method_call_formatter__format_call__renders_single_arg():
     formatter = MethodCallFormatter(owner_cls=Owner)
 
-    result = formatter.format_call("single", {"a": "x"})
+    result = formatter.format_call("single", call_kwargs={"a": "x"})
 
     assert result == ".single('x')"
+
+
+def test_method_call_formatter__format_call__single_kwonly():
+    formatter = MethodCallFormatter(owner_cls=Owner)
+
+    result = formatter.format_call("single_kwonly", call_kwargs={"a": "x"})
+
+    assert result == ".single_kwonly(a='x')"
 
 
 def test_method_call_formatter__format_call__orders_kwargs_by_signature():
     formatter = MethodCallFormatter(owner_cls=Owner)
 
-    result = formatter.format_call("m", {"c": 3, "a": 1, "b": 2})
+    result = formatter.format_call("m", call_kwargs={"c": 3, "a": 1, "b": 2})
 
     assert result == ".m(a=1, b=2, c=3)"
 
@@ -203,7 +250,10 @@ def test_method_call_formatter__format_call__orders_kwargs_by_signature():
 def test_method_call_formatter__format_call__unknown_kwargs_order():
     formatter = MethodCallFormatter(owner_cls=Owner)
 
-    result = formatter.format_call("m", {"b": 2, "z": 9, "a": 1, "y": 8})
+    result = formatter.format_call(
+        "m",
+        call_kwargs={"b": 2, "z": 9, "a": 1, "y": 8},
+    )
 
     assert result == ".m(a=1, b=2, z=9, y=8)"
 
@@ -272,6 +322,21 @@ def test_method_call_formatter__render_chained_call__renders_args_kwargs():
         "        x=2,",
         "        **extra,",
         "    )",
+    ]
+
+
+def test_method_call_formatter__render_chained_call__no_args():
+    formatter = MethodCallFormatter(max_line=79)
+    call = ChainCall(
+        method="m",
+        args=[],  # type: ignore[attr-defined]
+        keywords=[],
+    )
+
+    lines = formatter._render_chained_call(call)
+
+    assert lines == [
+        "    .m()",
     ]
 
 

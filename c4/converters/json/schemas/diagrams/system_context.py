@@ -29,6 +29,7 @@ from c4.converters.json.schemas.diagrams.common import (
     WithBoundaryRelationship,
     WithType,
 )
+from c4.diagrams.core import Boundary
 
 
 class PersonSchema(ElementBase[Person], WithType):
@@ -352,6 +353,83 @@ class SystemContextBoundaryBase(
     )
 
 
+class BoundarySchema(
+    BoundaryBase[Boundary],
+    WithType,
+    WithBoundaryRelationship,
+):
+    """
+    This schema describes the
+    [`Boundary`][c4.diagrams.core.Boundary]
+    diagram component.
+    """
+
+    type: Literal["Boundary"] = Field(
+        ...,
+        description="Discriminator identifying the element type.",
+        frozen=True,
+    )
+
+    elements: list[AnyElement] = Field(
+        default_factory=list, description="Elements may be nested arbitrarily."
+    )
+    boundaries: list[AnyBoundary] = Field(
+        default_factory=list,
+        description="Boundaries may be nested arbitrarily.",
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "type": "Boundary",
+                    "label": "Commerce Platform",
+                    "alias": "commerce_platform",
+                    "stereotype": "boundary",
+                    "description": (
+                        "Boundary for the commerce system and its "
+                        "internal components."
+                    ),
+                    "tags": ["system_boundary"],
+                    "link": "https://docs.example.com/commerce",
+                    "properties": {
+                        "properties": [
+                            ["Owner", "Commerce Team"],
+                            ["Environment", "Production"],
+                        ]
+                    },
+                    "relationships": [
+                        {
+                            "type": "REL",
+                            "from": "web_storefront",
+                            "to": "orders_db",
+                            "label": "Reads and writes orders",
+                            "technology": "SQL",
+                        }
+                    ],
+                    "elements": [
+                        {
+                            "type": "System",
+                            "label": "Web Storefront",
+                            "alias": "web_storefront",
+                            "description": (
+                                "Frontend for browsing and checkout."
+                            ),
+                        },
+                        {
+                            "type": "SystemDb",
+                            "label": "Orders DB",
+                            "alias": "orders_db",
+                            "description": "Stores orders and payment state.",
+                        },
+                    ],
+                    "boundaries": [],
+                }
+            ]
+        }
+    )
+
+
 class EnterpriseBoundarySchema(SystemContextBoundaryBase[EnterpriseBoundary]):
     """
     This schema describes the
@@ -486,7 +564,7 @@ class SystemBoundarySchema(SystemContextBoundaryBase[SystemBoundary]):
     )
 
 
-AnyBoundary = EnterpriseBoundarySchema | SystemBoundarySchema
+AnyBoundary = BoundarySchema | EnterpriseBoundarySchema | SystemBoundarySchema
 
 
 SYSTEM_CONTEXT_DIAGRAM_MINIMAL_EXAMPLE: dict[str, Any] = {

@@ -18,7 +18,7 @@ from c4 import (
     Rel,
     SystemExt,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 with ComponentDiagram(
     title="Component diagram for Internet Banking System - API Application"
@@ -84,9 +84,9 @@ with ComponentDiagram(
     ma >> Rel("Uses", "JSON/HTTPS") >> sign
     ma >> Rel("Uses", "JSON/HTTPS") >> accounts
 
-    layout_config = LayoutOptions().layout_with_legend().build()
+    render_options = PlantUMLRenderOptionsBuilder().layout_with_legend().build()
 
-diagram_code = diagram.as_plantuml(layout_config=layout_config)
+diagram_code = diagram.as_plantuml(render_options=render_options)
 ```
 
 <details>

@@ -1,0 +1,187 @@
+{
+  "type": "ComponentDiagram",
+  "title": "Component diagram for Internet Banking System - API Application",
+  "elements": [
+    {
+      "type": "Container",
+      "label": "Single Page Application",
+      "description": "Provides all the internet banking functionality to customers via their web browser.",
+      "technology": "javascript and angular",
+      "alias": "spa"
+    },
+    {
+      "type": "Container",
+      "label": "Mobile App",
+      "description": "Provides a limited subset to the internet banking functionality to customers via their mobile device.",
+      "technology": "Xamarin",
+      "alias": "ma"
+    },
+    {
+      "type": "ContainerDb",
+      "label": "Database",
+      "description": "Stores user registration information, hashed authentication credentials, access logs, etc.",
+      "technology": "Relational Database Schema",
+      "alias": "db"
+    },
+    {
+      "type": "SystemExt",
+      "label": "Mainframe Banking System",
+      "description": "Stores all of the core banking information about customers, accounts, transactions, etc.",
+      "alias": "mbs"
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "ContainerBoundary",
+      "label": "API Application",
+      "alias": "api",
+      "elements": [
+        {
+          "type": "Component",
+          "label": "Sign In Controller",
+          "description": "Allows users to sign in to the internet banking system",
+          "technology": "MVC Rest Controller",
+          "alias": "sign"
+        },
+        {
+          "type": "Component",
+          "label": "Accounts Summary Controller",
+          "description": "Provides customers with a summary of their bank accounts",
+          "technology": "MVC Rest Controller",
+          "alias": "accounts"
+        },
+        {
+          "type": "Component",
+          "label": "Security Component",
+          "description": "Provides functionality related to singing in, changing passwords, etc.",
+          "technology": "Spring Bean",
+          "alias": "security"
+        },
+        {
+          "type": "Component",
+          "label": "Mainframe Banking System Facade",
+          "description": "A facade onto the mainframe banking system.",
+          "technology": "Spring Bean",
+          "alias": "mbsfacade"
+        }
+      ],
+      "boundaries": [],
+      "relationships": [
+        {
+          "type": "REL",
+          "from": "sign",
+          "to": "security",
+          "label": "Uses"
+        },
+        {
+          "type": "REL",
+          "from": "accounts",
+          "to": "mbsfacade",
+          "label": "Uses"
+        },
+        {
+          "type": "REL",
+          "from": "security",
+          "to": "db",
+          "label": "Read & write to",
+          "technology": "JDBC"
+        },
+        {
+          "type": "REL",
+          "from": "mbsfacade",
+          "to": "mbs",
+          "label": "Uses",
+          "technology": "XML/HTTPS"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL_BACK",
+      "from": "spa",
+      "to": "sign",
+      "label": "Uses",
+      "technology": "JSON/HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "spa",
+      "to": "accounts",
+      "label": "Uses",
+      "technology": "JSON/HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "ma",
+      "to": "sign",
+      "label": "Uses",
+      "technology": "JSON/HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "ma",
+      "to": "accounts",
+      "label": "Uses",
+      "technology": "JSON/HTTPS"
+    }
+  ],
+  "render_options": {
+    "mermaid": {
+      "styles": [
+        {
+          "type": "RelStyle",
+          "from_element": "spa",
+          "to_element": "sign",
+          "offset_y": -40
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "spa",
+          "to_element": "accounts",
+          "offset_x": -70,
+          "offset_y": 40
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "ma",
+          "to_element": "sign",
+          "offset_x": -90,
+          "offset_y": 40
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "ma",
+          "to_element": "accounts",
+          "offset_y": -40
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "sign",
+          "to_element": "security",
+          "offset_x": -160,
+          "offset_y": 10
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "accounts",
+          "to_element": "mbsfacade",
+          "offset_x": 140,
+          "offset_y": 10
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "security",
+          "to_element": "db",
+          "offset_y": -40
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "mbsfacade",
+          "to_element": "mbs",
+          "offset_y": -40
+        }
+      ]
+    }
+  }
+}

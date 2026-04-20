@@ -16,6 +16,7 @@ from urllib.request import Request, urlopen
 
 from c4 import PNG, DiagramFormat
 from c4.constants import (
+    C4_PLANTUML_LIBRARY_DIR,
     DEFAULT_JAVA_BIN,
     DEFAULT_PLANTUML_BIN,
     DEFAULT_PLANTUML_SERVER_URL,
@@ -32,6 +33,7 @@ from c4.exceptions import (
     PlantUMLLocalRenderingError,
     PlantUMLRemoteRenderingError,
 )
+from c4.utils import MISSING, Maybe
 
 BASE64_TO_PLANTUML = {
     ord(b): b2.encode()
@@ -70,10 +72,8 @@ class BasePlantUMLBackend(ABC):
 
         Raises:
             PlantUMLRenderingError: If rendering fails.
-            FileNotFoundError: If the required PlantUML backend is
-                not available.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def to_file(
         self,
@@ -103,8 +103,6 @@ class BasePlantUMLBackend(ABC):
             FileExistsError: If the output file exists
                 and ``overwrite`` is ``False``.
             PlantUMLRenderingError: If rendering fails.
-            FileNotFoundError: If the required PlantUML backend is
-                not available.
         """
         output_path = Path(output_path)
 
@@ -231,12 +229,6 @@ class RemotePlantUMLBackend(BasePlantUMLBackend):
         return b"".join(BASE64_TO_PLANTUML[b] for b in b64_encoded)
 
 
-class _Empty: ...  # pragma: no cover
-
-
-empty = _Empty()
-
-
 class LocalPlantUMLBackend(BasePlantUMLBackend):
     """
     Generate PlantUML diagrams using local PlantUML binary or jar.
@@ -252,10 +244,10 @@ class LocalPlantUMLBackend(BasePlantUMLBackend):
     def __init__(
         self,
         *,
-        plantuml_bin: str | None | _Empty = empty,
-        plantuml_jar: Path | None | _Empty = empty,
+        plantuml_bin: Maybe[str | None] = MISSING,
+        plantuml_jar: Maybe[Path | None] = MISSING,
         java_bin: str | None = None,
-        timeout_seconds: float = DEFAULT_RENDERING_TIMEOUT_SECONDS,
+        timeout_seconds: Maybe[float] = MISSING,
         plantuml_args: Sequence[str] = (),
         java_args: Sequence[str] = (),
         env: Mapping[str, str] | None = None,
@@ -264,42 +256,45 @@ class LocalPlantUMLBackend(BasePlantUMLBackend):
         if env:
             self._env.update(env)
 
-        if plantuml_bin is empty:
+        if plantuml_bin is MISSING:
             self._plantuml_bin = self._env.get(
                 PLANTUML_BIN_ENV_VAR, DEFAULT_PLANTUML_BIN
             )
         else:
-            self._plantuml_bin = plantuml_bin  # type: ignore[assignment]
+            self._plantuml_bin = plantuml_bin
 
         self._plantuml_args = list(plantuml_args)
 
-        if plantuml_jar is empty:
+        if plantuml_jar is MISSING:
             jar_env = self._env.get(PLANTUML_JAR_ENV_VAR)
             self._plantuml_jar = Path(jar_env) if jar_env else None
         else:
-            self._plantuml_jar = plantuml_jar  # type: ignore[assignment]
+            self._plantuml_jar = plantuml_jar
 
         self._java_bin = java_bin or self._env.get(
             JAVA_BIN_ENV_VAR, DEFAULT_JAVA_BIN
         )
         self._java_args = list(java_args)
 
-        timeout_env = self._env.get(
-            RENDERING_TIMEOUT_SECONDS_ENV_VAR,
-            timeout_seconds,
-        )
-        try:
-            self._timeout_seconds = float(timeout_env)
-        except ValueError as exc:
-            raise PlantUMLBackendConfigurationError(
-                f"Invalid {RENDERING_TIMEOUT_SECONDS_ENV_VAR}={timeout_env!r}:"
-                f" expected a number of seconds."
-            ) from exc
+        if timeout_seconds is MISSING:
+            timeout_seconds = self._env.get(  # type: ignore[assignment]
+                RENDERING_TIMEOUT_SECONDS_ENV_VAR,
+                DEFAULT_RENDERING_TIMEOUT_SECONDS,
+            )
 
-        _timeout_seconds = os.getenv(
-            RENDERING_TIMEOUT_SECONDS_ENV_VAR, timeout_seconds
-        )
-        self._timeout_seconds = timeout_seconds
+        try:
+            self._timeout_seconds = float(timeout_seconds)  # type: ignore[arg-type]
+        except ValueError as exc:
+            source = (
+                "timeout_seconds argument"
+                if timeout_seconds is not MISSING
+                else f"environment variable {RENDERING_TIMEOUT_SECONDS_ENV_VAR}"
+            )
+
+            raise PlantUMLBackendConfigurationError(
+                f"Invalid timeout from {source}: {timeout_seconds!r} "
+                f"(expected a number of seconds)."
+            ) from exc
 
         self._resolve_backend()
 
@@ -327,6 +322,10 @@ class LocalPlantUMLBackend(BasePlantUMLBackend):
         """
         with tempfile.TemporaryDirectory(prefix="plantuml-gen-") as tmp:
             tmp_dir = Path(tmp)
+            shutil.copytree(
+                C4_PLANTUML_LIBRARY_DIR, tmp_dir, dirs_exist_ok=True
+            )
+
             input_path = tmp_dir / "diagram.puml"
             input_path.write_text(diagram, encoding="utf-8")
 

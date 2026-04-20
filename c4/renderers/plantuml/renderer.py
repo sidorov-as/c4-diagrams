@@ -40,7 +40,6 @@ from c4.renderers.plantuml.constants import (
     C4_DYNAMIC_INCLUDE,
     RELATIVE_INCLUDE_COMMENT,
 )
-from c4.renderers.plantuml.layout_options import LayoutConfig
 from c4.renderers.plantuml.macros import (
     DiagramLayoutPlantUMLMacro,
     ElementPlantUMLMacro,
@@ -63,13 +62,14 @@ from c4.renderers.plantuml.macros import (
     UpdateLegendTitlePlantUMLMacro,
     WithoutPropertyHeaderPlantUMLMacro,
 )
+from c4.renderers.plantuml.options import PlantUMLRenderOptions
 
 
-class LayoutOptionsRenderer:
+class PlantUMLRenderOptionsRenderer:
     def __init__(
         self,
         includes: list[str],
-        layout_config: LayoutConfig | None = None,
+        render_options: PlantUMLRenderOptions | None = None,
     ) -> None:
         """
         Initialize the renderer.
@@ -77,17 +77,17 @@ class LayoutOptionsRenderer:
         Args:
             includes: A list of PlantUML `!include` directives
                 to be injected at the beginning of the diagram.
-            layout_config: Layout configuration that controls
+            render_options: Render options that controls
                 diagram rendering behavior, such as direction,
                 spacing, and group alignment.
         """
         self._includes = includes
-        self._config = layout_config or LayoutConfig()
+        self._render_options = render_options or PlantUMLRenderOptions()
 
     def _render_tags(self) -> str:
         builder = IndentedStringBuilder()
 
-        for tag in self._config.tags:
+        for tag in self._render_options.tags:
             macro = TagPlantUMLMacro.get_macro_by_tag(tag)  # type: ignore[var-annotated]
             builder.add(macro.render())
 
@@ -96,7 +96,7 @@ class LayoutOptionsRenderer:
     def _render_styles(self) -> str:
         builder = IndentedStringBuilder()
 
-        for style in self._config.styles:
+        for style in self._render_options.styles:
             macro = StylePlantUMLMacro.get_macro_by_style(style)  # type: ignore[var-annotated]
             builder.add(macro.render())
 
@@ -106,41 +106,43 @@ class LayoutOptionsRenderer:
         builder = IndentedStringBuilder()
         macro: PlantUMLMacro[Any]
 
-        if self._config.layout:
-            macro = DiagramLayoutPlantUMLMacro(self._config.layout)
+        if self._render_options.layout:
+            macro = DiagramLayoutPlantUMLMacro(self._render_options.layout)
             builder.add(macro.render())
 
-        if self._config.layout_with_legend:
+        if self._render_options.layout_with_legend:
             macro = LayoutWithLegendPlantUMLMacro()
             builder.add(macro.render())
 
-        if self._config.layout_as_sketch:
+        if self._render_options.layout_as_sketch:
             macro = LayoutAsSketchPlantUMLMacro()
             builder.add(macro.render())
 
-        if self._config.hide_person_sprite:
+        if self._render_options.hide_person_sprite:
             macro = HidePersonSpritePlantUMLMacro()
             builder.add(macro.render())
 
-        if self._config.show_person_sprite:
+        if self._render_options.show_person_sprite:
             macro = ShowPersonSpritePlantUMLMacro(
-                self._config.show_person_sprite
+                self._render_options.show_person_sprite
             )
             builder.add(macro.render())
 
-        if self._config.show_person_outline:
+        if self._render_options.show_person_outline:
             macro = ShowPersonOutlinePlantUMLMacro()
             builder.add(macro.render())
 
-        if self._config.legend_title:
-            macro = UpdateLegendTitlePlantUMLMacro(self._config.legend_title)
+        if self._render_options.legend_title:
+            macro = UpdateLegendTitlePlantUMLMacro(
+                self._render_options.legend_title
+            )
             builder.add(macro.render())
 
-        if self._config.hide_stereotype:
+        if self._render_options.hide_stereotype:
             macro = HideStereotypePlantUMLMacro()
             builder.add(macro.render())
 
-        if self._config.without_property_header:
+        if self._render_options.without_property_header:
             macro = WithoutPropertyHeaderPlantUMLMacro()
             builder.add(macro.render())
 
@@ -149,8 +151,10 @@ class LayoutOptionsRenderer:
     def _render_sketch_style(self) -> str:
         builder = IndentedStringBuilder()
 
-        if self._config.set_sketch_style:
-            macro = SetSketchStylePlantUMLMacro(self._config.set_sketch_style)
+        if self._render_options.set_sketch_style:
+            macro = SetSketchStylePlantUMLMacro(
+                self._render_options.set_sketch_style
+            )
             builder.add(macro.render())
 
         return builder.get_result()
@@ -174,13 +178,13 @@ class LayoutOptionsRenderer:
         builder = IndentedStringBuilder()
         macro: PlantUMLMacro[Any]
 
-        if self._config.show_legend:
-            macro = ShowLegendPlantUMLMacro(self._config.show_legend)
+        if self._render_options.show_legend:
+            macro = ShowLegendPlantUMLMacro(self._render_options.show_legend)
             builder.add(macro.render(), blank_line_after=True)
 
-        if self._config.show_floating_legend:
+        if self._render_options.show_floating_legend:
             macro = ShowFloatingLegendPlantUMLMacro(
-                self._config.show_floating_legend
+                self._render_options.show_floating_legend
             )
             builder.add(macro.render(), blank_line_after=True)
 
@@ -195,7 +199,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
     def __init__(
         self,
         includes: list[str] | None = None,
-        layout_config: LayoutConfig | None = None,
+        render_options: PlantUMLRenderOptions | None = None,
         backend: BasePlantUMLBackend | None = None,
         use_new_c4_style: bool = False,
     ) -> None:
@@ -205,7 +209,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         Args:
             includes: A list of PlantUML `!include` directives
                 to be injected at the beginning of the diagram.
-            layout_config: Layout configuration that controls
+            render_options: Render options that controls
                 diagram rendering behavior, such as direction,
                 spacing, and group alignment.
             backend:
@@ -217,28 +221,30 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
                 the following directive into the generated source:
                     !NEW_C4_STYLE=1
         """
-        self._config = layout_config or LayoutConfig()
+        self._render_options = render_options or PlantUMLRenderOptions()
 
         _includes = getattr(self, "default_includes", [])
         _includes.extend(includes or [])
+        _includes.extend(self._render_options.includes)
 
-        self._layout_options_renderer = LayoutOptionsRenderer(
+        self._render_options_renderer = PlantUMLRenderOptionsRenderer(
             includes=_includes,
-            layout_config=self._config,
+            render_options=self._render_options,
         )
-        self._without_property_header = self._config.without_property_header
+        self._without_property_header = (
+            self._render_options.without_property_header
+        )
 
         self._builder = IndentedStringBuilder()
 
         self._includes = includes or []
-        self._layout_config = None
         self._plantuml_backend = backend
         self._use_new_c4_style = use_new_c4_style
 
-    def render_base_element(self, element: BaseDiagramElement) -> list[str]:
-        raise NotImplementedError
+    def _render_base_element(self, element: BaseDiagramElement) -> list[str]:
+        raise NotImplementedError()  # pragma: no cover
 
-    def render_element(self, element: Element) -> list[str]:
+    def _render_element(self, element: Element) -> list[str]:
         macro = ElementPlantUMLMacro.from_element(element)
 
         properties_macros = macro.render_properties(
@@ -248,15 +254,17 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
         return [*properties_macros, element_macro]
 
-    def render_boundary(self, boundary: Boundary, depth: int = 0) -> str:
+    def _render_boundary(self, boundary: Boundary, depth: int = 0) -> str:
         builder = IndentedStringBuilder(level=depth)
 
-        *properties, element_macro = self.render_element(boundary)
+        *properties, element_macro = self._render_element(boundary)
         builder.add(*properties, element_macro + " {")
 
         with builder.indent() as level:
             for idx, nested_element in enumerate(boundary.elements, start=1):
-                *properties, element_macro = self.render_element(nested_element)
+                *properties, element_macro = self._render_element(
+                    nested_element
+                )
                 builder.add(
                     *properties,
                     element_macro,
@@ -268,7 +276,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
             for idx, nested_boundary in enumerate(boundary.boundaries, start=1):
                 builder.add(
-                    self.render_boundary(nested_boundary, depth=level),
+                    self._render_boundary(nested_boundary, depth=level),
                     indent=False,
                     blank_line_after=idx < len(boundary.boundaries),
                 )
@@ -277,7 +285,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
                 builder.add_blank_line()
 
             for idx, relationship in enumerate(boundary.relationships, start=1):  # noqa: B007
-                *properties, relationship_macro = self.render_relationship(
+                *properties, relationship_macro = self._render_relationship(
                     relationship
                 )
                 builder.add(
@@ -289,7 +297,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
         return builder.get_result()
 
-    def render_relationship(self, relationship: Relationship) -> list[str]:
+    def _render_relationship(self, relationship: Relationship) -> list[str]:
         macro = RelationshipPlantUMLMacro(relationship)
 
         properties_macros = macro.render_properties(
@@ -298,7 +306,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         relationship_macro = macro.render()
         return [*properties_macros, relationship_macro]
 
-    def render_layout(self, layout: Layout) -> list[str]:
+    def _render_layout(self, layout: Layout) -> list[str]:
         macro = LayoutPlantUMLMacro(layout)
 
         properties_macros = macro.render_properties(
@@ -315,24 +323,24 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
             self._builder.add_blank_line()
             self._builder.add("!NEW_C4_STYLE=1", blank_line_after=True)
 
-        layout_header = self._layout_options_renderer.render_header(diagram)
+        layout_header = self._render_options_renderer.render_header(diagram)
         self._builder.add(layout_header, blank_line_after=True)
 
     def _render_footer(self) -> None:
-        layout_footer = self._layout_options_renderer.render_footer()
+        footer = self._render_options_renderer.render_footer()
 
-        self._builder.add(layout_footer, blank_line_after=True)
+        self._builder.add(footer, blank_line_after=True)
 
         self._builder.add("@enduml")
 
     def _render_elements(self, diagram: _TDiagram) -> None:
         for element in diagram.elements:
-            *properties, element_macro = self.render_element(element)
+            *properties, element_macro = self._render_element(element)
             self._builder.add(*properties, element_macro, blank_line_after=True)
 
     def _render_base_elements(self, diagram: _TDiagram) -> None:
         for idx, element in enumerate(diagram.base_elements, start=1):
-            *properties, element_macro = self.render_base_element(element)
+            *properties, element_macro = self._render_base_element(element)
             self._builder.add(
                 *properties,
                 element_macro,
@@ -342,12 +350,12 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
     def _render_boundaries(self, diagram: _TDiagram) -> None:
         for boundary in diagram.boundaries:
             self._builder.add(
-                self.render_boundary(boundary), blank_line_after=True
+                self._render_boundary(boundary), blank_line_after=True
             )
 
     def _render_relationships(self, diagram: _TDiagram) -> None:
         for idx, relationship in enumerate(diagram.relationships, start=1):
-            *properties, relationship_macro = self.render_relationship(
+            *properties, relationship_macro = self._render_relationship(
                 relationship
             )
             self._builder.add(
@@ -361,7 +369,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
     def _render_layouts(self, diagram: _TDiagram) -> None:
         for idx, layout in enumerate(diagram.layouts, start=1):
-            *properties, layout_macro = self.render_layout(layout)
+            *properties, layout_macro = self._render_layout(layout)
             self._builder.add(
                 *properties,
                 layout_macro,
@@ -537,7 +545,7 @@ class PlantUMLDynamicDiagramRenderer(BasePlantUMLRenderer[DynamicDiagram]):
     ]
 
     @override
-    def render_base_element(
+    def _render_base_element(
         self,
         element: BaseDiagramElement,
     ) -> list[str]:
@@ -593,7 +601,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
     def __init__(
         self,
         includes: list[str] | None = None,
-        layout_config: LayoutConfig | None = None,
+        render_options: PlantUMLRenderOptions | None = None,
         backend: BasePlantUMLBackend | None = None,
         use_new_c4_style: bool = False,
         *args: Any,
@@ -605,7 +613,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
         Args:
             includes: A list of PlantUML `!include` directives
                 to be injected at the beginning of the diagram.
-            layout_config: Layout configuration that controls
+            render_options: Render options that controls
                 diagram rendering behavior, such as direction,
                 spacing, and group alignment.
             backend:
@@ -623,7 +631,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
         """
         super().__init__(*args, **kwargs)
         self._includes = includes or []
-        self._layout_config = layout_config
+        self._render_options = render_options
         self._plantuml_backend = backend
         self._use_new_c4_style = use_new_c4_style
 
@@ -636,13 +644,13 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
                 f"Unsupported PlantUML diagram type: {diagram_type}"
             )
 
-        layout_config = self._layout_config
+        render_options = self._render_options
         if diagram.render_options and diagram.render_options.plantuml:
-            layout_config = diagram.render_options.plantuml
+            render_options = diagram.render_options.plantuml
 
         return renderer_class(
             includes=self._includes,
-            layout_config=layout_config,
+            render_options=render_options,
             backend=self._plantuml_backend,
             use_new_c4_style=self._use_new_c4_style,
         )

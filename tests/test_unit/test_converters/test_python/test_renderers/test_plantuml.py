@@ -4,17 +4,17 @@ from typing import Any
 import pytest
 
 from c4.converters.python.renderers.plantuml import (
-    LayoutOptionsCodegen,
+    PlantUMLRenderOptionsCodegen,
     _resolve_method,
 )
-from c4.renderers.plantuml.layout_options import (
+from c4.renderers.plantuml.options import (
     BoundaryStyle,
     ContainerTag,
     DiagramLayout,
     ElementStyle,
     ExternalPersonTag,
-    LayoutConfig,
     PersonTag,
+    PlantUMLRenderOptions,
     RelStyle,
     RelTag,
     SetSketchStyle,
@@ -29,8 +29,8 @@ ANY_STYLE = ElementStyle("", "", "", "", "", "", "", "", "", "", "", "")
 
 
 @pytest.fixture()
-def codegen() -> LayoutOptionsCodegen:
-    return LayoutOptionsCodegen()
+def codegen() -> PlantUMLRenderOptionsCodegen:
+    return PlantUMLRenderOptionsCodegen()
 
 
 def test_resolve_method__success():
@@ -59,47 +59,53 @@ def test_resolve_method__key_error():
         (DiagramLayout.LAYOUT_LANDSCAPE, "layout_landscape"),
     ],
 )
-def test_layout_options_codegen__layout_method_name(
+def test_render_options_codegen__layout_method_name(
     layout: DiagramLayout,
     expected: str,
 ):
-    result = LayoutOptionsCodegen._layout_method_name(layout)
+    result = PlantUMLRenderOptionsCodegen._layout_method_name(layout)
 
     assert result == expected
 
 
-def test_layout_options_codegen__layout_method_name_raises_value_error():
+def test_render_options_codegen__layout_method_name_raises_value_error():
     layout = object()
     expected_error = rf"Unsupported DiagramLayout: {layout!r}"
 
     with pytest.raises(ValueError, match=expected_error):
-        LayoutOptionsCodegen._layout_method_name(layout)  # type: ignore[arg-type]
+        PlantUMLRenderOptionsCodegen._layout_method_name(layout)  # type: ignore[arg-type]
 
 
-def test_layout_options_codegen__generate_single_line_for_single_call(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__generate_single_line_for_single_call(
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
-    config = LayoutConfig(layout_as_sketch=True)
+    config = PlantUMLRenderOptions(layout_as_sketch=True)
+    expected_result = textwrap.dedent(
+        """
+        plantuml_render_options = (
+            PlantUMLRenderOptionsBuilder()
+            .layout_as_sketch()
+            .build()
+        )
+        """
+    ).strip()
 
     result = codegen.generate(config)
 
-    assert (
-        result
-        == "plantuml_layout_options = LayoutOptions().layout_as_sketch().build()"
-    )
+    assert result == expected_result
 
 
-def test_layout_options_codegen_generate_single_line_le_79(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen_generate_single_line_le_79(
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
-    config = LayoutConfig(
+    config = PlantUMLRenderOptions(
         layout_as_sketch=True,
         layout_with_legend=True,
     )
     expected = textwrap.dedent(
         """
-        plantuml_layout_options = (
-            LayoutOptions()
+        plantuml_render_options = (
+            PlantUMLRenderOptionsBuilder()
             .layout_with_legend()
             .layout_as_sketch()
             .build()
@@ -112,8 +118,8 @@ def test_layout_options_codegen_generate_single_line_le_79(
     assert result == expected
 
 
-def test_layout_options_codegen__call_with_filtered_kwargs_raises_error(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__call_with_filtered_kwargs_raises_error(
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
     obj = object()
     expected_error = (
@@ -128,8 +134,8 @@ def test_layout_options_codegen__call_with_filtered_kwargs_raises_error(
         )
 
 
-def test_layout_options_codegen__call_with_filtered_kwargs_filters_defaults(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__call_with_filtered_kwargs_filters_defaults(
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
     obj = SetSketchStyle(bg_color="white")
 
@@ -149,8 +155,8 @@ def test_layout_options_codegen__call_with_filtered_kwargs_filters_defaults(
     assert result == ".set_sketch_style(bg_color='white')"
 
 
-def test_layout_options_codegen__call_from_optional_dataclass_raises_error(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__call_from_optional_dataclass_raises_error(
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
     obj = object()
     expected_error = rf"Expected dataclass for show_legend, got {type(obj)!r}"
@@ -166,8 +172,8 @@ def test_layout_options_codegen__call_from_optional_dataclass_raises_error(
         )
 
 
-def test_layout_options_codegen__call_from_optional_dataclass_emits_only_diffs(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__call_from_optional_dataclass_emits_only_diffs(
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
     obj = ShowLegend(hide_stereotype=None, details="Normal")
 
@@ -193,13 +199,13 @@ def test_layout_options_codegen__call_from_optional_dataclass_emits_only_diffs(
         ({"a": None, "b": "x"}, {"", None}, set(), {"b": "x"}),
     ],
 )
-def test_layout_options_codegen__filtered_kwargs_drops_values_unless_keep(
+def test_render_options_codegen__filtered_kwargs_drops_values_unless_keep(
     kwargs: dict[str, Any],
     drop_values: dict[str, Any],
     keep: set[Any],
     expected: dict[str, Any],
 ):
-    result = LayoutOptionsCodegen._filtered_kwargs(
+    result = PlantUMLRenderOptionsCodegen._filtered_kwargs(
         kwargs,
         drop_values=drop_values,
         keep=keep,
@@ -208,10 +214,10 @@ def test_layout_options_codegen__filtered_kwargs_drops_values_unless_keep(
     assert result == expected
 
 
-def test_layout_options_codegen__generate_renders_tags_and_styles(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__generate_renders_tags_and_styles(
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
-    config = LayoutConfig(
+    config = PlantUMLRenderOptions(
         tags=[
             ExternalPersonTag(
                 "person", "", "", "", "", "", "", "", "", "", "", ""
@@ -221,8 +227,8 @@ def test_layout_options_codegen__generate_renders_tags_and_styles(
     )
     expected = textwrap.dedent(
         """
-        plantuml_layout_options = (
-            LayoutOptions()
+        plantuml_render_options = (
+            PlantUMLRenderOptionsBuilder()
             .add_external_person_tag(
                 tag_stereo='person',
             )
@@ -239,7 +245,7 @@ def test_layout_options_codegen__generate_renders_tags_and_styles(
     assert result == expected
 
 
-def test_layout_options_codegen__generate_renders_element_style_with_name(
+def test_render_options_codegen__generate_renders_element_style_with_name(
     codegen,
 ):
     element_name = "very very long element name that fits 79 chars"
@@ -257,11 +263,11 @@ def test_layout_options_codegen__generate_renders_element_style_with_name(
         border_style="",
         border_thickness="",
     )
-    config = LayoutConfig(styles=[style])
+    config = PlantUMLRenderOptions(styles=[style])
     expected = textwrap.dedent(
         f"""
-        plantuml_layout_options = (
-            LayoutOptions()
+        plantuml_render_options = (
+            PlantUMLRenderOptionsBuilder()
             .update_element_style(
                 element_name='{element_name}',
             )
@@ -283,7 +289,11 @@ def test_layout_options_codegen__generate_renders_element_style_with_name(
             True,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().layout_with_legend().build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .layout_with_legend()
+                    .build()
+                )
                 """
             ).strip(),
         ),
@@ -292,7 +302,7 @@ def test_layout_options_codegen__generate_renders_element_style_with_name(
             False,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().build()
+                plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
                 """
             ).strip(),
         ),
@@ -301,8 +311,8 @@ def test_layout_options_codegen__generate_renders_element_style_with_name(
             True,
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .layout_top_down(
                         with_legend=True,
                     )
@@ -316,7 +326,11 @@ def test_layout_options_codegen__generate_renders_element_style_with_name(
             False,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().layout_top_down().build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .layout_top_down()
+                    .build()
+                )
                 """
             ).strip(),
         ),
@@ -325,8 +339,8 @@ def test_layout_options_codegen__generate_renders_element_style_with_name(
             True,
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .layout_left_right(
                         with_legend=True,
                     )
@@ -340,7 +354,11 @@ def test_layout_options_codegen__generate_renders_element_style_with_name(
             False,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().layout_left_right().build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .layout_left_right()
+                    .build()
+                )
                 """
             ).strip(),
         ),
@@ -349,8 +367,8 @@ def test_layout_options_codegen__generate_renders_element_style_with_name(
             True,
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .layout_landscape(
                         with_legend=True,
                     )
@@ -364,19 +382,23 @@ def test_layout_options_codegen__generate_renders_element_style_with_name(
             False,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().layout_landscape().build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .layout_landscape()
+                    .build()
+                )
                 """
             ).strip(),
         ),
     ],
 )
-def test_layout_options_codegen__render_layout_with_legend(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__render_layout_with_legend(
+    codegen: PlantUMLRenderOptionsCodegen,
     layout: DiagramLayout | None,
     with_legend: bool,
     expected_result: str,
 ):
-    config = LayoutConfig(
+    config = PlantUMLRenderOptions(
         layout=layout,
         layout_with_legend=with_legend,
     )
@@ -393,7 +415,7 @@ def test_layout_options_codegen__render_layout_with_legend(
             None,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().build()
+                plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
                 """
             ).strip(),
         ),
@@ -401,7 +423,11 @@ def test_layout_options_codegen__render_layout_with_legend(
             SetSketchStyle(),
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().set_sketch_style().build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .set_sketch_style()
+                    .build()
+                )
                 """
             ).strip(),
         ),
@@ -409,8 +435,8 @@ def test_layout_options_codegen__render_layout_with_legend(
             SetSketchStyle(bg_color="red"),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .set_sketch_style(
                         bg_color='red',
                     )
@@ -425,8 +451,8 @@ def test_layout_options_codegen__render_layout_with_legend(
             ),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .set_sketch_style(
                         bg_color='very-long-color-name',
                     )
@@ -442,8 +468,8 @@ def test_layout_options_codegen__render_layout_with_legend(
             ),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .set_sketch_style(
                         bg_color='very-long-color-name',
                         footer_text='very-long-footer-text',
@@ -455,12 +481,12 @@ def test_layout_options_codegen__render_layout_with_legend(
         ),
     ],
 )
-def test_layout_options_codegen__render_set_sketch_style(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__render_set_sketch_style(
+    codegen: PlantUMLRenderOptionsCodegen,
     set_sketch_style: SetSketchStyle | None,
     expected_result: str,
 ):
-    config = LayoutConfig(set_sketch_style=set_sketch_style)
+    config = PlantUMLRenderOptions(set_sketch_style=set_sketch_style)
 
     result = codegen.generate(config)
 
@@ -474,7 +500,7 @@ def test_layout_options_codegen__render_set_sketch_style(
             None,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().build()
+                plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
                 """
             ).strip(),
         ),
@@ -482,7 +508,7 @@ def test_layout_options_codegen__render_set_sketch_style(
             ShowLegend(),
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().show_legend().build()
+                plantuml_render_options = PlantUMLRenderOptionsBuilder().show_legend().build()
                 """
             ).strip(),
         ),
@@ -490,7 +516,7 @@ def test_layout_options_codegen__render_set_sketch_style(
             ShowLegend(hide_stereotype=True),
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().show_legend().build()
+                plantuml_render_options = PlantUMLRenderOptionsBuilder().show_legend().build()
                 """
             ).strip(),
         ),
@@ -498,8 +524,8 @@ def test_layout_options_codegen__render_set_sketch_style(
             ShowLegend(hide_stereotype=False),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .show_legend(
                         hide_stereotype=False,
                     )
@@ -512,7 +538,7 @@ def test_layout_options_codegen__render_set_sketch_style(
             ShowLegend(details="Small"),
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().show_legend().build()
+                plantuml_render_options = PlantUMLRenderOptionsBuilder().show_legend().build()
                 """
             ).strip(),
         ),
@@ -520,7 +546,13 @@ def test_layout_options_codegen__render_set_sketch_style(
             ShowLegend(details="Normal"),
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().show_legend(details='Normal').build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .show_legend(
+                        details='Normal',
+                    )
+                    .build()
+                )
                 """
             ).strip(),
         ),
@@ -528,8 +560,8 @@ def test_layout_options_codegen__render_set_sketch_style(
             ShowLegend(hide_stereotype=False, details="Normal"),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .show_legend(
                         hide_stereotype=False,
                         details='Normal',
@@ -541,12 +573,12 @@ def test_layout_options_codegen__render_set_sketch_style(
         ),
     ],
 )
-def test_layout_options_codegen__render_show_legend(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__render_show_legend(
+    codegen: PlantUMLRenderOptionsCodegen,
     show_legend: ShowLegend | None,
     expected_result: str,
 ):
-    config = LayoutConfig(show_legend=show_legend)
+    config = PlantUMLRenderOptions(show_legend=show_legend)
 
     result = codegen.generate(config)
 
@@ -560,7 +592,7 @@ def test_layout_options_codegen__render_show_legend(
             None,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().build()
+                plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
                 """
             ).strip(),
         ),
@@ -568,7 +600,11 @@ def test_layout_options_codegen__render_show_legend(
             ShowFloatingLegend(),
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().show_floating_legend().build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .show_floating_legend()
+                    .build()
+                )
                 """
             ).strip(),
         ),
@@ -576,8 +612,8 @@ def test_layout_options_codegen__render_show_legend(
             ShowFloatingLegend(alias="foo"),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .show_floating_legend(
                         alias='foo',
                     )
@@ -590,7 +626,11 @@ def test_layout_options_codegen__render_show_legend(
             ShowFloatingLegend(hide_stereotype=True),
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().show_floating_legend().build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .show_floating_legend()
+                    .build()
+                )
                 """
             ).strip(),
         ),
@@ -598,8 +638,8 @@ def test_layout_options_codegen__render_show_legend(
             ShowFloatingLegend(hide_stereotype=False),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .show_floating_legend(
                         hide_stereotype=False,
                     )
@@ -612,7 +652,11 @@ def test_layout_options_codegen__render_show_legend(
             ShowFloatingLegend(details="Small"),
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().show_floating_legend().build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .show_floating_legend()
+                    .build()
+                )
                 """
             ).strip(),
         ),
@@ -620,8 +664,8 @@ def test_layout_options_codegen__render_show_legend(
             ShowFloatingLegend(details="Normal"),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .show_floating_legend(
                         details='Normal',
                     )
@@ -636,8 +680,8 @@ def test_layout_options_codegen__render_show_legend(
             ),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .show_floating_legend(
                         alias='foo',
                         hide_stereotype=False,
@@ -650,12 +694,12 @@ def test_layout_options_codegen__render_show_legend(
         ),
     ],
 )
-def test_layout_options_codegen__render_show_floating_legend(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__render_show_floating_legend(
+    codegen: PlantUMLRenderOptionsCodegen,
     show_floating_legend: ShowFloatingLegend | None,
     expected_result: str,
 ):
-    config = LayoutConfig(show_floating_legend=show_floating_legend)
+    config = PlantUMLRenderOptions(show_floating_legend=show_floating_legend)
 
     result = codegen.generate(config)
 
@@ -669,7 +713,7 @@ def test_layout_options_codegen__render_show_floating_legend(
             None,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().build()
+                plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
                 """
             ).strip(),
         ),
@@ -677,8 +721,8 @@ def test_layout_options_codegen__render_show_floating_legend(
             "Example",
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .update_legend_title(
                         'Example',
                     )
@@ -691,8 +735,8 @@ def test_layout_options_codegen__render_show_floating_legend(
             "the given title is too long",
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .update_legend_title(
                         'the given title is too long',
                     )
@@ -703,12 +747,12 @@ def test_layout_options_codegen__render_show_floating_legend(
         ),
     ],
 )
-def test_layout_options_codegen__render_legend_title(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__render_legend_title(
+    codegen: PlantUMLRenderOptionsCodegen,
     legend_title: str | None,
     expected_result: str,
 ):
-    config = LayoutConfig(legend_title=legend_title)
+    config = PlantUMLRenderOptions(legend_title=legend_title)
 
     result = codegen.generate(config)
 
@@ -722,7 +766,7 @@ def test_layout_options_codegen__render_legend_title(
             None,
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().build()
+                plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
                 """
             ).strip(),
         ),
@@ -730,7 +774,13 @@ def test_layout_options_codegen__render_legend_title(
             ShowPersonSprite(alias="foo"),
             textwrap.dedent(
                 """
-                plantuml_layout_options = LayoutOptions().show_person_sprite('foo').build()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
+                    .show_person_sprite(
+                        'foo',
+                    )
+                    .build()
+                )
                 """
             ).strip(),
         ),
@@ -740,8 +790,8 @@ def test_layout_options_codegen__render_legend_title(
             ),
             textwrap.dedent(
                 """
-                plantuml_layout_options = (
-                    LayoutOptions()
+                plantuml_render_options = (
+                    PlantUMLRenderOptionsBuilder()
                     .show_person_sprite(
                         'the given alias is too long',
                     )
@@ -752,12 +802,12 @@ def test_layout_options_codegen__render_legend_title(
         ),
     ],
 )
-def test_layout_options_codegen__render_show_person_sprite(
-    codegen: LayoutOptionsCodegen,
+def test_render_options_codegen__render_show_person_sprite(
+    codegen: PlantUMLRenderOptionsCodegen,
     show_person_sprite: ShowPersonSprite | None,
     expected_result: str,
 ):
-    config = LayoutConfig(show_person_sprite=show_person_sprite)
+    config = PlantUMLRenderOptions(show_person_sprite=show_person_sprite)
 
     result = codegen.generate(config)
 
@@ -765,7 +815,7 @@ def test_layout_options_codegen__render_show_person_sprite(
 
 
 def test__tag_to_call__unknown_tag_type(
-    codegen: LayoutOptionsCodegen,
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
     tag = object()
     expected_error = f"Unsupported tag type: {type(tag)!r}"
@@ -775,7 +825,7 @@ def test__tag_to_call__unknown_tag_type(
 
 
 def test__tag_to_call__rel_tag(
-    codegen: LayoutOptionsCodegen,
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
     tag = RelTag(
         text_color="#073642",
@@ -788,11 +838,11 @@ def test__tag_to_call__rel_tag(
         legend_sprite="server",
         sprite="cloud",
     )
-    config = LayoutConfig(tags=[tag])
+    config = PlantUMLRenderOptions(tags=[tag])
     expected_result = textwrap.dedent(
         """
-        plantuml_layout_options = (
-            LayoutOptions()
+        plantuml_render_options = (
+            PlantUMLRenderOptionsBuilder()
             .add_rel_tag(
                 tag_stereo='SERVICE',
                 text_color='#073642',
@@ -815,7 +865,7 @@ def test__tag_to_call__rel_tag(
 
 
 def test__tag_to_call__element_tag(
-    codegen: LayoutOptionsCodegen,
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
     tag = ContainerTag(
         tag_stereo="SERVICE",
@@ -831,11 +881,11 @@ def test__tag_to_call__element_tag(
         border_style="DashedLine",
         border_thickness="2",
     )
-    config = LayoutConfig(tags=[tag])
+    config = PlantUMLRenderOptions(tags=[tag])
     expected_result = textwrap.dedent(
         """
-        plantuml_layout_options = (
-            LayoutOptions()
+        plantuml_render_options = (
+            PlantUMLRenderOptionsBuilder()
             .add_container_tag(
                 tag_stereo='SERVICE',
                 bg_color='#FDF6E3',
@@ -861,7 +911,7 @@ def test__tag_to_call__element_tag(
 
 
 def test__style_to_call__unknown_style_type(
-    codegen: LayoutOptionsCodegen,
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
     style = object()
     expected_error = f"Unsupported style type: {type(style)!r}"
@@ -871,7 +921,7 @@ def test__style_to_call__unknown_style_type(
 
 
 def test__style_to_call__boundary(
-    codegen: LayoutOptionsCodegen,
+    codegen: PlantUMLRenderOptionsCodegen,
 ):
     style = BoundaryStyle(
         element_name="Boundary",
@@ -888,11 +938,11 @@ def test__style_to_call__boundary(
         border_style="DashedLine",
         border_thickness="2",
     )
-    config = LayoutConfig(styles=[style])
+    config = PlantUMLRenderOptions(styles=[style])
     expected_result = textwrap.dedent(
         """
-        plantuml_layout_options = (
-            LayoutOptions()
+        plantuml_render_options = (
+            PlantUMLRenderOptionsBuilder()
             .update_boundary_style(
                 element_name='Boundary',
                 bg_color='#ffffff',
@@ -929,14 +979,40 @@ def test__style_to_call__boundary(
     ],
 )
 def test__render_bool_calls(
-    codegen: LayoutOptionsCodegen,
+    codegen: PlantUMLRenderOptionsCodegen,
     kwargs: dict[str, Any],
     expected_method: str,
 ):
-    config = LayoutConfig(**kwargs)
+    config = PlantUMLRenderOptions(**kwargs)
     expected_result = textwrap.dedent(
         f"""
-        plantuml_layout_options = LayoutOptions().{expected_method}().build()
+        plantuml_render_options = (
+            PlantUMLRenderOptionsBuilder()
+            .{expected_method}()
+            .build()
+        )
+        """
+    ).strip()
+
+    result = codegen.generate(config)
+
+    assert result == expected_result
+
+
+def test__render_includes(
+    codegen: PlantUMLRenderOptionsCodegen,
+):
+    config = PlantUMLRenderOptions(includes=["!foo", "!bar"])
+    expected_result = textwrap.dedent(
+        """
+        plantuml_render_options = (
+            PlantUMLRenderOptionsBuilder()
+            .add_includes(
+                '!foo',
+                '!bar',
+            )
+            .build()
+        )
         """
     ).strip()
 

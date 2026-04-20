@@ -17,7 +17,7 @@ from c4 import (
     SetIndex,
     SystemBoundary,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover
     from tests.conftest import AssertMatchSnapshot
@@ -146,14 +146,14 @@ def test_render_dynamic_diagram(
             >> audit_store
         )
 
-        layout_config = (
-            LayoutOptions()
+        render_options = (
+            PlantUMLRenderOptionsBuilder()
             .layout_top_down(with_legend=True)
             .show_legend()
             .build()
         )
 
-    diagram_code = diagram.as_plantuml(layout_config=layout_config)
+    diagram_code = diagram.as_plantuml(render_options=render_options)
 
     assert_match_snapshot(
         snapshot_name="plantuml/dynamic_diagram.puml",

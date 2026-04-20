@@ -1,0 +1,190 @@
+{
+  "type": "ContainerDiagram",
+  "title": "Container diagram for Internet Banking System",
+  "elements": [
+    {
+      "type": "SystemExt",
+      "label": "E-Mail System",
+      "description": "The internal Microsoft Exchange system",
+      "alias": "email_system"
+    },
+    {
+      "type": "Person",
+      "label": "Customer",
+      "description": "A customer of the bank, with personal bank accounts",
+      "alias": "customer"
+    },
+    {
+      "type": "SystemExt",
+      "label": "Mainframe Banking System",
+      "description": "Stores all of the core banking information about customers, accounts, transactions, etc.",
+      "alias": "banking_system"
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "ContainerBoundary",
+      "label": "Internet Banking",
+      "alias": "c1",
+      "elements": [
+        {
+          "type": "Container",
+          "label": "Single-Page App",
+          "description": "Provides all the Internet banking functionality to customers via their web browser",
+          "technology": "JavaScript, Angular",
+          "alias": "spa"
+        },
+        {
+          "type": "ContainerExt",
+          "label": "Mobile App",
+          "description": "Provides a limited subset of the Internet banking functionality to customers via their mobile device",
+          "technology": "C#, Xamarin",
+          "alias": "mobile_app"
+        },
+        {
+          "type": "Container",
+          "label": "Web Application",
+          "description": "Delivers the static content and the Internet banking SPA",
+          "technology": "Java, Spring MVC",
+          "alias": "web_app"
+        },
+        {
+          "type": "ContainerDb",
+          "label": "Database",
+          "description": "Stores user registration information, hashed auth credentials, access logs, etc.",
+          "technology": "SQL Database",
+          "alias": "database"
+        },
+        {
+          "type": "ContainerDbExt",
+          "label": "API Application",
+          "description": "Provides Internet banking functionality via API",
+          "technology": "Java, Docker Container",
+          "alias": "backend_api"
+        }
+      ],
+      "boundaries": [],
+      "relationships": []
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "web_app",
+      "label": "Uses",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "spa",
+      "label": "Uses",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "mobile_app",
+      "label": "Uses"
+    },
+    {
+      "type": "REL",
+      "from": "web_app",
+      "to": "spa",
+      "label": "Delivers"
+    },
+    {
+      "type": "REL",
+      "from": "spa",
+      "to": "backend_api",
+      "label": "Uses",
+      "technology": "async, JSON/HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "mobile_app",
+      "to": "backend_api",
+      "label": "Uses",
+      "technology": "async, JSON/HTTPS"
+    },
+    {
+      "type": "REL_BACK",
+      "from": "database",
+      "to": "backend_api",
+      "label": "Reads from and writes to",
+      "technology": "sync, JDBC"
+    },
+    {
+      "type": "REL",
+      "from": "email_system",
+      "to": "customer",
+      "label": "Sends e-mails to"
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "email_system",
+      "label": "Sends e-mails using",
+      "technology": "sync, SMTP"
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "banking_system",
+      "label": "Uses",
+      "technology": "sync/async, XML/HTTPS"
+    }
+  ],
+  "render_options": {
+    "mermaid": {
+      "styles": [
+        {
+          "type": "RelStyle",
+          "from_element": "customer",
+          "to_element": "web_app",
+          "offset_x": 90,
+          "offset_y": 60
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "customer",
+          "to_element": "spa",
+          "offset_y": -40
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "customer",
+          "to_element": "mobile_app",
+          "offset_y": -30
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "web_app",
+          "to_element": "spa",
+          "offset_x": 130
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "email_system",
+          "to_element": "customer",
+          "offset_x": -45
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "backend_api",
+          "to_element": "email_system",
+          "offset_x": -130,
+          "offset_y": -60
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "backend_api",
+          "to_element": "banking_system",
+          "offset_y": -50,
+          "offset_x": -140
+        }
+      ]
+    }
+  }
+}

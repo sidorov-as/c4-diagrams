@@ -6,13 +6,15 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, BinaryIO, Literal, TextIO
+from typing import Any, BinaryIO, Literal, TextIO, cast
 
 from c4 import PNG
 from c4.cli.exceptions import CLIError
 from c4.constants import (
     D2,
     DEFAULT_JAVA_BIN,
+    DEFAULT_MERMAID_BIN,
+    DEFAULT_MERMAID_SCALE_FACTOR,
     DEFAULT_PLANTUML_BIN,
     DEFAULT_PLANTUML_SERVER_URL,
     DEFAULT_RENDERER,
@@ -33,7 +35,8 @@ from c4.enums import (
     DiagramFormat,
     RendererEnum,
 )
-from c4.renderers import BaseRenderer, PlantUMLRenderer
+from c4.renderers import BaseRenderer, MermaidRenderer, PlantUMLRenderer
+from c4.renderers.mermaid import LocalMermaidBackend
 from c4.renderers.plantuml import (
     LocalPlantUMLBackend,
     RemotePlantUMLBackend,
@@ -84,7 +87,7 @@ class RenderCLIOptions(CLIOptions):
         output: Optional output path. If omitted, writes to stdout.
     """
 
-    renderer_options: PlantUMLRenderCLIOptions
+    renderer_options: PlantUMLRenderCLIOptions | None = None
     output: Path | None = None
 
     @contextmanager
@@ -119,6 +122,7 @@ class PlantUMLExportCLIOptions:
             over plantuml_bin.
         java_bin: Java executable to run the PlantUML JAR.
         use_new_c4_style: Activates the new C4-PlantUML style.
+        use_bundled_c4_plantuml: Uses bundled C4-PlantUML library files.
     """
 
     plantuml_backend: Literal["local", "remote"] = "local"
@@ -128,17 +132,23 @@ class PlantUMLExportCLIOptions:
     java_bin: str | None = DEFAULT_JAVA_BIN
     plantuml_skinparam_dpi: int | None = None
     use_new_c4_style: bool = False
+    use_bundled_c4_plantuml: bool = False
 
     @property
     def local_backend_kwargs(self) -> dict[str, Any]:
         """
         Keyword arguments for LocalPlantUMLBackend.
         """
-        return {
+        kwargs: dict[str, Any] = {
             "plantuml_bin": self.plantuml_bin,
             "plantuml_jar": self.plantuml_jar,
             "java_bin": self.java_bin,
         }
+
+        if self.use_bundled_c4_plantuml:
+            kwargs["plantuml_args"] = ["-DRELATIVE_INCLUDE=."]
+
+        return kwargs
 
     @property
     def remote_backend_kwargs(self) -> dict[str, Any]:
@@ -148,6 +158,32 @@ class PlantUMLExportCLIOptions:
         return {
             "server_url": self.plantuml_server_url,
         }
+
+
+@dataclass
+class MermaidExportCLIOptions:
+    """
+    Mermaid-specific export options.
+
+    Attributes:
+        mermaid_bin: Local Mermaid executable path/command.
+        scale_factor: Puppeteer scale factor.
+    """
+
+    mermaid_bin: str = DEFAULT_MERMAID_BIN
+    scale_factor: int = DEFAULT_MERMAID_SCALE_FACTOR
+
+    @property
+    def local_backend_kwargs(self) -> dict[str, Any]:
+        """
+        Keyword arguments for LocalMermaidBackend.
+        """
+        kwargs: dict[str, Any] = {
+            "mermaid_bin": self.mermaid_bin,
+            "mermaid_args": [f"--scale={self.scale_factor}"],
+        }
+
+        return kwargs
 
 
 @dataclass
@@ -163,7 +199,7 @@ class ExportCLIOptions(CLIOptions):
         timeout: Rendering timeout in seconds.
     """
 
-    renderer_options: PlantUMLExportCLIOptions
+    renderer_options: PlantUMLExportCLIOptions | MermaidExportCLIOptions
     format: DiagramFormat = PNG
     output: Path | None = None
     timeout: float = DEFAULT_RENDERING_TIMEOUT_SECONDS
@@ -322,6 +358,8 @@ def build_render_cli_options(
 
     if renderer == RendererEnum.PLANTUML:
         renderer_options = _build_plantuml_render_cli_options(args)
+    elif renderer == RendererEnum.MERMAID:
+        renderer_options = None
     else:
         raise CLIError(
             f"Renderer {renderer.value!r} is not supported by "
@@ -349,11 +387,23 @@ def _build_plantuml_renderer(
     Returns:
         A PlantUMLRenderer instance.
     """
-    renderer_options = cli_options.renderer_options
+    renderer_options = cast(
+        PlantUMLRenderCLIOptions, cli_options.renderer_options
+    )
 
     return PlantUMLRenderer(
         use_new_c4_style=renderer_options.use_new_c4_style,
     )
+
+
+def _build_mermaid_renderer() -> MermaidRenderer:
+    """
+    Build a Mermaid renderer.
+
+    Returns:
+        A MermaidRenderer instance.
+    """
+    return MermaidRenderer()
 
 
 def build_renderer(cli_options: RenderCLIOptions) -> BaseRenderer:
@@ -367,6 +417,8 @@ def build_renderer(cli_options: RenderCLIOptions) -> BaseRenderer:
 
     if renderer == PLANTUML:
         return _build_plantuml_renderer(cli_options)
+    elif renderer == MERMAID:
+        return _build_mermaid_renderer()
 
     raise CLIError(f"Unsupported renderer: {renderer.value!r}")
 
@@ -385,6 +437,9 @@ def _build_plantuml_export_cli_options(
     plantuml_jar: str | None = args.plantuml_jar
 
     use_new_c4_style = getattr(args, "plantuml_use_new_c4_style", False)
+    use_bundled_c4_plantuml = getattr(
+        args, "plantuml_use_bundled_c4_plantuml", False
+    )
 
     if plantuml_jar:
         # If plantuml_jar is provided, ignore plantuml_bin
@@ -399,6 +454,22 @@ def _build_plantuml_export_cli_options(
         java_bin=args.java_bin,
         plantuml_skinparam_dpi=args.plantuml_skinparam_dpi,
         use_new_c4_style=use_new_c4_style,
+        use_bundled_c4_plantuml=use_bundled_c4_plantuml,
+    )
+
+
+def _build_mermaid_export_cli_options(
+    args: argparse.Namespace,
+) -> MermaidExportCLIOptions:
+    """
+    Build Mermaid export options from parsed CLI args.
+    """
+    scale_factor = getattr(
+        args, "mermaid_scale_factor", DEFAULT_MERMAID_SCALE_FACTOR
+    )
+
+    return MermaidExportCLIOptions(
+        mermaid_bin=args.mermaid_bin, scale_factor=scale_factor
     )
 
 
@@ -427,7 +498,9 @@ def _build_plantuml_exporter(
         - If a skinparam DPI value is configured, it is injected via a PlantUML
           include and affects all output formats (PNG, SVG, etc.).
     """
-    renderer_options = cli_options.renderer_options
+    renderer_options = cast(
+        PlantUMLExportCLIOptions, cli_options.renderer_options
+    )
 
     backend: BasePlantUMLBackend
     if renderer_options.plantuml_backend == LOCAL_BACKEND:
@@ -456,6 +529,34 @@ def _build_plantuml_exporter(
     )
 
 
+def _build_mermaid_exporter(
+    cli_options: ExportCLIOptions,
+) -> MermaidRenderer:
+    """
+    Build a Mermaid renderer configured for exporting binary artifacts.
+
+    This function initializes the local Mermaid backend based on CLI options,
+    applies rendering timeouts, and wires the backend
+    into a MermaidRenderer instance.
+
+    Args:
+        cli_options: Parsed export CLI options containing Mermaid backend
+            configuration, timeout, and renderer-specific settings.
+
+    Returns:
+        A Mermaid instance configured with the selected backend.
+    """
+    renderer_options = cast(
+        MermaidExportCLIOptions, cli_options.renderer_options
+    )
+    backend = LocalMermaidBackend(
+        timeout_seconds=cli_options.timeout,
+        **renderer_options.local_backend_kwargs,
+    )
+
+    return MermaidRenderer(backend=backend)
+
+
 def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
     """
     Convert parsed CLI args to ExportCLIOptions.
@@ -470,8 +571,12 @@ def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
     )
     renderer = cli_options.renderer
 
-    if renderer == RendererEnum.PLANTUML:
+    renderer_options: PlantUMLExportCLIOptions | MermaidExportCLIOptions
+
+    if renderer == PLANTUML:
         renderer_options = _build_plantuml_export_cli_options(args)
+    elif renderer == MERMAID:
+        renderer_options = _build_mermaid_export_cli_options(args)
     else:
         raise CLIError(
             f"Renderer {renderer.value!r} is not supported by "
@@ -502,6 +607,8 @@ def build_exporter(cli_options: ExportCLIOptions) -> BaseRenderer:
 
     if renderer == PLANTUML:
         return _build_plantuml_exporter(cli_options)
+    elif renderer == MERMAID:
+        return _build_mermaid_exporter(cli_options)
 
     raise CLIError(f"Unsupported renderer: {renderer.value!r}")
 

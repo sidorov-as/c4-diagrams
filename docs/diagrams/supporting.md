@@ -37,7 +37,7 @@ from c4 import (
     SystemExt,
     SystemLandscapeDiagram,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 
 with SystemLandscapeDiagram(
@@ -97,9 +97,9 @@ with SystemLandscapeDiagram(
     LayD(atm, customer)
     LayU(mail_system, customer)
 
-    layout_config = LayoutOptions().layout_with_legend().build()
+    render_options = PlantUMLRenderOptionsBuilder().layout_with_legend().build()
 
-diagram_code = diagram.as_plantuml(layout_config=layout_config)
+diagram_code = diagram.as_plantuml(render_options=render_options)
 ```
 
 </details>
@@ -138,7 +138,7 @@ from c4 import (
     SetIndex,
     SystemBoundary,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 
 with DynamicDiagram() as diagram:
@@ -243,14 +243,14 @@ with DynamicDiagram() as diagram:
         >> audit_store
     )
 
-    layout_config = (
-        LayoutOptions()
+    render_options = (
+        PlantUMLRenderOptionsBuilder()
         .layout_top_down(with_legend=True)
         .show_legend()
         .build()
     )
 
-diagram_code = diagram.as_plantuml(layout_config=layout_config)
+diagram_code = diagram.as_plantuml(render_options=render_options)
 ```
 
 </details>
@@ -276,13 +276,11 @@ from c4 import (
     ContainerDb,
     DeploymentDiagram,
     DeploymentNode,
-    DeploymentNodeLeft,
-    DeploymentNodeRight,
     Rel,
     RelRight,
     RelUp,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 
 with DeploymentDiagram(
@@ -377,15 +375,15 @@ with DeploymentDiagram(
     api >> Rel("Reads from and writes to", "JDBC", tags="fallback") >> db2
     db >> RelRight("Replicates data to") >> db2
 
-    layout_config = (
-        LayoutOptions()
+    render_options = (
+        PlantUMLRenderOptionsBuilder()
         .add_element_tag("fallback", bg_color="#c0c0c0")
         .add_rel_tag("fallback", text_color="#c0c0c0", line_color="#438DD5")
         .show_legend()
         .build()
     )
 
-diagram_code = diagram.as_plantuml(layout_config=layout_config)
+diagram_code = diagram.as_plantuml(render_options=render_options)
 ```
 
 </details>

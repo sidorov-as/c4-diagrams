@@ -147,7 +147,9 @@ ignore = [
 "c4/cli/parser.py" = ["A001", "A002"]
 "c4/renderers/base.py" = ["A001", "A002"]
 "c4/renderers/plantuml/renderer.py" = ["A001", "A002"]
+"c4/renderers/mermaid/renderer.py" = ["A001", "A002"]
 "c4/renderers/plantuml/backends.py" = ["A001", "A002"]
+"c4/renderers/mermaid/backends.py" = ["A001", "A002"]
 "c4/compat/strenum.py" = ["E501", "UP031", "SIM102",]
 "tests/fixtures/converters/json.py" = ["RUF012"]
 

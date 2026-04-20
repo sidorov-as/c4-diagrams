@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from c4.converters.python.renderers import plantuml
+from c4.converters.python.renderers import mermaid, plantuml
 from c4.diagrams.core import (
     DEFAULT_PROPERTIES_HEADER,
     BaseDiagramElement,
@@ -13,9 +13,9 @@ from c4.diagrams.core import (
     increment,
     set_index,
 )
-from c4.renderers import RenderOptions
+from c4.renderers import MermaidRenderOptions, RenderOptions
 from c4.renderers.base import IndentedStringBuilder
-from c4.renderers.plantuml.layout_options import LayoutConfig
+from c4.renderers.plantuml.options import PlantUMLRenderOptions
 
 _DEFAULT_PROPERTIES_HEADER: tuple[str, str] = DEFAULT_PROPERTIES_HEADER
 
@@ -115,6 +115,9 @@ class PythonCodegen:
         for base_element in parent.base_elements:
             self._render_base_element(base_element)
 
+        if parent.base_elements:
+            self._builder.add_blank_line()
+
         return bool(parent.base_elements)
 
     @contextmanager
@@ -169,7 +172,7 @@ class PythonCodegen:
             self._builder.add_blank_line()
 
         if parent.boundaries:
-            self._builder.add_blank_line(check_duplicates=True)
+            self._builder.add_blank_line()
 
         return bool(parent.boundaries)
 
@@ -210,6 +213,9 @@ class PythonCodegen:
         for element in parent.elements:
             self._render_element(element)
 
+        if parent.elements:
+            self._builder.add_blank_line()
+
         return bool(parent.elements)
 
     def _render_imports(self, diagram: Diagram) -> None:
@@ -230,12 +236,21 @@ class PythonCodegen:
         self._builder.add(")")
 
         if diagram.render_options and not diagram.render_options.is_empty:
-            self._builder.add("from c4.renderers import RenderOptions")
+            render_options_class_names = ["RenderOptions"]
 
             if diagram.render_options.plantuml:  # pragma: no cover
-                self._builder.add(
-                    "from c4.renderers.plantuml import LayoutOptions"
+                render_options_class_names.append(
+                    "PlantUMLRenderOptionsBuilder"
                 )
+
+            if diagram.render_options.mermaid:  # pragma: no cover
+                render_options_class_names.append("MermaidRenderOptionsBuilder")
+
+            self._builder.add("from c4.renderers import (")
+            for class_name in sorted(render_options_class_names):
+                self._builder.add(f"    {class_name},")
+
+            self._builder.add(")")
 
         self._builder.add_blank_line(check_duplicates=False)
         self._builder.add_blank_line(check_duplicates=False)
@@ -249,22 +264,37 @@ class PythonCodegen:
 
         return bool(diagram.layouts)
 
-    def _render_plantuml_layout_options(
+    def _render_plantuml_render_options(
         self,
-        layout_config: LayoutConfig,
+        render_options: PlantUMLRenderOptions,
     ) -> None:
         """
-        Render PlantUML layout options builder code after
+        Render PlantUML render options builder code after
         the diagram definition.
 
-        This uses `LayoutOptionsCodegen` to turn a `LayoutConfig` into
-        Python DSL that recreates the same config.
+        This uses `PlantUMLRenderOptionsCodegen` to turn
+        a `PlantUMLRenderOptions` into Python DSL that
+        recreates the same config.
         """
-        layout_options_codegen = plantuml.LayoutOptionsCodegen()
+        render_options_codegen = plantuml.PlantUMLRenderOptionsCodegen()
 
-        self._builder.add_blank_line(check_duplicates=False)
-        self._builder.add_blank_line(check_duplicates=False)
-        self._builder.add(layout_options_codegen.generate(layout_config))
+        self._builder.add(render_options_codegen.generate(render_options))
+
+    def _render_mermaid_render_options(
+        self,
+        render_options: MermaidRenderOptions,
+    ) -> None:
+        """
+        Render Mermaid render options builder code after
+        the diagram definition.
+
+        This uses `MermaidRenderOptionsCodegen` to turn
+        a `MermaidRenderOptions` into Python DSL that
+        recreates the same config.
+        """
+        render_options_codegen = mermaid.MermaidRenderOptionsCodegen()
+
+        self._builder.add(render_options_codegen.generate(render_options))
 
     def _set_diagram_render_options(
         self,
@@ -272,10 +302,19 @@ class PythonCodegen:
     ) -> None:
         options_to_render = []
 
+        self._builder.add_blank_line(check_duplicates=True)
+        self._builder.add_blank_line(check_duplicates=False)
+
         if render_options.plantuml:
-            self._render_plantuml_layout_options(render_options.plantuml)
+            self._render_plantuml_render_options(render_options.plantuml)
             options_to_render.append(
-                f"plantuml={plantuml.LAYOUT_OPTIONS_VARIABLE_NAME}"
+                f"plantuml={plantuml.RENDER_OPTIONS_VARIABLE_NAME}"
+            )
+
+        if render_options.mermaid:
+            self._render_mermaid_render_options(render_options.mermaid)
+            options_to_render.append(
+                f"mermaid={mermaid.RENDER_OPTIONS_VARIABLE_NAME}"
             )
 
         if options_to_render:
@@ -355,6 +394,9 @@ class PythonCodegen:
         for relationship in parent.relationships:
             self._render_relationship(relationship)
 
+        if parent.relationships:
+            self._builder.add_blank_line()
+
         return bool(parent.relationships)
 
     def _render_pass(self) -> None:
@@ -393,7 +435,7 @@ class PythonCodegen:
             if not any(has_elements):
                 self._render_pass()
 
-        if diagram.render_options:
+        if diagram.render_options and not diagram.render_options.is_empty:
             self._set_diagram_render_options(diagram.render_options)
 
         return self._builder.get_result()

@@ -27,14 +27,17 @@ and relationships — allowing you to describe software architecture in Python a
 
 ## Rendering backends
 
-Currently supported and planned backends:
+Currently supported backends:
 
 - [**PlantUML**](https://github.com/plantuml-stdlib/C4-PlantUML)
 
     - local rendering via `plantuml` CLI or `plantuml.jar`
     - remote rendering via PlantUML server
 
-- [**Mermaid**](https://mermaid.js.org/syntax/c4.html) — WIP
+- [**Mermaid**](https://mermaid.js.org/syntax/c4.html)
+
+    - local rendering via [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli)
+    - Mermaid’s C4 diagram support is currently [experimental](https://mermaid.js.org/syntax/c4.html)
 
 The following backends are being explored but are not currently planned:
 

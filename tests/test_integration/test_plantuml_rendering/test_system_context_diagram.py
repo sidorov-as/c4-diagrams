@@ -13,7 +13,7 @@ from c4 import (
     System,
     SystemContextDiagram,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover
     from tests.conftest import AssertMatchSnapshot
@@ -76,11 +76,13 @@ def test_render_system_context_diagram(
 
         LayDown(customer, braintree)
 
-        layout_config = (
-            LayoutOptions().layout_top_down(with_legend=True).build()
+        render_options = (
+            PlantUMLRenderOptionsBuilder()
+            .layout_top_down(with_legend=True)
+            .build()
         )
 
-    diagram_code = diagram.as_plantuml(layout_config=layout_config)
+    diagram_code = diagram.as_plantuml(render_options=render_options)
 
     assert_match_snapshot(
         snapshot_name="plantuml/system_context_diagram.puml",

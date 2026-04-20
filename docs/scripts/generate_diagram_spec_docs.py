@@ -7,7 +7,8 @@ from inspect import cleandoc
 from pathlib import Path
 from typing import Any, Iterable
 
-from c4.converters.json.schemas.renderers.plantuml import PlantUMLLayoutOptionsSchema
+from c4.converters.json.schemas.renderers.mermaid import MermaidRenderOptionsSchema
+from c4.converters.json.schemas.renderers.plantuml import PlantUMLRenderOptionsSchema
 from c4.diagrams.core import EnumDescriptionsMixin
 from pydantic import BaseModel
 from typing_extensions import get_args, get_origin
@@ -80,8 +81,8 @@ DEFINITIONS_ORDER = [
     "Element",
     "Boundary",
     # render options
-    "RenderOptions",
-    "PlantUMLLayoutOptions",
+
+    "PlantUMLRenderOptionsSchema",
     "BaseStyle",
     "BaseTag",
     "DiagramLayout",
@@ -89,6 +90,8 @@ DEFINITIONS_ORDER = [
     "ShowFloatingLegend",
     "ShowLegend",
     "ShowPersonSprit",
+    "RenderOptionsSchema",
+    "MermaidRenderOptionsSchema",
 ]
 
 
@@ -232,6 +235,14 @@ def schema_union_options(schema_node: Json) -> list[Json]:
     return []
 
 
+def schema_union_oneof_options(schema_node: Json) -> list[Json]:
+    """Return oneOf options as dicts only."""
+    one_of = schema_node.get("oneOf")
+    if isinstance(one_of, list):
+        return [option for option in one_of if isinstance(option, dict)]
+    return []
+
+
 def array_variant(schema_node: Json) -> Json | None:
     """
     Return the array schema for 'array' or 'anyOf[array,null]' forms.
@@ -282,6 +293,16 @@ def anyof_ref_names(schema_node: Json) -> list[str]:
     return unique_in_order(ref_names)
 
 
+def oneof_ref_names(schema_node: Json) -> list[str]:
+    """Extract unique local $ref names from oneOf."""
+    ref_names: list[str] = []
+    for option in schema_union_oneof_options(schema_node):
+        ref_name = resolve_ref_name(option)
+        if ref_name:
+            ref_names.append(ref_name)
+    return unique_in_order(ref_names)
+
+
 def default_repr(schema_node: Json, omit_null: bool) -> str | None:
     """Format const/default/null-as-default for table rendering."""
     if "const" in schema_node:
@@ -324,7 +345,8 @@ def primitive_union_repr(
                 parts.extend([f"`{t}`" for t in option_type])
 
         uniq_parts = unique_in_order(parts)
-        return " \\| ".join(uniq_parts) if uniq_parts else "`object`"
+        union = " \\| ".join(uniq_parts) if uniq_parts else "`object`"
+        return f"<span style=\"white-space: nowrap;\">{union}</span>"
 
     node_type = schema_node.get("type")
     if isinstance(node_type, list):
@@ -377,7 +399,10 @@ class DiagramSpecDocsGenerator:
         self.diagram_spec = self._get_diagram_spec(diagram_schema)
         self.defs: Json = self._get_defs(self.diagram_spec)
         self.plantuml_render_options_defs: Json = self._get_defs(
-            self._get_diagram_spec(PlantUMLLayoutOptionsSchema)
+            self._get_diagram_spec(PlantUMLRenderOptionsSchema)
+        )
+        self.mermaid_render_options_defs: Json = self._get_defs(
+            self._get_diagram_spec(MermaidRenderOptionsSchema)
         )
 
         self.def_type_map = self._get_def_type_map(
@@ -449,18 +474,32 @@ class DiagramSpecDocsGenerator:
         lines.extend(self._render_examples_block(self.diagram_spec))
         lines.extend(self._render_diagram_components())
 
+        plantuml_render_options_defs = [
+            "PlantUMLRenderOptionsSchema",
+            *self.plantuml_render_options_defs.keys(),
+        ]
+
+        mermaid_render_options_defs = [
+            "MermaidRenderOptionsSchema",
+            *self.mermaid_render_options_defs.keys(),
+        ]
+
         render_options_defs = [
-            "RenderOptions",
-            "PlantUMLLayoutOptions",
-            *self.plantuml_render_options_defs.keys()
+            "RenderOptionsSchema",
+            *plantuml_render_options_defs,
+            *mermaid_render_options_defs,
         ]
 
         lines.extend(["## Definitions", "", ""])
         lines.extend(self._render_note_on_aliases())
         lines.extend(self._render_definitions(exclude=render_options_defs))
+        lines.extend(self._render_definitions(include=["RenderOptionsSchema"]))
 
-        lines.extend(["", "", "## Render Options", "", ""])
-        lines.extend(self._render_definitions(include=render_options_defs))
+        lines.extend(["", "", "## PlantUML Render Options", "", ""])
+        lines.extend(self._render_definitions(include=plantuml_render_options_defs))
+
+        lines.extend(["", "", "## Mermaid Render Options", "", ""])
+        lines.extend(self._render_definitions(include=mermaid_render_options_defs))
 
         return "\n".join(lines).rstrip() + "\n"
 
@@ -627,7 +666,7 @@ class DiagramSpecDocsGenerator:
                 anchor=slug(direct_ref), label=direct_ref
             ).render_array()
 
-        union_refs = anyof_ref_names(items_schema)
+        union_refs = anyof_ref_names(items_schema) or oneof_ref_names(items_schema)
         if union_refs:
             if len(union_refs) == 1:
                 only = union_refs[0]
@@ -644,7 +683,14 @@ class DiagramSpecDocsGenerator:
                 else:
                     parts.append(f"`{ref}`")
 
-            union = " \\| ".join(parts)
+            union = "\\|".join(parts)
+
+            if len(union) > 50 and len(parts) > 3:
+                first, *others = parts
+                union = "<br/>&nbsp;\\|".join(others)
+
+                return f"<code>array[<br/>&nbsp;{first}<br/>&nbsp;\\|{union}<br/>]</code>"
+
             return f"<code>array[{union}]</code>"
 
         if items_schema.get("type") == "string":

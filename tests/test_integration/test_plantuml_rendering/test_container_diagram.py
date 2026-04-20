@@ -14,7 +14,7 @@ from c4 import (
     RelUp,
     SystemBoundary,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover
     from tests.conftest import AssertMatchSnapshot
@@ -105,8 +105,8 @@ def test_render_container_diagram(
 
         LayRight(reporting_service, audit_service)
 
-        layout_config = (
-            LayoutOptions()
+        render_options = (
+            PlantUMLRenderOptionsBuilder()
             .add_element_tag(
                 "microService",
                 shape="EightSidedShape",
@@ -124,7 +124,7 @@ def test_render_container_diagram(
             .show_legend()
         ).build()
 
-    diagram_code = diagram.as_plantuml(layout_config=layout_config)
+    diagram_code = diagram.as_plantuml(render_options=render_options)
 
     assert_match_snapshot(
         snapshot_name="plantuml/container_diagram.puml",

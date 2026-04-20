@@ -20,3 +20,19 @@ class PlantUMLLocalRenderingError(PlantUMLRenderingError):
 
 class PlantUMLBackendConfigurationError(PlantUMLError):
     """Error raised when a PlantUML backend is incorrectly configured."""
+
+
+class MermaidError(C4Exception):
+    """Base exception class for all Mermaid-related errors."""
+
+
+class MermaidRenderingError(MermaidError):
+    """Error raised when rendering fails."""
+
+
+class MermaidBackendConfigurationError(MermaidError):
+    """Error raised when a Mermaid backend is incorrectly configured."""
+
+
+class MermaidLocalRenderingError(MermaidError):
+    """Error raised when rendering via a local Mermaid backend fails."""

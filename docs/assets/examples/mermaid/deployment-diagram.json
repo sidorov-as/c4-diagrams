@@ -1,0 +1,249 @@
+{
+  "type": "DeploymentDiagram",
+  "title": "Deployment Diagram for Internet Banking System - Live",
+  "elements": [],
+  "boundaries": [
+    {
+      "type": "DeploymentNode",
+      "label": "Customer's mobile device",
+      "description": "Apple IOS or Android",
+      "alias": "mob",
+      "elements": [
+        {
+          "type": "Container",
+          "label": "Mobile App",
+          "description": "Provides a limited subset of the Internet Banking functionality to customers via their mobile device.",
+          "technology": "Xamarin",
+          "alias": "mobile"
+        }
+      ],
+      "boundaries": [],
+      "relationships": []
+    },
+    {
+      "type": "DeploymentNode",
+      "label": "Customer's computer",
+      "description": "Microsoft Windows or Apple macOS",
+      "alias": "comp",
+      "elements": [],
+      "relationships": [],
+      "boundaries": [
+        {
+          "type": "DeploymentNode",
+          "label": "Web Browser",
+          "description": "Google Chrome, Mozilla Firefox,<br/> Apple Safari or Microsoft Edge",
+          "alias": "browser",
+          "elements": [
+            {
+              "type": "Container",
+              "label": "Single Page Application",
+              "description": "Provides all of the Internet Banking functionality to customers via their web browser.",
+              "technology": "JavaScript and Angular",
+              "alias": "spa"
+            }
+          ],
+          "boundaries": [],
+          "relationships": []
+        }
+      ]
+    },
+    {
+      "type": "DeploymentNode",
+      "label": "Big Bank plc",
+      "description": "Big Bank plc data center",
+      "alias": "plc",
+      "elements": [],
+      "relationships": [],
+      "boundaries": [
+        {
+          "type": "DeploymentNode",
+          "label": "bigbank-api*** x8",
+          "description": "Ubuntu 16.04 LTS",
+          "alias": "dn",
+          "elements": [],
+          "relationships": [],
+          "boundaries": [
+            {
+              "type": "DeploymentNode",
+              "label": "Apache Tomcat",
+              "description": "Apache Tomcat 8.x",
+              "alias": "apache",
+              "elements": [
+                {
+                  "type": "Container",
+                  "label": "API Application",
+                  "description": "Provides Internet Banking functionality via a JSON/HTTPS API.",
+                  "technology": "Java and Spring MVC",
+                  "alias": "api"
+                }
+              ],
+              "boundaries": [],
+              "relationships": []
+            },
+            {
+              "type": "DeploymentNode",
+              "label": "bigbank-web*** x4",
+              "description": "Ubuntu 16.04 LTS",
+              "alias": "bb2",
+              "elements": [],
+              "relationships": [],
+              "boundaries": [
+                {
+                  "type": "DeploymentNode",
+                  "label": "Apache Tomcat",
+                  "description": "Apache Tomcat 8.x",
+                  "alias": "apache2",
+                  "elements": [
+                    {
+                      "type": "Container",
+                      "label": "Web Application",
+                      "description": "Delivers the static content and the Internet Banking single page application.",
+                      "technology": "Java and Spring MVC",
+                      "alias": "web"
+                    }
+                  ],
+                  "boundaries": [],
+                  "relationships": []
+                }
+              ]
+            },
+            {
+              "type": "DeploymentNode",
+              "label": "bigbank-db01",
+              "description": "Ubuntu 16.04 LTS",
+              "alias": "bigbankdb01",
+              "elements": [],
+              "relationships": [],
+              "boundaries": [
+                {
+                  "type": "DeploymentNode",
+                  "label": "Oracle - Primary",
+                  "description": "Oracle 12c",
+                  "alias": "oracle",
+                  "elements": [
+                    {
+                      "type": "ContainerDb",
+                      "label": "Database",
+                      "description": "Stores user registration information, hashed authentication credentials, access logs, etc.",
+                      "technology": "Relational Database Schema",
+                      "alias": "db"
+                    }
+                  ],
+                  "boundaries": [],
+                  "relationships": []
+                }
+              ]
+            },
+            {
+              "type": "DeploymentNode",
+              "label": "bigbank-db02",
+              "description": "Ubuntu 16.04 LTS",
+              "alias": "bigbankdb02",
+              "elements": [],
+              "relationships": [],
+              "boundaries": [
+                {
+                  "type": "DeploymentNode",
+                  "label": "Oracle - Secondary",
+                  "description": "Oracle 12c",
+                  "alias": "oracle2",
+                  "elements": [
+                    {
+                      "type": "ContainerDb",
+                      "label": "Database",
+                      "description": "Stores user registration information, hashed authentication credentials, access logs, etc.",
+                      "technology": "Relational Database Schema",
+                      "alias": "db2"
+                    }
+                  ],
+                  "boundaries": [],
+                  "relationships": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "mobile",
+      "to": "api",
+      "label": "Makes API calls to",
+      "technology": "json/HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "spa",
+      "to": "api",
+      "label": "Makes API calls to",
+      "technology": "json/HTTPS"
+    },
+    {
+      "type": "REL_UP",
+      "from": "web",
+      "to": "spa",
+      "label": "Delivers to the customer's web browser"
+    },
+    {
+      "type": "REL",
+      "from": "api",
+      "to": "db",
+      "label": "Reads from and writes to",
+      "technology": "JDBC"
+    },
+    {
+      "type": "REL",
+      "from": "api",
+      "to": "db2",
+      "label": "Reads from and writes to",
+      "technology": "JDBC"
+    },
+    {
+      "type": "REL_RIGHT",
+      "from": "db",
+      "to": "db2",
+      "label": "Replicates data to"
+    }
+  ],
+  "render_options": {
+    "mermaid": {
+      "styles": [
+        {
+          "type": "RelStyle",
+          "from_element": "spa",
+          "to_element": "api",
+          "offset_y": -40
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "web",
+          "to_element": "spa",
+          "offset_y": -40
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "api",
+          "to_element": "db",
+          "offset_x": 5,
+          "offset_y": -20
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "api",
+          "to_element": "db2",
+          "offset_x": -40,
+          "offset_y": -20
+        },
+        {
+          "type": "RelStyle",
+          "from_element": "db",
+          "to_element": "db2",
+          "offset_y": -10
+        }
+      ]
+    }
+  }
+}

@@ -13,12 +13,23 @@ from c4.diagrams.core import (
     get_diagram,
 )
 from c4.enums import DiagramFormat
-from c4.renderers import RenderOptions
+from c4.renderers import MermaidRenderOptions, RenderOptions
+from c4.renderers.mermaid.backends import BaseMermaidBackend
 from c4.renderers.plantuml.backends import BasePlantUMLBackend
-from c4.renderers.plantuml.layout_options import LayoutConfig
+from c4.renderers.plantuml.options import PlantUMLRenderOptions
 
 
 class MockBasePlantUMLBackend(BasePlantUMLBackend):
+    def to_bytes(
+        self,
+        diagram: str,
+        *,
+        format: DiagramFormat = DiagramFormat.SVG,  # noqa: A002
+    ) -> bytes:
+        return ""
+
+
+class MockBaseMermaidBackend(BaseMermaidBackend):
     def to_bytes(
         self,
         diagram: str,
@@ -77,6 +88,32 @@ def test_diagram_args():
     assert diagram.boundaries == [bank]
     assert diagram.layouts == [layout]
     assert diagram.relationships == [rel_user]
+
+
+def test_diagram_ordered_elements():
+    with Diagram(title="Sample diagram") as diagram:
+        user = Element(label="person")
+        bank = Boundary(label="web-site")
+        base_element = BaseDiagramElement()
+
+        with bank:
+            frontend = Element(label="frontend")
+            backend = Element(label="backend")
+
+            rel_front_back = frontend >> "Calls" >> backend
+
+        rel_user = user >> "Interacts with" >> frontend
+
+        layout = LayDown(from_element=user, to_element=frontend)
+
+    assert diagram.ordered_elements == [
+        user,
+        bank,
+        base_element,
+        rel_user,
+        layout,
+    ]
+    assert bank.ordered_elements == [frontend, backend, rel_front_back]
 
 
 def test_diagram_check_alias_duplicated():
@@ -145,6 +182,21 @@ def test_diagram_as_plantuml(mocker: MockerFixture):
     }
 
     result = diagram.as_plantuml(**kwargs)
+
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+    expected_renderer.render.assert_called_once_with(diagram)
+    assert result == expected_renderer.render.return_value
+
+
+def test_diagram_as_mermaid(mocker: MockerFixture):
+    diagram = Diagram()
+    mocked_renderer_class = mocker.patch("c4.renderers.MermaidRenderer")
+    expected_renderer = mocked_renderer_class.return_value
+    kwargs = {
+        "backend": MockBaseMermaidBackend(),
+    }
+
+    result = diagram.as_mermaid(**kwargs)
 
     mocked_renderer_class.assert_called_once_with(**kwargs)
     expected_renderer.render.assert_called_once_with(diagram)
@@ -223,7 +275,7 @@ def test_diagram_save_as_plantuml(tmp_path: Path, mocker: MockerFixture):
     mocked_renderer_class.assert_called_once_with(**kwargs)
 
 
-def test_diagram_save_as_plantuml_provided_layout_config(
+def test_diagram_save_as_plantuml_provided_render_options(
     tmp_path: Path,
     mocker: MockerFixture,
 ):
@@ -232,10 +284,10 @@ def test_diagram_save_as_plantuml_provided_layout_config(
     diagram = Diagram()
     diagram_output = tmp_path / "diagram.puml"
     mocked_save = mocker.patch.object(diagram, "save")
-    layout_config = LayoutConfig()
+    render_options = PlantUMLRenderOptions()
     kwargs = {
         "backend": MockBasePlantUMLBackend(),
-        "layout_config": layout_config,
+        "render_options": render_options,
     }
 
     diagram.save_as_plantuml(diagram_output, **kwargs)
@@ -246,14 +298,14 @@ def test_diagram_save_as_plantuml_provided_layout_config(
     mocked_renderer_class.assert_called_once_with(**kwargs)
 
 
-def test_diagram_save_as_plantuml_layout_config_from_render_options(
+def test_diagram_save_as_plantuml_render_options_from_diagram(
     tmp_path: Path,
     mocker: MockerFixture,
 ):
     mocked_renderer_class = mocker.patch("c4.renderers.PlantUMLRenderer")
     expected_renderer = mocked_renderer_class.return_value
-    layout_config = LayoutConfig()
-    render_options = RenderOptions(plantuml=layout_config)
+    plantuml_render_options = PlantUMLRenderOptions()
+    render_options = RenderOptions(plantuml=plantuml_render_options)
     diagram = Diagram(render_options=render_options)
     diagram_output = tmp_path / "diagram.puml"
     mocked_save = mocker.patch.object(diagram, "save")
@@ -269,23 +321,23 @@ def test_diagram_save_as_plantuml_layout_config_from_render_options(
     )
     mocked_renderer_class.assert_called_once_with(
         **kwargs,
-        layout_config=layout_config,
+        render_options=plantuml_render_options,
     )
 
 
-def test_diagram_save_as_plantuml_override_layout_config(
+def test_diagram_save_as_plantuml_override_render_options(
     tmp_path: Path,
     mocker: MockerFixture,
 ):
     mocked_renderer_class = mocker.patch("c4.renderers.PlantUMLRenderer")
     expected_renderer = mocked_renderer_class.return_value
-    render_options = RenderOptions(plantuml=LayoutConfig())
+    render_options = RenderOptions(plantuml=PlantUMLRenderOptions())
     diagram = Diagram(render_options=render_options)
     diagram_output = tmp_path / "diagram.puml"
     mocked_save = mocker.patch.object(diagram, "save")
     kwargs = {
         "backend": MockBasePlantUMLBackend(),
-        "layout_config": LayoutConfig(),
+        "render_options": PlantUMLRenderOptions(),
     }
 
     diagram.save_as_plantuml(diagram_output, **kwargs)
@@ -294,7 +346,99 @@ def test_diagram_save_as_plantuml_override_layout_config(
         diagram_output, renderer=expected_renderer
     )
     mocked_renderer_class.assert_called_once_with(**kwargs)
-    assert kwargs["layout_config"] is not render_options.plantuml
+    assert kwargs["render_options"] is not render_options.plantuml
+
+
+def test_diagram_save_as_mermaid(tmp_path: Path, mocker: MockerFixture):
+    mocked_renderer_class = mocker.patch("c4.renderers.MermaidRenderer")
+    expected_renderer = mocked_renderer_class.return_value
+    diagram = Diagram()
+    diagram_output = tmp_path / "diagram.puml"
+    mocked_save = mocker.patch.object(diagram, "save")
+    kwargs = {
+        "backend": MockBaseMermaidBackend(),
+    }
+
+    diagram.save_as_mermaid(diagram_output, **kwargs)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+
+
+def test_diagram_save_as_mermaid_provided_render_options(
+    tmp_path: Path,
+    mocker: MockerFixture,
+):
+    mocked_renderer_class = mocker.patch("c4.renderers.MermaidRenderer")
+    expected_renderer = mocked_renderer_class.return_value
+    diagram = Diagram()
+    diagram_output = tmp_path / "diagram.puml"
+    mocked_save = mocker.patch.object(diagram, "save")
+    render_options = MermaidRenderOptions()
+    kwargs = {
+        "backend": MockBaseMermaidBackend(),
+        "render_options": render_options,
+    }
+
+    diagram.save_as_mermaid(diagram_output, **kwargs)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+
+
+def test_diagram_save_as_mermaid_render_options_from_diagram(
+    tmp_path: Path,
+    mocker: MockerFixture,
+):
+    mocked_renderer_class = mocker.patch("c4.renderers.MermaidRenderer")
+    expected_renderer = mocked_renderer_class.return_value
+    mermaid_render_options = MermaidRenderOptions()
+    render_options = RenderOptions(mermaid=mermaid_render_options)
+    diagram = Diagram(render_options=render_options)
+    diagram_output = tmp_path / "diagram.puml"
+    mocked_save = mocker.patch.object(diagram, "save")
+
+    kwargs = {
+        "backend": MockBaseMermaidBackend(),
+    }
+
+    diagram.save_as_mermaid(diagram_output, **kwargs)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(
+        **kwargs,
+        render_options=mermaid_render_options,
+    )
+
+
+def test_diagram_save_as_mermaid_override_render_options(
+    tmp_path: Path,
+    mocker: MockerFixture,
+):
+    mocked_renderer_class = mocker.patch("c4.renderers.MermaidRenderer")
+    expected_renderer = mocked_renderer_class.return_value
+    render_options = RenderOptions(mermaid=MermaidRenderOptions())
+    diagram = Diagram(render_options=render_options)
+    diagram_output = tmp_path / "diagram.puml"
+    mocked_save = mocker.patch.object(diagram, "save")
+    kwargs = {
+        "backend": MockBaseMermaidBackend(),
+        "render_options": MermaidRenderOptions(),
+    }
+
+    diagram.save_as_mermaid(diagram_output, **kwargs)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+    assert kwargs["render_options"] is not render_options.plantuml
 
 
 def test_get_diagram():

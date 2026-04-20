@@ -1,6 +1,6 @@
 import re
 from collections.abc import Callable
-from typing import Any, ClassVar
+from typing import Any
 
 import pytest
 from pytest_mock import MockerFixture
@@ -56,33 +56,6 @@ from c4.diagrams.core import (
     increment,
     set_index,
 )
-from c4.renderers.plantuml.layout_options import (
-    BaseStyle,
-    BaseTag,
-    BoundaryStyle,
-    BoundaryTag,
-    ComponentTag,
-    ContainerBoundaryStyle,
-    ContainerTag,
-    DiagramLayout,
-    ElementStyle,
-    ElementTag,
-    EnterpriseBoundaryStyle,
-    ExternalComponentTag,
-    ExternalContainerTag,
-    ExternalPersonTag,
-    ExternalSystemTag,
-    NodeTag,
-    PersonTag,
-    RelStyle,
-    RelTag,
-    SetSketchStyle,
-    ShowFloatingLegend,
-    ShowLegend,
-    ShowPersonSprite,
-    SystemBoundaryStyle,
-    SystemTag,
-)
 from c4.renderers.plantuml.macros import (
     ELEMENT_TO_PLANTUML_MACRO_MAP,
     RELATIONSHIP_TO_PLANTUML_MACRO_MAP,
@@ -98,7 +71,6 @@ from c4.renderers.plantuml.macros import (
     AddPersonTagPlantUMLMacro,
     AddRelTagPlantUMLMacro,
     AddSystemTagPlantUMLMacro,
-    Argument,
     BoundaryPlantUMLMacro,
     ComponentPlantUMLMacro,
     ContainerPlantUMLMacro,
@@ -132,179 +104,34 @@ from c4.renderers.plantuml.macros import (
     UpdateRelStylePlantUMLMacro,
     UpdateSystemBoundaryStylePlantUMLMacro,
     WithoutPropertyHeaderPlantUMLMacro,
-    force_str,
-    macro_call,
-    quote,
-    quote_and_escape,
-    quote_and_lower,
-    str_or_empty,
 )
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        ("a", '"a"'),
-        ('a"b', '"a\\"b"'),
-        ("a\nb", '"a\\nb"'),
-        ('a"\n"b', '"a\\"\\n\\"b"'),
-    ],
+from c4.renderers.plantuml.options import (
+    BaseStyle,
+    BaseTag,
+    BoundaryStyle,
+    BoundaryTag,
+    ComponentTag,
+    ContainerBoundaryStyle,
+    ContainerTag,
+    DiagramLayout,
+    ElementStyle,
+    ElementTag,
+    EnterpriseBoundaryStyle,
+    ExternalComponentTag,
+    ExternalContainerTag,
+    ExternalPersonTag,
+    ExternalSystemTag,
+    NodeTag,
+    PersonTag,
+    RelStyle,
+    RelTag,
+    SetSketchStyle,
+    ShowFloatingLegend,
+    ShowLegend,
+    ShowPersonSprite,
+    SystemBoundaryStyle,
+    SystemTag,
 )
-def test_quote_and_escape(value: str, expected: str):
-    result = quote_and_escape(value)
-
-    assert result == expected
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        ("", ""),
-        (None, ""),
-        (True, "True"),
-        (False, "False"),
-    ],
-)
-def test_str_or_empty(value: str, expected: str):
-    result = str_or_empty(value)
-
-    assert result == expected
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        ("", '""'),
-        ("a", '"a"'),
-        ('a"b', '"a"b"'),
-        ("a\nb", '"a\nb"'),
-        ("  spaced  ", '"  spaced  "'),
-    ],
-)
-def test_quote(value: str, expected: str):
-    result = quote(value)
-
-    assert result == expected
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        ("", '""'),
-        ("A", '"a"'),
-        ("AbC", '"abc"'),
-        ("A B", '"a b"'),
-        ('A"b', '"a"b"'),
-    ],
-)
-def test_quote_and_lower(value: str, expected: str):
-    result = quote_and_lower(value)
-
-    assert result == expected
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        ("x", "x"),
-        ("", ""),
-        (0, "0"),
-        (1, "1"),
-        (True, "True"),
-        (False, "False"),
-        (None, "None"),
-        (["a", 1], "['a', 1]"),
-        ({"a": 1}, "{'a': 1}"),
-    ],
-)
-def test_force_str(value: str, expected: str):
-    result = force_str(value)
-
-    assert result == expected
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        ("Rel", "Rel()"),
-        ("", "()"),
-        ("  X  ", "  X  ()"),
-        ("My_Macro", "My_Macro()"),
-    ],
-)
-def test_macro_call(value: str, expected: str):
-    result = macro_call(value)
-
-    assert result == expected
-
-
-def test_plantuml_macro_check_macro():
-    class TestPlantUMLMacro(PlantUMLMacro[...]):
-        macro = "example"
-
-    macro = TestPlantUMLMacro(...)
-
-    result = macro.check_macro()
-
-    assert result == "example"
-
-
-def test_plantuml_macro_get_macro():
-    class TestPlantUMLMacro(PlantUMLMacro[...]):
-        macro = "example"
-
-    macro = TestPlantUMLMacro(...)
-
-    result = macro.get_macro()
-
-    assert result == "example"
-
-
-def test_plantuml_macro_get_macro_not_provided():
-    class TestPlantUMLMacro(PlantUMLMacro[...]): ...
-
-    macro = TestPlantUMLMacro(...)
-
-    result = macro.get_macro()
-
-    assert result is None
-
-
-def test_plantuml_macro_check_macro_not_provided_error():
-    class TestPlantUMLMacro(PlantUMLMacro[...]): ...
-
-    macro = TestPlantUMLMacro(...)
-    expected_error = "Attribute `macro` not provided for TestPlantUMLMacro"
-
-    with pytest.raises(AttributeError, match=expected_error):
-        macro.check_macro()
-
-
-def test_plantuml_macro_get_data_no_args():
-    class TestPlantUMLMacro(PlantUMLMacro[...]): ...
-
-    macro = TestPlantUMLMacro(...)
-
-    result = macro.get_data()
-
-    assert result == {}
-
-
-def test_plantuml_macro_get_data_not_implemented_error():
-    class TestPlantUMLMacro(PlantUMLMacro[...]):
-        macro = "example"
-        args: ClassVar[list[Argument]] = [
-            Argument(name="arg1"),
-        ]
-
-    macro = TestPlantUMLMacro(...)
-    expected_error = re.escape(
-        "TestPlantUMLMacro.get_data() must be overridden "
-        "when 'args' are defined"
-    )
-
-    with pytest.raises(NotImplementedError, match=expected_error):
-        macro.get_data()
 
 
 @pytest.mark.usefixtures("diagram")
@@ -339,93 +166,6 @@ def test_plantuml_macro_get_properties_not_a_base_element(
     result = macro.get_properties()
 
     assert result is None
-
-
-class PlantUMLMacroWithArgsAndNoData(PlantUMLMacro):
-    macro = "example"
-    args: ClassVar[list[Argument]] = [
-        Argument(name="arg1"),
-    ]
-
-    def get_data(self) -> dict[str, Any]:
-        return {}
-
-
-@pytest.mark.usefixtures("diagram")
-def test_plantuml_macro_render_args_and_no_data_error():
-    element = Element(label="example")
-    macro = PlantUMLMacroWithArgsAndNoData(element)
-    expected_error = re.escape(
-        f"Cannot render PlantUML macro for element "
-        f"{element!r}: "
-        f"arguments are defined (['arg1']), but "
-        f"no input data was provided."
-    )
-
-    with pytest.raises(ValueError, match=expected_error):
-        macro.render()
-
-
-class PlantUMLMacroWithArgsAndData(PlantUMLMacro):
-    macro = "example"
-    args: ClassVar[list[Argument]] = [
-        Argument(name="arg1"),
-        Argument(name="arg2", source="argument2", format=quote),
-        Argument(name="arg3", format=quote_and_lower),
-        Argument(name="arg4", format=quote),
-        Argument(name="arg5", forced_keyword=True, format=quote),
-        Argument(name="arg6", format=quote),
-    ]
-
-    def get_data(self) -> dict[str, Any]:
-        return {
-            "arg1": "arg1",
-            "argument2": "Arg2 value",
-            "arg3": "Arg3 value",
-            "arg4": "Arg4 value",
-            "arg5": "Arg5 value",
-            "arg6": "Arg6 value",
-        }
-
-
-@pytest.mark.usefixtures("diagram")
-def test_plantuml_macro_render():
-    element = Element(label="example")
-    macro = PlantUMLMacroWithArgsAndData(element)
-    expected_result = (
-        'example(arg1, "Arg2 value", "arg3 value", "Arg4 value", '
-        '$arg5="Arg5 value", $arg6="Arg6 value")'
-    )
-
-    result = macro.render()
-
-    assert result == expected_result
-
-
-class PlantUMLMacroForceKeyword(PlantUMLMacroWithArgsAndData):
-    def get_data(self) -> dict[str, Any]:
-        return {
-            "arg1": "arg1",
-            "argument2": "Arg2 value",
-            "arg4": "Arg4 value",
-            "arg5": "Arg5 value",
-            "arg6": "Arg6 value",
-            "arg7": "Arg7 value",
-        }
-
-
-@pytest.mark.usefixtures("diagram")
-def test_plantuml_macro_render_force_keyword():
-    element = Element(label="example")
-    macro = PlantUMLMacroForceKeyword(element)
-    expected_result = (
-        'example(arg1, "Arg2 value", $arg4="Arg4 value", '
-        '$arg5="Arg5 value", $arg6="Arg6 value")'
-    )
-
-    result = macro.render()
-
-    assert result == expected_result
 
 
 @pytest.mark.usefixtures("diagram")
@@ -1042,7 +782,7 @@ def test_relationship_plantuml_macro_get_data_no_from_element_error(
         label="example", to_element=Element(label="example")
     )
     macro = RelationshipPlantUMLMacro(relationship)
-    expected_error = f"Empty `from_element` for relationship {relationship}"
+    expected_error = "from_element not provided"
 
     with pytest.raises(ValueError, match=re.escape(expected_error)):
         macro.get_data()
@@ -1064,7 +804,7 @@ def test_relationship_plantuml_macro_get_data_no_to_element_error(
         label="example", from_element=Element(label="example")
     )
     macro = RelationshipPlantUMLMacro(relationship)
-    expected_error = f"Empty `to_element` for relationship {relationship}"
+    expected_error = "to_element not provided"
 
     with pytest.raises(ValueError, match=re.escape(expected_error)):
         macro.get_data()

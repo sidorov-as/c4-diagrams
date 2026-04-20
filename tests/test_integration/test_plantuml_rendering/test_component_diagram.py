@@ -11,7 +11,7 @@ from c4 import (
     Rel,
     SystemExt,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover
     from tests.conftest import AssertMatchSnapshot
@@ -84,9 +84,11 @@ def test_render_component_diagram(
         ma >> Rel("Uses", technology="JSON/HTTPS") >> sign
         ma >> Rel("Uses", technology="JSON/HTTPS") >> accounts
 
-        layout_config = LayoutOptions().layout_with_legend().build()
+        render_options = (
+            PlantUMLRenderOptionsBuilder().layout_with_legend().build()
+        )
 
-    diagram_code = diagram.as_plantuml(layout_config=layout_config)
+    diagram_code = diagram.as_plantuml(render_options=render_options)
 
     assert_match_snapshot(
         snapshot_name="plantuml/component_diagram.puml",

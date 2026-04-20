@@ -70,3 +70,20 @@ To export diagrams using the **PlantUML renderer**, you need **one** of the foll
 ```bash
 plantuml -version
 ```
+
+### Mermaid
+
+To export diagrams using the **Mermaid renderer**, you need a local [`mmdc`](https://github.com/mermaid-js/mermaid-cli)
+binary available in your `PATH`.
+
+**Install locally**
+
+```bash
+npm install -g @mermaid-js/mermaid-cli
+```
+
+**Verify installation**
+
+```bash
+mmdc --version
+```

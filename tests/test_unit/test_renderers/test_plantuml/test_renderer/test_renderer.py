@@ -29,7 +29,7 @@ from c4 import (
 from c4.diagrams.core import Diagram, RelUp
 from c4.exceptions import PlantUMLBackendConfigurationError
 from c4.renderers import RenderOptions
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 from c4.renderers.plantuml.backends import DiagramFormat
 from c4.renderers.plantuml.constants import (
     C4_COMPONENT_INCLUDE,
@@ -153,7 +153,7 @@ def build_system_context_diagram() -> SystemContextDiagram:
         ),
     ],
 )
-def test_plant_uml_renderer__get_renderer(
+def test_plantuml_renderer__get_renderer(
     diagram: Diagram,
     renderer_class: type,
 ):
@@ -164,13 +164,15 @@ def test_plant_uml_renderer__get_renderer(
     assert isinstance(result, renderer_class)
 
 
-def test_plant_uml_renderer__get_renderer__passes_shared_configuration():
+def test_plantuml_renderer__get_renderer__passes_shared_configuration():
     includes = ["!include custom.puml"]
-    layout_config = LayoutOptions().layout_top_down(with_legend=True).build()
+    render_options = (
+        PlantUMLRenderOptionsBuilder().layout_top_down(with_legend=True).build()
+    )
     backend = object()
     renderer = PlantUMLRenderer(
         includes=includes,
-        layout_config=layout_config,
+        render_options=render_options,
         backend=backend,
         use_new_c4_style=True,
     )
@@ -179,35 +181,39 @@ def test_plant_uml_renderer__get_renderer__passes_shared_configuration():
     result = renderer.get_renderer(diagram)
 
     assert result._includes == includes
-    assert result._config is layout_config
+    assert result._render_options is render_options
     assert result._plantuml_backend is backend
     assert result._use_new_c4_style is True
 
 
-def test_plant_uml_renderer__get_renderer__diagram_render_options():
+def test_plantuml_renderer__get_renderer__diagram_render_options():
     includes = ["!include custom.puml"]
-    layout_config = LayoutOptions().layout_top_down(with_legend=True).build()
-    diagram_layout_config = LayoutOptions().layout_landscape().build()
+    render_options = (
+        PlantUMLRenderOptionsBuilder().layout_top_down(with_legend=True).build()
+    )
+    diagram_render_options = (
+        PlantUMLRenderOptionsBuilder().layout_landscape().build()
+    )
     backend = object()
     renderer = PlantUMLRenderer(
         includes=includes,
-        layout_config=layout_config,
+        render_options=render_options,
         backend=backend,
         use_new_c4_style=True,
     )
     diagram = SystemContextDiagram(
-        render_options=RenderOptions(plantuml=diagram_layout_config)
+        render_options=RenderOptions(plantuml=diagram_render_options)
     )
 
     result = renderer.get_renderer(diagram)
 
     assert result._includes == includes
-    assert result._config is diagram_layout_config
+    assert result._render_options is diagram_render_options
     assert result._plantuml_backend is backend
     assert result._use_new_c4_style is True
 
 
-def test_plant_uml_renderer__get_renderer__unsupported_diagram_type():
+def test_plantuml_renderer__get_renderer__unsupported_diagram_type():
     class UnsupportedDiagram:
         pass
 
@@ -219,11 +225,13 @@ def test_plant_uml_renderer__get_renderer__unsupported_diagram_type():
         renderer.get_renderer(diagram)  # type: ignore[arg-type]
 
 
-def test_plant_uml__system_context_diagram__render():
+def test_plantuml__system_context_diagram__render():
     diagram = build_system_context_diagram()
-    layout_config = LayoutOptions().layout_top_down(with_legend=True).build()
+    render_options = (
+        PlantUMLRenderOptionsBuilder().layout_top_down(with_legend=True).build()
+    )
     renderer = PlantUMLSystemContextDiagramRenderer(
-        layout_config=layout_config,
+        render_options=render_options,
     )
 
     result = renderer.render(diagram)
@@ -241,7 +249,7 @@ def test_plant_uml__system_context_diagram__render():
     assert "LAYOUT_WITH_LEGEND" in result
 
 
-def test_plant_uml__system_context_diagram__render__new_c4_style():
+def test_plantuml__system_context_diagram__render__new_c4_style():
     diagram = build_system_context_diagram()
     renderer = PlantUMLSystemContextDiagramRenderer(
         use_new_c4_style=True,
@@ -252,7 +260,7 @@ def test_plant_uml__system_context_diagram__render__new_c4_style():
     assert "!NEW_C4_STYLE=1" in result
 
 
-def test_plant_uml__system_context_diagram__render__include():
+def test_plantuml__system_context_diagram__render__include():
     diagram = build_system_context_diagram()
     renderer = PlantUMLSystemContextDiagramRenderer(
         includes=["!include custom-theme.puml"],
@@ -265,7 +273,7 @@ def test_plant_uml__system_context_diagram__render__include():
     assert "!include custom-theme.puml" in result
 
 
-def test_plant_uml__system_context_diagram__render_bytes(
+def test_plantuml__system_context_diagram__render_bytes(
     mocker: MockerFixture,
 ):
     diagram = build_system_context_diagram()
@@ -284,7 +292,7 @@ def test_plant_uml__system_context_diagram__render_bytes(
     assert "@enduml" in backend.to_bytes.call_args.kwargs["diagram"]
 
 
-def test_plant_uml__system_context_diagram__render_bytes__no_backend():
+def test_plantuml__system_context_diagram__render_bytes__no_backend():
     diagram = build_system_context_diagram()
     renderer = PlantUMLSystemContextDiagramRenderer()
 
@@ -292,7 +300,7 @@ def test_plant_uml__system_context_diagram__render_bytes__no_backend():
         renderer.render_bytes(diagram, format=DiagramFormat.SVG)
 
 
-def test_plant_uml__system_context_diagram__render_file(
+def test_plantuml__system_context_diagram__render_file(
     mocker: MockerFixture,
     tmp_path: Path,
 ):
@@ -320,7 +328,7 @@ def test_plant_uml__system_context_diagram__render_file(
     assert "@enduml" in backend.to_file.call_args.kwargs["diagram"]
 
 
-def test_plant_uml__system_context_diagram__render_file__no_backend(
+def test_plantuml__system_context_diagram__render_file__no_backend(
     tmp_path: Path,
 ):
     diagram = build_system_context_diagram()
@@ -370,12 +378,12 @@ def test_base_plant_uml_renderer__init__uses_default_includes(
     renderer = renderer_class()
 
     assert (
-        RELATIVE_INCLUDE_COMMENT in renderer._layout_options_renderer._includes
+        RELATIVE_INCLUDE_COMMENT in renderer._render_options_renderer._includes
     )
-    assert expected_include in renderer._layout_options_renderer._includes
+    assert expected_include in renderer._render_options_renderer._includes
 
 
-def test_plant_uml_renderer__render__delegates_to_specific_renderer(
+def test_plantuml_renderer__render__delegates_to_specific_renderer(
     mocker: MockerFixture,
 ):
     diagram = SystemContextDiagram()
@@ -395,7 +403,7 @@ def test_plant_uml_renderer__render__delegates_to_specific_renderer(
     concrete_renderer.render.assert_called_once_with(diagram)
 
 
-def test_plant_uml_renderer__render_bytes__delegates_to_specific_renderer(
+def test_plantuml_renderer__render_bytes__delegates_to_specific_renderer(
     mocker: MockerFixture,
 ):
     diagram = SystemContextDiagram()
@@ -418,7 +426,7 @@ def test_plant_uml_renderer__render_bytes__delegates_to_specific_renderer(
     )
 
 
-def test_plant_uml_renderer__render_file__delegates_to_specific_renderer(
+def test_plantuml_renderer__render_file__delegates_to_specific_renderer(
     mocker: MockerFixture,
     tmp_path: Path,
 ):
@@ -517,7 +525,7 @@ def test_plantuml_dynamic_diagram_renderer__base_elements__unknown_type():
     expected_error = f"Unsupported element {element!r} for DynamicDiagram."
 
     with pytest.raises(TypeError, match=expected_error):
-        renderer.render_base_element(element)
+        renderer._render_base_element(element)
 
 
 def test_plantuml_renderer__relationships_with_properties():

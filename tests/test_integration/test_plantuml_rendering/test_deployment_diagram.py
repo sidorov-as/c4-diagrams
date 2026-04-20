@@ -13,7 +13,7 @@ from c4 import (
     RelRight,
     RelUp,
 )
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover
     from tests.conftest import AssertMatchSnapshot
@@ -142,15 +142,15 @@ def test_render_deployment_diagram(
         )
         db >> RelRight("Replicates data to") >> db2
 
-        layout_config = (
-            LayoutOptions()
+        render_options = (
+            PlantUMLRenderOptionsBuilder()
             .add_element_tag("fallback", bg_color="#c0c0c0")
             .add_rel_tag("fallback", text_color="#c0c0c0", line_color="#438DD5")
             .show_legend()
             .build()
         )
 
-    diagram_code = diagram.as_plantuml(layout_config=layout_config)
+    diagram_code = diagram.as_plantuml(render_options=render_options)
 
     assert_match_snapshot(
         snapshot_name="plantuml/deployment_diagram.puml",
@@ -310,8 +310,8 @@ def test_render_deployment_diagram_with_properties(
         )
         db >> RelRight("Replicates data to") >> db2
 
-        layout_config = (
-            LayoutOptions()
+        render_options = (
+            PlantUMLRenderOptionsBuilder()
             .without_property_header()
             .add_element_tag("fallback", bg_color="#c0c0c0")
             .add_rel_tag("fallback", text_color="#c0c0c0", line_color="#438DD5")
@@ -319,7 +319,7 @@ def test_render_deployment_diagram_with_properties(
             .build()
         )
 
-    diagram_code = diagram.as_plantuml(layout_config=layout_config)
+    diagram_code = diagram.as_plantuml(render_options=render_options)
 
     assert_match_snapshot(
         snapshot_name="plantuml/deployment_diagram_with_properties.puml",

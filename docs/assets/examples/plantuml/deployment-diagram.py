@@ -15,13 +15,16 @@ from c4 import (
     Person,
     Rel,
 )
-from c4.renderers import RenderOptions
-from c4.renderers.plantuml import LayoutOptions
+from c4.renderers import (
+    PlantUMLRenderOptionsBuilder,
+    RenderOptions,
+)
 
 
 with DeploymentDiagram(title='Online Shop - Production Deployment') as diagram:
     customer = Person('Customer', 'Uses the online shop through a browser.', tags=['person'], alias='customer')
     payment_gateway = ContainerExt('Payment Gateway', 'External service that processes card payments.', tags=['external_service'], technology='HTTPS API', alias='payment_gateway')
+
     with Node('AWS Production Account', 'Production cloud account for the online shop.', type_='Cloud Account', tags=['cloud_account'], alias='aws_prod'):
         with NodeLeft('Public Subnet', 'Internet-facing network segment.', type_='Network Segment', tags=['public_network'], alias='public_subnet'):
             with DeploymentNodeLeft('Application Load Balancer', 'Terminates TLS and routes requests to the web tier.', type_='Ingress', tags=['edge_node'], alias='alb') as alb:
@@ -40,14 +43,15 @@ with DeploymentDiagram(title='Online Shop - Production Deployment') as diagram:
     app_cluster >> Rel('Reads and writes', technology='TLS / SQL', tags=['encrypted_traffic']) >> db_service
     app_cluster >> Rel('Calls', technology='HTTPS/JSON', tags=['encrypted_traffic']) >> payment_gateway
     backend_api >> Rel('Publishes events to', technology='Kafka', tags=['async_flow']) >> order_events
+
     LayR(customer, alb)
     LayR(alb, app_cluster)
     LayD(app_cluster, db_service)
     LayR(app_cluster, payment_gateway)
 
 
-plantuml_layout_options = (
-    LayoutOptions()
+plantuml_render_options = (
+    PlantUMLRenderOptionsBuilder()
     .layout_left_right(
         with_legend=True,
     )
@@ -228,7 +232,7 @@ plantuml_layout_options = (
 )
 
 render_options = RenderOptions(
-    plantuml=plantuml_layout_options,
+    plantuml=plantuml_render_options,
 )
 
 diagram.render_options = render_options
