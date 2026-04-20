@@ -295,7 +295,7 @@ def test_export_default_cli_args(
     assert args.mermaid_bin is None
     assert args.mermaid_scale_factor is None
     assert args.java_bin == "java"
-    assert args.plantuml_server_url == "https://www.plantuml.com/plantuml"
+    assert args.plantuml_server_url is None
 
 
 @pytest.mark.parametrize(

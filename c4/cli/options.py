@@ -433,13 +433,17 @@ def _build_plantuml_export_cli_options(
         If a PlantUML JAR is provided, it takes precedence over plantuml_bin.
     """
     # Prefer explicit args; fall back to defaults via dataclass fields.
-    plantuml_bin: str | None = args.plantuml_bin or DEFAULT_PLANTUML_BIN
+    plantuml_bin: str | None = getattr(args, "plantuml_bin", None)
+    plantuml_bin = plantuml_bin or DEFAULT_PLANTUML_BIN
+
     plantuml_jar: str | None = args.plantuml_jar
 
     use_new_c4_style = getattr(args, "plantuml_use_new_c4_style", False)
     use_bundled_c4_plantuml = getattr(
         args, "plantuml_use_bundled_c4_plantuml", False
     )
+
+    plantuml_server_url = args.plantuml_server_url
 
     if plantuml_jar:
         # If plantuml_jar is provided, ignore plantuml_bin
@@ -448,7 +452,7 @@ def _build_plantuml_export_cli_options(
 
     return PlantUMLExportCLIOptions(
         plantuml_backend=args.plantuml_backend,
-        plantuml_server_url=args.plantuml_server_url,
+        plantuml_server_url=plantuml_server_url or DEFAULT_PLANTUML_SERVER_URL,
         plantuml_bin=plantuml_bin,
         plantuml_jar=plantuml_jar,
         java_bin=args.java_bin,
@@ -464,13 +468,12 @@ def _build_mermaid_export_cli_options(
     """
     Build Mermaid export options from parsed CLI args.
     """
-    mermaid_bin = getattr(args, "mermaid_bin", DEFAULT_MERMAID_BIN)
-    scale_factor = getattr(
-        args, "mermaid_scale_factor", DEFAULT_MERMAID_SCALE_FACTOR
-    )
+    mermaid_bin = getattr(args, "mermaid_bin", None)
+    scale_factor = getattr(args, "mermaid_scale_factor", None)
 
     return MermaidExportCLIOptions(
-        mermaid_bin=mermaid_bin, scale_factor=scale_factor
+        mermaid_bin=mermaid_bin or DEFAULT_MERMAID_BIN,
+        scale_factor=scale_factor or DEFAULT_MERMAID_SCALE_FACTOR,
     )
 
 

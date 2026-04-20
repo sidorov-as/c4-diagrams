@@ -35,12 +35,25 @@ from c4.cli.options import (
     build_renderer,
     resolve_convert_formats,
 )
+from c4.cli.parser import build_parser
 from c4.constants import (
     D2,
+    DEFAULT_JAVA_BIN,
+    DEFAULT_MERMAID_BIN,
+    DEFAULT_MERMAID_SCALE_FACTOR,
+    DEFAULT_PLANTUML_BIN,
+    DEFAULT_PLANTUML_SERVER_URL,
     DIAGRAM_FORMATS_BY_RENDERER,
+    JAVA_BIN_ENV_VAR,
     KNOWN_RENDERERS,
     MERMAID,
+    MERMAID_BIN_ENV_VAR,
+    MERMAID_SCALE_FACTOR_ENV_VAR,
     PLANTUML,
+    PLANTUML_BIN_ENV_VAR,
+    PLANTUML_JAR_ENV_VAR,
+    PLANTUML_SERVER_URL_ENV_VAR,
+    PLANTUML_SKINPARAM_DPI_ENV_VAR,
     REMOTE_BACKEND,
     STRUCTURIZR,
 )
@@ -89,6 +102,22 @@ def make_convert_args() -> MakeConvertArgs:
         )
 
     return _make_args
+
+
+@pytest.fixture()
+def parse_export_args(monkeypatch: pytest.MonkeyPatch):
+    def _parse_export_args(
+        *argv: str,
+        which_result: str = "/usr/bin/fake-binary",
+    ) -> argparse.Namespace:
+        monkeypatch.setattr(
+            "c4.cli.parser.shutil.which",
+            lambda value: which_result,
+        )
+        parser = build_parser()
+        return parser.parse_args(["export", "diagram.py", *argv])
+
+    return _parse_export_args
 
 
 def test_render_cli_options_open_output(
@@ -570,7 +599,7 @@ def test_build_plantuml_export_cli_options_local_backend(
 
     assert result.plantuml_bin == expected_bin
     assert result.plantuml_jar == expected_jar
-    assert result.plantuml_server_url is None
+    assert result.plantuml_server_url == "https://www.plantuml.com/plantuml"
     assert result.plantuml_backend == "local"
     assert result.java_bin == "java"
     assert result.plantuml_skinparam_dpi == 300
@@ -1150,3 +1179,166 @@ def test_build_convert_cli_options(
     assert cli_options.from_format == JSON
     assert cli_options.to_format == PY
     assert cli_options.output == output
+
+
+def test_build_plantuml_export_cli_options__parsed_defaults(
+    parse_export_args,
+):
+    args = parse_export_args()
+
+    result = _build_plantuml_export_cli_options(args)
+
+    assert result == PlantUMLExportCLIOptions(
+        plantuml_backend=LOCAL_BACKEND,
+        plantuml_server_url=DEFAULT_PLANTUML_SERVER_URL,
+        plantuml_bin=DEFAULT_PLANTUML_BIN,
+        plantuml_jar=None,
+        java_bin=DEFAULT_JAVA_BIN,
+        plantuml_skinparam_dpi=None,
+        use_new_c4_style=False,
+        use_bundled_c4_plantuml=True,
+    )
+
+
+def test_build_plantuml_export_cli_options__parsed_from_env_bin(
+    monkeypatch: pytest.MonkeyPatch,
+    parse_export_args,
+):
+    monkeypatch.setenv(PLANTUML_BIN_ENV_VAR, "plantuml-from-env")
+    monkeypatch.setenv(
+        PLANTUML_SERVER_URL_ENV_VAR,
+        "https://plantuml-from-env.example.com",
+    )
+    monkeypatch.setenv(JAVA_BIN_ENV_VAR, "java-from-env")
+    monkeypatch.setenv(PLANTUML_SKINPARAM_DPI_ENV_VAR, "250")
+    args = parse_export_args()
+
+    result = _build_plantuml_export_cli_options(args)
+
+    assert result == PlantUMLExportCLIOptions(
+        plantuml_backend=LOCAL_BACKEND,
+        plantuml_server_url="https://plantuml-from-env.example.com",
+        plantuml_bin="plantuml-from-env",
+        plantuml_jar=None,
+        java_bin=DEFAULT_JAVA_BIN,
+        plantuml_skinparam_dpi=250,
+        use_new_c4_style=False,
+        use_bundled_c4_plantuml=True,
+    )
+
+
+def test_build_plantuml_export_cli_options__parsed_from_env_jar_takes_precedence(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    parse_export_args,
+):
+    jar_path = tmp_path / "plantuml.jar"
+    jar_path.write_text("fake jar", encoding="utf-8")
+    monkeypatch.setenv(PLANTUML_BIN_ENV_VAR, "plantuml-from-env")
+    monkeypatch.setenv(PLANTUML_JAR_ENV_VAR, str(jar_path))
+    args = parse_export_args()
+
+    result = _build_plantuml_export_cli_options(args)
+
+    assert result == PlantUMLExportCLIOptions(
+        plantuml_backend=LOCAL_BACKEND,
+        plantuml_server_url=DEFAULT_PLANTUML_SERVER_URL,
+        plantuml_bin=None,
+        plantuml_jar=jar_path,
+        java_bin=DEFAULT_JAVA_BIN,
+        plantuml_skinparam_dpi=None,
+        use_new_c4_style=False,
+        use_bundled_c4_plantuml=True,
+    )
+
+
+def test_build_plantuml_export_cli_options__parsed_cli_overrides_env(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    parse_export_args,
+):
+    env_jar_path = tmp_path / "env-plantuml.jar"
+    env_jar_path.write_text("fake jar", encoding="utf-8")
+    cli_jar_path = tmp_path / "cli-plantuml.jar"
+    cli_jar_path.write_text("fake jar", encoding="utf-8")
+    monkeypatch.setenv(PLANTUML_BIN_ENV_VAR, "plantuml-from-env")
+    monkeypatch.setenv(PLANTUML_JAR_ENV_VAR, str(env_jar_path))
+    monkeypatch.setenv(PLANTUML_SKINPARAM_DPI_ENV_VAR, "150")
+    args = parse_export_args(
+        "--plantuml-backend",
+        REMOTE_BACKEND,
+        "--plantuml-server-url",
+        "https://plantuml-from-cli.example.com",
+        "--plantuml-jar",
+        str(cli_jar_path),
+        "--java-bin",
+        "java-from-cli",
+        "--plantuml-skinparam-dpi",
+        "300",
+        "--plantuml-use-new-c4-style",
+        "--plantuml-use-bundled-c4-plantuml",
+        "false",
+    )
+
+    result = _build_plantuml_export_cli_options(args)
+
+    assert result == PlantUMLExportCLIOptions(
+        plantuml_backend=REMOTE_BACKEND,
+        plantuml_server_url="https://plantuml-from-cli.example.com",
+        plantuml_bin=None,
+        plantuml_jar=cli_jar_path,
+        java_bin="java-from-cli",
+        plantuml_skinparam_dpi=300,
+        use_new_c4_style=True,
+        use_bundled_c4_plantuml=False,
+    )
+
+
+def test_build_mermaid_export_cli_options__parsed_defaults(
+    parse_export_args,
+):
+    args = parse_export_args()
+
+    result = _build_mermaid_export_cli_options(args)
+
+    assert result == MermaidExportCLIOptions(
+        mermaid_bin=DEFAULT_MERMAID_BIN,
+        scale_factor=DEFAULT_MERMAID_SCALE_FACTOR,
+    )
+
+
+def test_build_mermaid_export_cli_options__parsed_from_env(
+    monkeypatch: pytest.MonkeyPatch,
+    parse_export_args,
+):
+    monkeypatch.setenv(MERMAID_BIN_ENV_VAR, "mmdc-from-env")
+    monkeypatch.setenv(MERMAID_SCALE_FACTOR_ENV_VAR, "4")
+    args = parse_export_args()
+
+    result = _build_mermaid_export_cli_options(args)
+
+    assert result == MermaidExportCLIOptions(
+        mermaid_bin="mmdc-from-env",
+        scale_factor=4,
+    )
+
+
+def test_build_mermaid_export_cli_options__parsed_cli_overrides_env(
+    monkeypatch: pytest.MonkeyPatch,
+    parse_export_args,
+):
+    monkeypatch.setenv(MERMAID_BIN_ENV_VAR, "mmdc-from-env")
+    monkeypatch.setenv(MERMAID_SCALE_FACTOR_ENV_VAR, "4")
+    args = parse_export_args(
+        "--mermaid-bin",
+        "mmdc-from-cli",
+        "--mermaid-scale-factor",
+        "7",
+    )
+
+    result = _build_mermaid_export_cli_options(args)
+
+    assert result == MermaidExportCLIOptions(
+        mermaid_bin="mmdc-from-cli",
+        scale_factor=7,
+    )
