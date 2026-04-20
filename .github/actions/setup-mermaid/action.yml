@@ -28,9 +28,6 @@ runs:
         # Ensure mmdc is available
         command -v mmdc
 
-        # Export for your app/tests (similar to PLANTUML_JAR)
-        echo "MERMAID_BIN=$(command -v mmdc)" >> "$GITHUB_ENV"
-
     - name: Show Mermaid CLI version
       shell: bash
       run: mmdc --version

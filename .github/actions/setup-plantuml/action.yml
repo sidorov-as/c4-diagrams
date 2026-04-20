@@ -1,5 +1,5 @@
 name: "Setup PlantUML"
-description: "Install a pinned PlantUML jar and expose PLANTUML_JAR + plantuml wrapper"
+description: "Install a pinned PlantUML jar and expose PLANTUML_JAR_PATH + plantuml wrapper"
 
 inputs:
   plantuml-version:
@@ -30,7 +30,7 @@ runs:
           "https://github.com/plantuml/plantuml/releases/download/v${VERSION}/plantuml-${VERSION}.jar"
 
         # Export for your app/tests
-        echo "PLANTUML_JAR=$JAR_PATH" >> "$GITHUB_ENV"
+        echo "PLANTUML_JAR_PATH=$JAR_PATH" >> "$GITHUB_ENV"
 
         # Provide `plantuml` command (wrapper) for convenience/tests
         BIN_DIR="$HOME/.local/bin"
@@ -40,7 +40,7 @@ runs:
         #!/usr/bin/env bash
         set -euo pipefail
 
-        : "${PLANTUML_JAR:?PLANTUML_JAR is not set}"
+        : "${PLANTUML_JAR_PATH:?PLANTUML_JAR_PATH is not set}"
 
         # Default to headless unless -gui is explicitly used (matches Homebrew wrapper behavior)
         VMARGS=""

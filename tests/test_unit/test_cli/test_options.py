@@ -104,6 +104,14 @@ def make_convert_args() -> MakeConvertArgs:
     return _make_args
 
 
+class ParseExportArgs(Protocol):
+    def __call__(
+        self,
+        *argv: str,
+        which_result: str = "/usr/bin/fake-binary",
+    ) -> argparse.Namespace: ...
+
+
 @pytest.fixture()
 def parse_export_args(monkeypatch: pytest.MonkeyPatch):
     def _parse_export_args(
@@ -1182,7 +1190,7 @@ def test_build_convert_cli_options(
 
 
 def test_build_plantuml_export_cli_options__parsed_defaults(
-    parse_export_args,
+    parse_export_args: ParseExportArgs,
 ):
     args = parse_export_args()
 
@@ -1202,7 +1210,7 @@ def test_build_plantuml_export_cli_options__parsed_defaults(
 
 def test_build_plantuml_export_cli_options__parsed_from_env_bin(
     monkeypatch: pytest.MonkeyPatch,
-    parse_export_args,
+    parse_export_args: ParseExportArgs,
 ):
     monkeypatch.setenv(PLANTUML_BIN_ENV_VAR, "plantuml-from-env")
     monkeypatch.setenv(
@@ -1230,7 +1238,7 @@ def test_build_plantuml_export_cli_options__parsed_from_env_bin(
 def test_build_plantuml_export_cli_options__parsed_from_env_jar_takes_precedence(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    parse_export_args,
+    parse_export_args: ParseExportArgs,
 ):
     jar_path = tmp_path / "plantuml.jar"
     jar_path.write_text("fake jar", encoding="utf-8")
@@ -1255,7 +1263,7 @@ def test_build_plantuml_export_cli_options__parsed_from_env_jar_takes_precedence
 def test_build_plantuml_export_cli_options__parsed_cli_overrides_env(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    parse_export_args,
+    parse_export_args: ParseExportArgs,
 ):
     env_jar_path = tmp_path / "env-plantuml.jar"
     env_jar_path.write_text("fake jar", encoding="utf-8")
@@ -1295,7 +1303,7 @@ def test_build_plantuml_export_cli_options__parsed_cli_overrides_env(
 
 
 def test_build_mermaid_export_cli_options__parsed_defaults(
-    parse_export_args,
+    parse_export_args: ParseExportArgs,
 ):
     args = parse_export_args()
 
@@ -1309,7 +1317,7 @@ def test_build_mermaid_export_cli_options__parsed_defaults(
 
 def test_build_mermaid_export_cli_options__parsed_from_env(
     monkeypatch: pytest.MonkeyPatch,
-    parse_export_args,
+    parse_export_args: ParseExportArgs,
 ):
     monkeypatch.setenv(MERMAID_BIN_ENV_VAR, "mmdc-from-env")
     monkeypatch.setenv(MERMAID_SCALE_FACTOR_ENV_VAR, "4")
@@ -1325,7 +1333,7 @@ def test_build_mermaid_export_cli_options__parsed_from_env(
 
 def test_build_mermaid_export_cli_options__parsed_cli_overrides_env(
     monkeypatch: pytest.MonkeyPatch,
-    parse_export_args,
+    parse_export_args: ParseExportArgs,
 ):
     monkeypatch.setenv(MERMAID_BIN_ENV_VAR, "mmdc-from-env")
     monkeypatch.setenv(MERMAID_SCALE_FACTOR_ENV_VAR, "4")
