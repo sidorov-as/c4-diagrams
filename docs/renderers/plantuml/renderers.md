@@ -1,15 +1,19 @@
 # PlantUML Renderers
 
-The **PlantUML renderer** is responsible for converting a [`Diagram`][c4.diagrams.core.Diagram] object into PlantUML
-source code
-and exporting it into an image (PNG, SVG, etc.).
+The **PlantUML renderer** is responsible for converting a [`Diagram`](../../api_docs/core/#c4.diagrams.core.Diagram)
+object into PlantUML source code and exporting it as an image (PNG, SVG, etc.).
 
-It integrates with the [`Diagram`][c4.diagrams.core.Diagram] and delegates image generation
-to a configurable backend.
+It integrates with the [`Diagram`](../../api_docs/core/#c4.diagrams.core.Diagram) and delegates image generation
+to a configurable execution backend.
+
+PlantUML-specific DSL helpers and extension data are documented as rendering
+backend extensions. See [Portable core and backend extensions](../../concepts/portable-core-and-extensions.md)
+for how `plantuml={...}` data is stored and validated.
 
 ## PlantUMLRenderer
 
-[`PlantUMLRenderer`][c4.renderers.plantuml.PlantUMLRenderer] converts a C4 Diagram into PlantUML syntax.
+[`PlantUMLRenderer`](../../api_docs/plantuml/renderers/#c4.renderers.plantuml.renderer.PlantUMLRenderer)
+converts a C4 Diagram into PlantUML syntax.
 
 ```python
 from c4 import Person, Rel, System, SystemContextDiagram
@@ -17,9 +21,7 @@ from c4.renderers.plantuml import PlantUMLRenderer
 
 renderer = PlantUMLRenderer()
 
-with SystemContextDiagram(
-    default_renderer=renderer,
-) as diagram:
+with SystemContextDiagram(default_renderer=renderer) as diagram:
     user = Person("User", "System user")
     backend = System("Backend API", "Main application backend")
 
@@ -33,12 +35,12 @@ print(diagram.render())
 
 - Select the correct internal renderer for the specific diagram type
 - Generate PlantUML source code
-- Delegate image generation to a configured backend
+- Delegate image generation to a configured execution backend
 - Support layout configuration and `!include` directives
 
 ### Diagram Rendering Flow
 
-There are rwo rendering levels:
+There are two rendering levels:
 
 #### Rendering to PlantUML Source
 
@@ -88,10 +90,10 @@ Flow:
 ```
 PlantUMLRenderer.render_bytes()
     → generate PlantUML source
-    → delegate to backend.to_bytes()
+    → delegate to execution_backend.to_bytes()
 ```
 
-The backend performs the actual image generation.
+The execution backend performs the actual image generation.
 
 ### Using Diagram Convenience Methods
 
@@ -109,15 +111,15 @@ diagram.save_as_plantuml("diagram.puml")
 
 These methods internally instantiate `PlantUMLRenderer`.
 
+## PlantUML Execution Backends
 
-## PlantUML Backends
-
-Backends are responsible for converting PlantUML source text into rendered images.
+Execution backends are responsible for converting PlantUML source text into
+rendered images.
 
 ### LocalPlantUMLBackend
 
-[`LocalPlantUMLBackend`][c4.renderers.plantuml.LocalPlantUMLBackend] generates diagrams
-using a **locally installed** PlantUML binary or JAR file.
+[`LocalPlantUMLBackend`](../../api_docs/plantuml/renderers/#c4.renderers.plantuml.backends.LocalPlantUMLBackend)
+generates diagrams using a **locally installed** PlantUML binary or JAR file.
 
 **When to use:**
 
@@ -128,7 +130,7 @@ using a **locally installed** PlantUML binary or JAR file.
 
 **Configuration Sources:**
 
-The backend can be configured via:
+The execution backend can be configured via:
 
 - Constructor arguments
 - Environment variables
@@ -192,7 +194,8 @@ The backend can be configured via:
 
 ### RemotePlantUMLBackend
 
-[`RemotePlantUMLBackend`][c4.renderers.plantuml.RemotePlantUMLBackend] generates diagrams using a **PlantUML server** over HTTP.
+[`RemotePlantUMLBackend`](../../api_docs/plantuml/renderers/#c4.renderers.plantuml.backends.RemotePlantUMLBackend)
+generates diagrams using a **PlantUML server** over HTTP.
 
 **When to use:**
 
@@ -205,7 +208,7 @@ The backend can be configured via:
 
 **Configuration Sources:**
 
-The backend can be configured via:
+The execution backend can be configured via:
 
 - Constructor arguments
 - Environment variables

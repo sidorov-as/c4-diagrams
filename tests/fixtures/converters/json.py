@@ -20,11 +20,7 @@ class PersonSchemaFactory(ModelFactory[PersonSchema]):
     type = "Person"
     label = "Customer"
     alias = "customer"
-    stereotype = "External user"
     description = "Uses the system to place orders."
-    sprite = "person"
-    tags = ["external"]
-    link = "https://example.com/customer"
     properties = {
         "properties": [["Role", "Customer"]],
     }
@@ -36,11 +32,7 @@ class PersonExtSchemaFactory(ModelFactory[PersonExtSchema]):
     type = "PersonExt"
     label = "Customer"
     alias = "customer"
-    stereotype = "External user"
     description = "Uses the system to place orders."
-    sprite = "person"
-    tags = ["external"]
-    link = "https://example.com/customer"
     properties = {
         "properties": [["Role", "Customer"]],
     }
@@ -55,11 +47,6 @@ class SystemSchemaFactory(ModelFactory[SystemSchema]):
     description = (
         "Allows customers to browse products, manage carts, and place orders."
     )
-    stereotype = "Software System"
-    base_shape = "RoundedBox"
-    technology = "Python + PostgreSQL"
-    tags = ["system", "core"]
-    link = "https://shop.example.com"
     properties = {
         "properties": [
             ["Domain", "Commerce"],
@@ -75,11 +62,6 @@ class SystemExtSchemaFactory(ModelFactory[SystemExtSchema]):
     label = "Payment Provider"
     alias = "payment_provider"
     description = "Processes card payments and sends payment webhooks."
-    stereotype = "External System"
-    base_shape = "RoundedBox"
-    technology = "REST API + Webhooks"
-    tags = ["system", "external"]
-    link = "https://payments.example.com"
     properties = {
         "properties": [
             ["Role", "Payments"],
@@ -95,10 +77,6 @@ class SystemDbSchemaFactory(ModelFactory[SystemDbSchema]):
     label = "Orders DB"
     alias = "orders_db"
     description = "Stores orders, payments, and shipment state."
-    stereotype = "Database"
-    technology = "PostgreSQL"
-    tags = ["database", "internal"]
-    link = "https://dbadmin.example.com/orders"
     properties = {
         "properties": [
             ["Engine", "PostgreSQL"],
@@ -116,10 +94,6 @@ class SystemDbExtSchemaFactory(ModelFactory[SystemDbExtSchema]):
     description = (
         "External repository with fraud signals and device fingerprints."
     )
-    stereotype = "External Database"
-    technology = "Vendor DB"
-    tags = ["database", "external"]
-    link = "https://fraud.example.com"
     properties = {
         "properties": [
             ["Engine", "Vendor DB"],
@@ -135,10 +109,6 @@ class SystemQueueSchemaFactory(ModelFactory[SystemQueueSchema]):
     label = "Order Events"
     alias = "order_events"
     description = "Event stream for order lifecycle events."
-    stereotype = "Queue"
-    technology = "Kafka"
-    tags = ["queue", "internal"]
-    link = "https://kafka.example.com/topics/order-events"
     properties = {
         "properties": [
             ["Broker", "Kafka"],
@@ -154,10 +124,6 @@ class SystemQueueExtSchemaFactory(ModelFactory[SystemQueueExtSchema]):
     label = "Partner Topic"
     alias = "partner_topic"
     description = "External event topic provided by a logistics partner."
-    stereotype = "External Queue"
-    technology = "Kafka"
-    tags = ["queue", "external"]
-    link = "https://partner.example.com/topics"
     properties = {
         "properties": [
             ["Broker", "Kafka"],
@@ -173,8 +139,6 @@ class EnterpriseBoundarySchemaFactory(ModelFactory[EnterpriseBoundarySchema]):
     label = "ACME Corp"
     alias = "acme"
     description = "Internal enterprise boundary."
-    stereotype = "Enterprise Boundary"
-    tags = ["enterprise"]
     elements = [
         PersonSchemaFactory.build(),
         SystemSchemaFactory.build(),
@@ -190,10 +154,8 @@ class SystemBoundarySchemaFactory(ModelFactory[SystemBoundarySchema]):
 
     type = "SystemBoundary"
     label = "Online Shop Platform"
-    stereotype = "System Boundary"
     alias = "shop_boundary"
     description = "Boundary around the shop system and its components."
-    tags = ["system_boundary"]
     elements = [
         SystemSchemaFactory.build(),
         SystemDbSchemaFactory.build(),

@@ -20,12 +20,8 @@ from c4 import (
     ContainerQueue,
     ContainerQueueExt,
     DeploymentNode,
-    DeploymentNodeLeft,
-    DeploymentNodeRight,
     EnterpriseBoundary,
     Node,
-    NodeLeft,
-    NodeRight,
     Person,
     PersonExt,
     System,
@@ -36,13 +32,14 @@ from c4 import (
     SystemQueue,
     SystemQueueExt,
 )
+from c4.contrib.c4_macros import NodeLeft, NodeRight
 from c4.diagrams.core import (
     Boundary,
     Element,
     ElementWithTechnology,
     Relationship,
-    RelationshipType,
 )
+from c4.diagrams.core.enums import RelationshipType
 from c4.renderers.macros import Argument, BaseMacro, quote, quote_and_escape
 from c4.renderers.mermaid.options import (
     ElementStyle,
@@ -79,9 +76,6 @@ ELEMENT_TO_MERMAID_MACRO_MAP = {
     NodeLeft: "Node_L",
     NodeRight: "Node_R",
     DeploymentNode: "Deployment_Node",
-    # Fallback
-    DeploymentNodeLeft: "Deployment_Node",
-    DeploymentNodeRight: "Deployment_Node",
 }
 
 
@@ -253,11 +247,13 @@ class BoundaryMermaidMacro(BaseMacro[Element]):
         Extracts relevant attributes from the element for rendering.
         """
         element = self._diagram_element
+        extensions = getattr(element, "extensions", None) or {}
+        mermaid_extensions = extensions.get("mermaid", {}) or {}
 
         return {
             "label": element.label,
             "alias": element.alias,
-            "type": element.type,
+            "type": mermaid_extensions.get("type"),
         }
 
 

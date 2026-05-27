@@ -4,7 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, ClassVar, Generic, TypeVar
 
-from c4.diagrams.core import MISSING
+from c4.utils import MISSING
 
 
 @dataclass(frozen=True)

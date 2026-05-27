@@ -1,0 +1,23 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Component.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!endif
+
+title Checkout API - Component Diagram
+
+Component(checkout_controller, "Checkout Controller", "FastAPI", "Receives checkout requests and orchestrates payment flow.", $tags="")
+
+Component(payment_service, "Payment Service", "Python", "Creates payment intents and handles payment state updates.", $tags="")
+
+ComponentDb(payment_store, "Payment Store", "PostgreSQL", "Stores payment records and statuses.", $tags="")
+
+Component_Ext(payment_gateway_api, "Payment Gateway API", "REST API", "External API for payment authorization and capture.", $tags="")
+
+Rel(checkout_controller, payment_service, "Calls", "Python call", $tags="")
+Rel(payment_service, payment_store, "Reads and writes", "SQL", $tags="")
+Rel(payment_service, payment_gateway_api, "Creates payments via", "HTTPS/JSON", $tags="")
+
+@enduml

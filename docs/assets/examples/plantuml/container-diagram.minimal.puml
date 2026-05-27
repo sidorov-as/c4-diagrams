@@ -1,0 +1,23 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Container.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!endif
+
+title Web App
+
+Person(user, "User", $tags="")
+
+System_Boundary(system, "Simple System") {
+    Container(web, "Web App", "React", $tags="")
+    Container(api, "API", "Python", $tags="")
+    ContainerDb(db, "Database", "PostgreSQL", $tags="")
+}
+
+Rel(user, web, "Uses", $tags="")
+Rel(web, api, "Calls", $tags="")
+Rel(api, db, "Reads/Writes", $tags="")
+
+@enduml

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Generic, Literal
+from typing import ClassVar, Generic, Literal
 
 from pydantic import ConfigDict, Field
 
@@ -25,14 +25,12 @@ from c4.converters.json.schemas.diagrams.common import (
     ElementBase,
     RelationshipSchema,
     TypeDiagram,
-    WithBaseShape,
     WithBoundaryRelationship,
-    WithType,
 )
 from c4.diagrams.core import Boundary
 
 
-class PersonSchema(ElementBase[Person], WithType):
+class PersonSchema(ElementBase[Person]):
     """
     This schema describes the [`Person`][c4.diagrams.system_context.Person]
     diagram component.
@@ -52,10 +50,6 @@ class PersonSchema(ElementBase[Person], WithType):
                     "label": "Store Manager",
                     "alias": "store_manager",
                     "description": "Manages product catalog and promotions.",
-                    "stereotype": "Business User",
-                    "sprite": "user",
-                    "tags": ["person", "internal"],
-                    "link": "https://intranet.example.com",
                     "properties": {
                         "properties": [
                             ["Department", "Retail Ops"],
@@ -68,7 +62,7 @@ class PersonSchema(ElementBase[Person], WithType):
     )
 
 
-class PersonExtSchema(ElementBase[PersonExt], WithType):
+class PersonExtSchema(ElementBase[PersonExt]):
     """
     This schema describes the
     [`PersonExt`][c4.diagrams.system_context.PersonExt] diagram component.
@@ -88,10 +82,6 @@ class PersonExtSchema(ElementBase[PersonExt], WithType):
                     "label": "Auditor",
                     "alias": "auditor",
                     "description": "External compliance reviewer.",
-                    "stereotype": "External User",
-                    "sprite": "user",
-                    "tags": ["person", "external"],
-                    "link": "https://partner.example.com",
                     "properties": {
                         "properties": [
                             ["Organization", "Compliance Partner"],
@@ -104,7 +94,7 @@ class PersonExtSchema(ElementBase[PersonExt], WithType):
     )
 
 
-class SystemSchema(ElementBase[System], WithType, WithBaseShape):
+class SystemSchema(ElementBase[System]):
     """
     This schema describes the
     [`System`][c4.diagrams.system_context.System] diagram component.
@@ -124,10 +114,6 @@ class SystemSchema(ElementBase[System], WithType, WithBaseShape):
                     "label": "Inventory Service",
                     "alias": "inventory_service",
                     "description": "Tracks stock levels and reservation state.",
-                    "stereotype": "Software System",
-                    "sprite": "server",
-                    "tags": ["system", "internal"],
-                    "link": "https://inventory.example.com",
                     "properties": {
                         "properties": [
                             ["Language", "Python"],
@@ -140,7 +126,7 @@ class SystemSchema(ElementBase[System], WithType, WithBaseShape):
     )
 
 
-class SystemExtSchema(ElementBase[SystemExt], WithType, WithBaseShape):
+class SystemExtSchema(ElementBase[SystemExt]):
     """
     This schema describes the
     [`SystemExt`][c4.diagrams.system_context.SystemExt] diagram component.
@@ -163,10 +149,6 @@ class SystemExtSchema(ElementBase[SystemExt], WithType, WithBaseShape):
                         "External logistics platform for shipment "
                         "booking and tracking."
                     ),
-                    "stereotype": "External System",
-                    "sprite": "truck",
-                    "tags": ["system", "external"],
-                    "link": "https://shipping.example.com",
                     "properties": {
                         "properties": [["Protocol", "REST"], ["SLA", "99.9%"]]
                     },
@@ -176,7 +158,7 @@ class SystemExtSchema(ElementBase[SystemExt], WithType, WithBaseShape):
     )
 
 
-class SystemDbSchema(ElementBase[SystemDb], WithType):
+class SystemDbSchema(ElementBase[SystemDb]):
     """
     This schema describes the
     [`SystemDb`][c4.diagrams.system_context.SystemDb]
@@ -199,10 +181,6 @@ class SystemDbSchema(ElementBase[SystemDb], WithType):
                     "description": (
                         "Stores customer preferences and account metadata."
                     ),
-                    "stereotype": "Database",
-                    "sprite": "database",
-                    "tags": ["database", "internal"],
-                    "link": "https://db.example.com/customer-profile",
                     "properties": {
                         "properties": [
                             ["Engine", "PostgreSQL"],
@@ -215,7 +193,7 @@ class SystemDbSchema(ElementBase[SystemDb], WithType):
     )
 
 
-class SystemDbExtSchema(ElementBase[SystemDbExt], WithType):
+class SystemDbExtSchema(ElementBase[SystemDbExt]):
     """
     This schema describes the
     [`SystemDbExt`][c4.diagrams.system_context.SystemDbExt]
@@ -238,10 +216,6 @@ class SystemDbExtSchema(ElementBase[SystemDbExt], WithType):
                     "description": (
                         "External database with risk assessment data."
                     ),
-                    "stereotype": "External Database",
-                    "sprite": "database",
-                    "tags": ["database", "external"],
-                    "link": "https://partner.example.com/risk",
                     "properties": {
                         "properties": [
                             ["Provider", "RiskCo"],
@@ -254,7 +228,7 @@ class SystemDbExtSchema(ElementBase[SystemDbExt], WithType):
     )
 
 
-class SystemQueueSchema(ElementBase[SystemQueue], WithType):
+class SystemQueueSchema(ElementBase[SystemQueue]):
     """
     This schema describes the
     [`SystemQueue`][c4.diagrams.system_context.SystemQueue]
@@ -275,10 +249,6 @@ class SystemQueueSchema(ElementBase[SystemQueue], WithType):
                     "label": "Order Events Stream",
                     "alias": "order_events_stream",
                     "description": "Internal stream of order lifecycle events.",
-                    "stereotype": "Queue",
-                    "sprite": "queue",
-                    "tags": ["queue", "internal"],
-                    "link": "https://kafka.example.com/topics/order-events",
                     "properties": {
                         "properties": [
                             ["Retention", "7 days"],
@@ -291,7 +261,7 @@ class SystemQueueSchema(ElementBase[SystemQueue], WithType):
     )
 
 
-class SystemQueueExtSchema(ElementBase[SystemQueueExt], WithType):
+class SystemQueueExtSchema(ElementBase[SystemQueueExt]):
     """
     This schema describes the
     [`SystemQueueExt`][c4.diagrams.system_context.SystemQueueExt]
@@ -314,10 +284,6 @@ class SystemQueueExtSchema(ElementBase[SystemQueueExt], WithType):
                     "description": (
                         "External event topic carrying delivery status updates."
                     ),
-                    "stereotype": "External Queue",
-                    "sprite": "queue",
-                    "tags": ["queue", "external"],
-                    "link": "https://partner.example.com/events",
                     "properties": {
                         "properties": [["Broker", "Kafka"], ["Format", "Avro"]]
                     },
@@ -355,7 +321,6 @@ class SystemContextBoundaryBase(
 
 class BoundarySchema(
     BoundaryBase[Boundary],
-    WithType,
     WithBoundaryRelationship,
 ):
     """
@@ -385,13 +350,10 @@ class BoundarySchema(
                     "type": "Boundary",
                     "label": "Commerce Platform",
                     "alias": "commerce_platform",
-                    "stereotype": "boundary",
                     "description": (
                         "Boundary for the commerce system and its "
                         "internal components."
                     ),
-                    "tags": ["system_boundary"],
-                    "link": "https://docs.example.com/commerce",
                     "properties": {
                         "properties": [
                             ["Owner", "Commerce Team"],
@@ -453,8 +415,6 @@ class EnterpriseBoundarySchema(SystemContextBoundaryBase[EnterpriseBoundary]):
                     "description": (
                         "Enterprise boundary containing internal platforms."
                     ),
-                    "tags": ["enterprise"],
-                    "link": "https://acme.example.com",
                     "properties": {
                         "properties": [
                             ["Region", "EU"],
@@ -524,8 +484,6 @@ class SystemBoundarySchema(SystemContextBoundaryBase[SystemBoundary]):
                         "Boundary for the commerce system and its "
                         "internal components."
                     ),
-                    "tags": ["system_boundary"],
-                    "link": "https://docs.example.com/commerce",
                     "properties": {
                         "properties": [
                             ["Owner", "Commerce Team"],
@@ -567,187 +525,6 @@ class SystemBoundarySchema(SystemContextBoundaryBase[SystemBoundary]):
 AnyBoundary = BoundarySchema | EnterpriseBoundarySchema | SystemBoundarySchema
 
 
-SYSTEM_CONTEXT_DIAGRAM_MINIMAL_EXAMPLE: dict[str, Any] = {
-    "type": "SystemContextDiagram",
-    "elements": [
-        {"type": "Person", "alias": "user", "label": "User"},
-        {"type": "System", "alias": "app", "label": "My App"},
-    ],
-    "relationships": [
-        {
-            "type": "REL",
-            "from": "user",
-            "to": "app",
-            "label": "Uses",
-            "technology": "HTTPS",
-        }
-    ],
-}
-
-SYSTEM_CONTEXT_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
-    "type": "SystemContextDiagram",
-    "title": "Retail Platform",
-    "elements": [
-        {
-            "type": "Person",
-            "label": "Customer",
-            "alias": "customer",
-            "description": "Places orders through the storefront.",
-            "tags": ["Primary"],
-        },
-        {
-            "type": "PersonExt",
-            "label": "Support Agent",
-            "alias": "support_agent",
-            "description": "Handles issues in an external CRM.",
-            "tags": ["External"],
-        },
-        {
-            "type": "SystemExt",
-            "label": "Payment Gateway",
-            "alias": "payment_gateway",
-            "description": "Processes card payments.",
-            "tags": ["External"],
-        },
-        {
-            "type": "SystemExt",
-            "label": "CRM Platform",
-            "alias": "crm_platform",
-            "description": "External CRM used by support agents.",
-            "tags": ["External"],
-        },
-    ],
-    "boundaries": [
-        {
-            "type": "EnterpriseBoundary",
-            "label": "Acme Corp",
-            "alias": "acme_enterprise",
-            "description": "Internal systems owned by Acme.",
-            "tags": ["Enterprise"],
-            "elements": [
-                {
-                    "type": "System",
-                    "label": "Retail Platform",
-                    "alias": "retail_platform",
-                    "description": (
-                        "Core platform for catalog, checkout, and "
-                        "order management."
-                    ),
-                    "tags": ["Core"],
-                    "link": "https://retail.example.com",
-                }
-            ],
-            "boundaries": [],
-            "relationships": [],
-        }
-    ],
-    "relationships": [
-        {
-            "type": "REL",
-            "from": "customer",
-            "to": "retail_platform",
-            "label": "Browses and places orders",
-            "technology": "HTTPS",
-            "tags": ["Synchronous"],
-        },
-        {
-            "type": "REL",
-            "from": "retail_platform",
-            "to": "payment_gateway",
-            "label": "Charges card",
-            "technology": "REST API",
-            "tags": ["Synchronous"],
-        },
-        {
-            "type": "REL",
-            "from": "support_agent",
-            "to": "crm_platform",
-            "label": "Manages customer issues",
-            "technology": "Web UI",
-            "tags": ["Manual"],
-        },
-    ],
-    "layouts": [
-        {"type": "LAY_R", "from": "customer", "to": "retail_platform"},
-        {"type": "LAY_R", "from": "retail_platform", "to": "payment_gateway"},
-        {"type": "LAY_D", "from": "support_agent", "to": "crm_platform"},
-    ],
-    "render_options": {
-        "plantuml": {
-            "layout": "LAYOUT_LEFT_RIGHT",
-            "layout_with_legend": True,
-            "show_legend": {"details": "Normal", "hide_stereotype": False},
-            "legend_title": "System Context",
-            "hide_stereotype": False,
-            "tags": [
-                {
-                    "type": "PersonTag",
-                    "tag_stereo": "Primary",
-                    "legend_text": "Primary user",
-                    "sprite": "person",
-                },
-                {
-                    "type": "ExternalPersonTag",
-                    "tag_stereo": "External",
-                    "legend_text": "External person",
-                    "sprite": "person",
-                },
-                {
-                    "type": "SystemTag",
-                    "tag_stereo": "Core",
-                    "legend_text": "Core internal system",
-                    "sprite": "server",
-                },
-                {
-                    "type": "ExternalSystemTag",
-                    "tag_stereo": "External",
-                    "legend_text": "External dependency",
-                    "sprite": "cloud",
-                },
-                {
-                    "type": "BoundaryTag",
-                    "tag_stereo": "Enterprise",
-                    "legend_text": "Enterprise boundary",
-                },
-                {
-                    "type": "RelTag",
-                    "tag_stereo": "Synchronous",
-                    "legend_text": "Synchronous integration",
-                },
-                {
-                    "type": "RelTag",
-                    "tag_stereo": "Manual",
-                    "legend_text": "Manual interaction",
-                },
-            ],
-        }
-    },
-}
-
-
-SYSTEM_LANDSCAPE_DIAGRAM_MINIMAL_EXAMPLE: dict[str, Any] = {
-    "type": "SystemLandscapeDiagram",
-    "elements": [
-        {"type": "Person", "alias": "user", "label": "User"},
-        {"type": "System", "alias": "app", "label": "My App"},
-    ],
-    "relationships": [
-        {
-            "type": "REL",
-            "from": "user",
-            "to": "app",
-            "label": "Uses",
-            "technology": "HTTPS",
-        }
-    ],
-}
-
-SYSTEM_LANDSCAPE_DIAGRAM_ADVANCED_EXAMPLE: dict[str, Any] = {
-    **SYSTEM_CONTEXT_DIAGRAM_ADVANCED_EXAMPLE,
-    "type": "SystemLandscapeDiagram",
-}
-
-
 class SystemContextBase:
     elements: list[AnyElement] = Field(
         default_factory=list,
@@ -777,13 +554,7 @@ class SystemContextDiagramSchema(BaseDiagramSchema, SystemContextBase):
     __diagram_class__: ClassVar[TypeDiagram] = SystemContextDiagram
 
     model_config = ConfigDict(
-        json_schema_extra={
-            "title": __diagram_class__.__name__,
-            "examples": [
-                SYSTEM_CONTEXT_DIAGRAM_MINIMAL_EXAMPLE,
-                SYSTEM_CONTEXT_DIAGRAM_ADVANCED_EXAMPLE,
-            ],
-        }
+        json_schema_extra={"title": __diagram_class__.__name__}
     )
 
 
@@ -801,11 +572,5 @@ class SystemLandscapeDiagramSchema(BaseDiagramSchema, SystemContextBase):
     __diagram_class__: ClassVar[TypeDiagram] = SystemLandscapeDiagram
 
     model_config = ConfigDict(
-        json_schema_extra={
-            "title": __diagram_class__.__name__,
-            "examples": [
-                SYSTEM_LANDSCAPE_DIAGRAM_MINIMAL_EXAMPLE,
-                SYSTEM_LANDSCAPE_DIAGRAM_ADVANCED_EXAMPLE,
-            ],
-        }
+        json_schema_extra={"title": __diagram_class__.__name__}
     )

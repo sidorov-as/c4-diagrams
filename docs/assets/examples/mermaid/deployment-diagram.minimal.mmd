@@ -1,0 +1,16 @@
+C4Deployment
+title Web App Deployment
+
+Person(user, "User", "Uses the web application.")
+
+Deployment_Node(web_node, "Web Server", "Hosts the frontend application.") {
+    Container(web_app, "Web App", "Next.js", "Customer-facing web application.")
+}
+
+Deployment_Node(db_node, "Database Server", "Hosts the application database.") {
+    ContainerDb(app_db, "App Database", "PostgreSQL", "Stores application data.")
+}
+
+Rel(user, web_app, "Uses", "HTTPS")
+
+Rel(web_app, app_db, "Reads and writes", "TLS / SQL")

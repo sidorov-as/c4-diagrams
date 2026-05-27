@@ -9,7 +9,6 @@ from c4.diagrams.core import (
     Boundary,
     Diagram,
     Element,
-    LayDown,
     get_diagram,
 )
 from c4.enums import DiagramFormat
@@ -80,14 +79,16 @@ def test_diagram_args():
 
         rel_user = user >> "Interacts with" >> frontend
 
-        layout = LayDown(from_element=user, to_element=frontend)
-
     assert diagram.title == "Sample diagram"
     assert diagram.elements == [user]
-    assert diagram.base_elements == [base_element]
     assert diagram.boundaries == [bank]
-    assert diagram.layouts == [layout]
     assert diagram.relationships == [rel_user]
+    assert diagram.ordered_elements == [
+        user,
+        bank,
+        base_element,
+        rel_user,
+    ]
 
 
 def test_diagram_ordered_elements():
@@ -104,14 +105,11 @@ def test_diagram_ordered_elements():
 
         rel_user = user >> "Interacts with" >> frontend
 
-        layout = LayDown(from_element=user, to_element=frontend)
-
     assert diagram.ordered_elements == [
         user,
         bank,
         base_element,
         rel_user,
-        layout,
     ]
     assert bank.ordered_elements == [frontend, backend, rel_front_back]
 
@@ -169,6 +167,19 @@ def test_diagram_check_alias_invalid_identifier():
 
         with pytest.raises(ValueError, match=expected_error):
             Element(alias="invalid identifier", label="...")
+
+    assert not diagram.elements
+
+
+def test_diagram_check_alias_non_ascii_identifier():
+    with Diagram() as diagram:
+        expected_error = re.escape(
+            "Alias 'привет' of Element(alias='привет', label='...') "
+            "must be a valid identifier"
+        )
+
+        with pytest.raises(ValueError, match=expected_error):
+            Element(alias="привет", label="...")
 
     assert not diagram.elements
 
@@ -516,3 +527,62 @@ def test_diagram_render_options():
     diagram.render_options = render_options
 
     assert diagram.render_options == render_options
+
+
+def test_diagram_set_render_options__creates_render_options():
+    diagram = Diagram()
+    plantuml_render_options = PlantUMLRenderOptions()
+
+    result = diagram.set_render_options(plantuml=plantuml_render_options)
+
+    assert result is diagram
+    assert diagram.render_options is not None
+    assert diagram.render_options.plantuml is plantuml_render_options
+    assert diagram.render_options.mermaid is None
+
+
+def test_diagram_set_render_options__patches_existing_render_options():
+    diagram = Diagram()
+    plantuml_render_options = PlantUMLRenderOptions()
+    mermaid_render_options = MermaidRenderOptions()
+
+    diagram.set_render_options(plantuml=plantuml_render_options)
+    diagram.set_render_options(mermaid=mermaid_render_options)
+
+    assert diagram.render_options is not None
+    assert diagram.render_options.plantuml is plantuml_render_options
+    assert diagram.render_options.mermaid is mermaid_render_options
+
+
+def test_diagram_set_render_options__clears_provided_renderer():
+    plantuml_render_options = PlantUMLRenderOptions()
+    mermaid_render_options = MermaidRenderOptions()
+    diagram = Diagram(
+        render_options=RenderOptions(
+            plantuml=plantuml_render_options,
+            mermaid=mermaid_render_options,
+        )
+    )
+
+    diagram.set_render_options(plantuml=None)
+
+    assert diagram.render_options is not None
+    assert diagram.render_options.plantuml is None
+    assert diagram.render_options.mermaid is mermaid_render_options
+
+
+def test_diagram_set_render_options__leaves_omitted_keys_unchanged():
+    plantuml_render_options = PlantUMLRenderOptions()
+    mermaid_render_options = MermaidRenderOptions()
+    diagram = Diagram(
+        render_options=RenderOptions(
+            plantuml=plantuml_render_options,
+            mermaid=mermaid_render_options,
+        )
+    )
+
+    diagram.set_render_options()
+
+    assert diagram.render_options is not None
+    assert diagram.render_options.plantuml is plantuml_render_options
+    assert diagram.render_options.mermaid is mermaid_render_options

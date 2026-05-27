@@ -8,6 +8,7 @@
           - set_property_header
           - without_property_header
           - add_property
+          - with_properties
 
 ::: c4.diagrams.core.Element
     options:
@@ -47,6 +48,7 @@
           - set_property_header
           - without_property_header
           - add_property
+          - with_properties
 
 ::: c4.diagrams.core.RelationshipType
     options:
@@ -69,6 +71,7 @@
           - set_property_header
           - without_property_header
           - add_property
+          - with_properties
 
 !!! note
 
@@ -85,29 +88,19 @@
           - __init__
           - title
           - elements
-          - base_elements
           - boundaries
-          - layouts
+          - ordered_elements
           - relationships
+          - get_element_by_alias
+          - get_elements_by_label
+          - generate_alias
           - __enter__
           - __exit__
           - as_plantuml
+          - as_mermaid
           - render
           - save
           - save_as_plantuml
-
-
-::: c4.diagrams.core.Layout
-    options:
-        show_root_heading: true
-        merge_init_into_class: false
-        group_by_category: false
-        inherited_members: true
-        # explicit members list so we can set order and include `__init__` easily
-        members:
-          - __init__
-
-!!! note
-
-    You can find a detailed description of the different layout types in the
-    corresponding sections of the [documentation](../api_docs/layouts.md).
+          - save_as_mermaid
+          - render_options
+          - set_render_options

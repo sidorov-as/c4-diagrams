@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, BinaryIO, Literal, TextIO, cast
 
 from c4 import PNG
-from c4.cli.exceptions import CLIError
+from c4.cli.exceptions import CLIError, RendererBackendMismatchError
 from c4.constants import (
     D2,
     DEFAULT_JAVA_BIN,
@@ -50,7 +50,7 @@ class CLIOptions:
     Base CLI options shared across commands.
 
     Attributes:
-        renderer: Selected renderer backend (e.g. PlantUML, Mermaid).
+        renderer: Resolved renderer backend (e.g. PlantUML, Mermaid).
         target: Diagram target reference string
                 (e.g. "module", "module:diagram", "file.py", "file.py:diagram",
                 "file.json").
@@ -168,10 +168,15 @@ class MermaidExportCLIOptions:
     Attributes:
         mermaid_bin: Local Mermaid executable path/command.
         scale_factor: Puppeteer scale factor.
+        puppeteer_config: Path to a Mermaid CLI Puppeteer config.
+        puppeteer_headless: Headless mode value for a generated temporary
+            Mermaid CLI Puppeteer config.
     """
 
     mermaid_bin: str = DEFAULT_MERMAID_BIN
     scale_factor: int = DEFAULT_MERMAID_SCALE_FACTOR
+    puppeteer_config: Path | None = None
+    puppeteer_headless: bool | None = None
 
     @property
     def local_backend_kwargs(self) -> dict[str, Any]:
@@ -182,6 +187,11 @@ class MermaidExportCLIOptions:
             "mermaid_bin": self.mermaid_bin,
             "mermaid_args": [f"--scale={self.scale_factor}"],
         }
+
+        if self.puppeteer_config is not None:
+            kwargs["puppeteer_config"] = self.puppeteer_config
+        if self.puppeteer_headless is not None:
+            kwargs["puppeteer_headless"] = self.puppeteer_headless
 
         return kwargs
 
@@ -296,6 +306,46 @@ def _get_renderer_name(args: argparse.Namespace) -> RendererEnum:
     return RendererEnum(renderer)
 
 
+def _renderer_was_provided(args: argparse.Namespace) -> bool:
+    """
+    Return whether the user selected a renderer explicitly.
+    """
+    return any([
+        getattr(args, "renderer", None),
+        getattr(args, PLANTUML.value, False),
+        getattr(args, MERMAID.value, False),
+        getattr(args, STRUCTURIZR.value, False),
+        getattr(args, D2.value, False),
+    ])
+
+
+def _resolve_renderer_name(
+    args: argparse.Namespace,
+) -> RendererEnum:
+    """
+    Resolve effective renderer from explicit selection, target metadata,
+    or the default renderer.
+    """
+    from c4.cli.discover import resolve_target_backend
+
+    explicit_renderer = None
+    if _renderer_was_provided(args):
+        explicit_renderer = _get_renderer_name(args)
+
+    backend = resolve_target_backend(args.target)
+    if (
+        explicit_renderer is not None
+        and backend is not None
+        and backend != explicit_renderer
+    ):
+        raise RendererBackendMismatchError(
+            backend=backend,
+            renderer=explicit_renderer,
+        )
+
+    return explicit_renderer or backend or _get_renderer_name(args)
+
+
 def _validate_output_format(
     renderer: RendererEnum,
     fmt: str | DiagramFormat,
@@ -350,11 +400,12 @@ def build_render_cli_options(
     """
     Convert parsed CLI args to RenderCLIOptions.
     """
+    renderer = _resolve_renderer_name(args)
+
     cli_options = CLIOptions(
-        renderer=_get_renderer_name(args),
+        renderer=renderer,
         target=args.target,
     )
-    renderer = cli_options.renderer
 
     if renderer == RendererEnum.PLANTUML:
         renderer_options = _build_plantuml_render_cli_options(args)
@@ -470,10 +521,14 @@ def _build_mermaid_export_cli_options(
     """
     mermaid_bin = getattr(args, "mermaid_bin", None)
     scale_factor = getattr(args, "mermaid_scale_factor", None)
+    puppeteer_config = getattr(args, "mermaid_puppeteer_config", None)
+    puppeteer_headless = getattr(args, "mermaid_puppeteer_headless", None)
 
     return MermaidExportCLIOptions(
         mermaid_bin=mermaid_bin or DEFAULT_MERMAID_BIN,
         scale_factor=scale_factor or DEFAULT_MERMAID_SCALE_FACTOR,
+        puppeteer_config=puppeteer_config,
+        puppeteer_headless=puppeteer_headless,
     )
 
 
@@ -569,11 +624,12 @@ def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
         CLIError: If the renderer is unsupported for export or
             the output format is invalid.
     """
+    renderer = _resolve_renderer_name(args)
+
     cli_options = CLIOptions(
-        renderer=_get_renderer_name(args),
+        renderer=renderer,
         target=args.target,
     )
-    renderer = cli_options.renderer
 
     renderer_options: PlantUMLExportCLIOptions | MermaidExportCLIOptions
 

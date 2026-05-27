@@ -2,25 +2,76 @@ from typing import Any
 
 import pytest
 
-from c4.converters.json.schemas.renderers.plantuml import (
+from c4.contrib.plantuml.converters.json.render_options import (
+    BoundaryStyleSchema,
+    BoundaryTagSchema,
+    ContainerBoundaryStyleSchema,
     ElementStyleSchema,
     ElementTagSchema,
+    NodeTagSchema,
     PlantUMLRenderOptionsSchema,
     SetSketchStyleSchema,
     ShowFloatingLegendSchema,
     ShowLegendSchema,
     ShowPersonSpriteSchema,
 )
+from c4.contrib.plantuml.converters.json.schemas import PlantUMLNodeSchema
+from c4.contrib.plantuml.extensions import (
+    BoundaryExtensions,
+    ComponentExtensions,
+    ContainerExtensions,
+    ElementExtensions,
+    NodeExtensions,
+    RelationshipExtensions,
+)
 from c4.renderers.plantuml.options import (
+    BoundaryStyle,
+    BoundaryTag,
+    ContainerBoundaryStyle,
     DiagramLayout,
     ElementStyle,
     ElementTag,
+    NodeTag,
     PlantUMLRenderOptions,
     SetSketchStyle,
     ShowFloatingLegend,
     ShowLegend,
     ShowPersonSprite,
 )
+
+
+def test_plantuml_extension_schemas_are_importable():
+    assert RelationshipExtensions.__optional_keys__ == frozenset((
+        "sprite",
+        "tags",
+        "link",
+        "index",
+    ))
+    assert "base_shape" in ElementExtensions.__optional_keys__
+    assert "base_shape" in ContainerExtensions.__optional_keys__
+    assert "base_shape" in ComponentExtensions.__optional_keys__
+    assert "type" in BoundaryExtensions.__optional_keys__
+    assert "type" in NodeExtensions.__optional_keys__
+
+
+def test_plantuml_node_schema__moves_fields_to_extensions():
+    schema = PlantUMLNodeSchema(
+        type="Node",
+        label="Runtime",
+        sprite="server",
+        tags=["runtime"],
+        link="https://example.com/runtime",
+        stereotype="Runtime Node",
+    )
+
+    result = schema._to_diagram_element_kwargs()
+
+    assert result["plantuml"] == {
+        "link": "https://example.com/runtime",
+        "sprite": "server",
+        "tags": ["runtime"],
+        "type": "Runtime Node",
+    }
 
 
 def test_plantuml_render_options_schema__to_render_options__empty():
@@ -151,6 +202,60 @@ def test_plantuml_render_options_schema__to_render_options__tags():
     assert result == expected_result
 
 
+def test_plantuml_render_options_schema__to_render_options__boundary_and_node_tags():
+    schema = PlantUMLRenderOptionsSchema(
+        tags=[
+            BoundaryTagSchema(
+                type="BoundaryTag",
+                tag_stereo="secure_zone",
+                stereotype="System",
+                legend_text="Secure zone",
+                legend_sprite="img:zone",
+                sprite="img:lock",
+                bg_color="#f8fafc",
+                font_color="#0f172a",
+                border_color="#334155",
+                shadowing=False,
+                shape="RoundedBoxShape",
+                border_style="DashedLine",
+                border_thickness="2",
+            ),
+            NodeTagSchema(
+                type="NodeTag",
+                tag_stereo="runtime",
+                stereotype="Kubernetes node",
+            ),
+        ]
+    )
+    expected_result = PlantUMLRenderOptions(
+        tags=[
+            BoundaryTag(
+                tag_stereo="secure_zone",
+                type_="System",
+                legend_text="Secure zone",
+                legend_sprite="img:zone",
+                sprite="img:lock",
+                bg_color="#f8fafc",
+                font_color="#0f172a",
+                border_color="#334155",
+                shadowing=False,
+                shape="RoundedBoxShape",
+                border_style="DashedLine",
+                border_thickness="2",
+            ),
+            NodeTag(
+                tag_stereo="runtime",
+                type_="Kubernetes node",
+                shadowing=False,
+            ),
+        ]
+    )
+
+    result = schema.to_render_options()
+
+    assert result == expected_result
+
+
 def test_plantuml_render_options_schema__to_render_options__styles():
     schema = PlantUMLRenderOptionsSchema(
         styles=[
@@ -187,6 +292,41 @@ def test_plantuml_render_options_schema__to_render_options__styles():
                 border_style="DashedLine",
                 border_thickness="1",
             )
+        ]
+    )
+
+    result = schema.to_render_options()
+
+    assert result == expected_result
+
+
+def test_plantuml_render_options_schema__to_render_options__boundary_styles():
+    schema = PlantUMLRenderOptionsSchema(
+        styles=[
+            BoundaryStyleSchema(
+                type="BoundaryStyle",
+                element_name="system",
+                stereotype="System",
+                sprite="img:system_boundary",
+            ),
+            ContainerBoundaryStyleSchema(
+                type="ContainerBoundaryStyle",
+                stereotype="Container",
+                sprite="img:container_boundary",
+            ),
+        ]
+    )
+    expected_result = PlantUMLRenderOptions(
+        styles=[
+            BoundaryStyle(
+                element_name="system",
+                type_="System",
+                sprite="img:system_boundary",
+            ),
+            ContainerBoundaryStyle(
+                type_="Container",
+                sprite="img:container_boundary",
+            ),
         ]
     )
 

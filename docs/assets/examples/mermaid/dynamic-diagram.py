@@ -8,16 +8,17 @@ from c4 import (
 )
 from c4.renderers import (
     MermaidRenderOptionsBuilder,
-    RenderOptions,
 )
 
 
 with DynamicDiagram(title='Dynamic diagram for Internet Banking System - API Application') as diagram:
     c4 = ContainerDb('Database', 'Stores user registration information, hashed authentication credentials, access logs, etc.', technology='Relational Database Schema', alias='c4')
+
     c1 = Container('Single-Page Application', 'Provides all of the Internet banking functionality to customers via their web browser.', technology='JavaScript and Angular', alias='c1')
 
     with ContainerBoundary('API Application', alias='b'):
         c3 = Component('Security Component', 'Provides functionality Related to signing in, changing passwords, etc.', technology='Spring Bean', alias='c3')
+
         c2 = Component('Sign In Controller', 'Allows users to sign in to the Internet Banking System.', technology='Spring MVC Rest Controller', alias='c2')
 
     c1 >> Rel('Submits credentials to', technology='JSON/HTTPS') >> c2
@@ -50,8 +51,6 @@ mermaid_render_options = (
     .build()
 )
 
-render_options = RenderOptions(
+diagram.set_render_options(
     mermaid=mermaid_render_options,
 )
-
-diagram.render_options = render_options

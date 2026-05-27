@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.6.0 (2026-06-21)
+
+### Feat
+
+- **core**: split the portable C4 model from backend-specific extensions.
+- **core**: add backend extension data via `extensions=`, `plantuml=`, and `mermaid=` kwargs.
+- **plantuml**: move PlantUML-specific relationships, layouts, indexes, and macros to `c4.contrib.plantuml`.
+- **mermaid**: add Mermaid contrib helpers and backend-specific extension validation.
+- **converters**: add backend-aware JSON schemas, generated specs, and JSON-to-Python conversion.
+- **cli**: resolve renderer backend metadata from JSON targets and reject mismatched renderer selections.
+- **docs**: add portable core, backend extension, reusable element, renderer, and example documentation.
+
+### Fix
+
+- **cli**: add Mermaid CLI Puppeteer config and headless options for `c4 export` ([#34](https://github.com/sidorov-as/c4-diagrams/issues/34)).
+
+### Breaking changes
+
+1. `c4.diagrams.core` was split into a package. Internal imports from the old monolithic `c4.diagrams.core` module may need to move to `c4.diagrams.core.components`, `c4.diagrams.core.diagram`, `c4.diagrams.core.enums`, `c4.diagrams.core.relationships`, or `c4.diagrams.core.utils`.
+2. PlantUML-specific DSL helpers are no longer part of the portable core API. Import directional relationships, bidirectional relationships, layout helpers, and index helpers from `c4.contrib.plantuml`.
+3. Mermaid-specific helper exports are available from `c4.contrib.mermaid`.
+4. Renderer-specific element and relationship metadata such as `tags`, `sprite`, `link`, `base_shape`, `index`, and stereotypes should now be passed as backend extension data, for example `plantuml={"tags": ["storage"]}` or `mermaid={"type": "boundary"}`.
+5. JSON diagrams are now backend-aware and strict. Use the selected core, PlantUML, or Mermaid schema fields; unknown fields are rejected, and the Python DSL `extensions=` envelope is not accepted in JSON input.
+6. PlantUML render option APIs were tightened: several style helpers now use `type_` instead of `technology`, and boundary style update helpers no longer accept `element_name` or `technology`.
+
+This release intentionally remains `0.6.0` instead of a major version while the internal and public APIs continue to stabilize.
+
 ## 0.5.2 (2026-04-20)
 
 ### Fix

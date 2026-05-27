@@ -25,7 +25,7 @@ def test_convert__json_to_py(
         )
 
 
-        with SystemContextDiagram(title='Example'):
+        with SystemContextDiagram(title='Example') as diagram:
             pass
         """
     ).strip()
@@ -62,7 +62,7 @@ def test_convert__json_to_py__to_stdout(
         )
 
 
-        with SystemContextDiagram(title='Example'):
+        with SystemContextDiagram(title='Example') as diagram:
             pass
         """
     ).strip()

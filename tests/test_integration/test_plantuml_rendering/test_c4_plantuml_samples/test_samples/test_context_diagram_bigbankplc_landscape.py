@@ -4,18 +4,20 @@ from typing import TYPE_CHECKING
 
 from c4 import (
     EnterpriseBoundary,
-    LayD,
-    LayU,
     Person,
     PersonExt,
+    System,
+    SystemExt,
+    SystemLandscapeDiagram,
+)
+from c4.contrib.plantuml import (
+    LayD,
+    LayU,
     RelBack,
     RelD,
     RelNeighbor,
     RelR,
     RelU,
-    System,
-    SystemExt,
-    SystemLandscapeDiagram,
 )
 from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 

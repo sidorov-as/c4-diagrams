@@ -1,0 +1,27 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Context.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!endif
+
+title Retail Platform - System Context
+
+Person(customer, "Customer", "Browses products and places orders.")
+
+Person(support_agent, "Support Agent", "Helps customers with order questions.")
+
+System_Ext(payment_provider, "Payment Provider", "Processes card payments.")
+
+Enterprise_Boundary(acme_retail, "Acme Retail", $descr="Systems owned by Acme Retail.") {
+    System(retail_platform, "Retail Platform", "Handles catalog browsing, checkout, and order management.")
+    System(support_portal, "Support Portal", "Provides order lookup and customer support workflows.")
+}
+
+Rel(customer, retail_platform, "Places orders using", "HTTPS")
+Rel(support_agent, support_portal, "Investigates orders in", "HTTPS")
+Rel(support_portal, retail_platform, "Reads order data from", "HTTPS")
+Rel(retail_platform, payment_provider, "Requests payments from", "HTTPS")
+
+@enduml

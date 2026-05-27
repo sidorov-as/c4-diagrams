@@ -1,0 +1,47 @@
+{
+  "type": "DynamicDiagram",
+  "title": "Login Flow",
+  "elements": [
+    {
+      "type": "Person",
+      "label": "User",
+      "alias": "user",
+      "description": "Signs in to the application."
+    },
+    {
+      "type": "System",
+      "label": "Web App",
+      "alias": "web_app",
+      "description": "Main application used by customers."
+    },
+    {
+      "type": "SystemExt",
+      "label": "Identity Provider",
+      "alias": "idp",
+      "description": "External authentication service."
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "user",
+      "to": "web_app",
+      "label": "Opens sign-in page",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "web_app",
+      "to": "idp",
+      "label": "Authenticates user",
+      "technology": "OIDC"
+    },
+    {
+      "type": "REL",
+      "from": "idp",
+      "to": "web_app",
+      "label": "Returns identity token",
+      "technology": "OIDC"
+    }
+  ]
+}

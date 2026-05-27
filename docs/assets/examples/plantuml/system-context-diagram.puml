@@ -11,8 +11,8 @@ AddExternalPersonTag("External", $shadowing="false", $sprite="person", $legendTe
 AddSystemTag("Core", $shadowing="false", $sprite="server", $legendText="Core internal system")
 AddExternalSystemTag("External", $shadowing="false", $sprite="cloud", $legendText="External dependency")
 AddBoundaryTag("Enterprise", $shadowing="false", $legendText="Enterprise boundary")
-AddRelTag("Synchronous")
-AddRelTag("Manual")
+AddRelTag("Synchronous", $legendText="Synchronous integration")
+AddRelTag("Manual", $legendText="Manual interaction")
 
 LAYOUT_LEFT_RIGHT()
 LAYOUT_WITH_LEGEND()
@@ -35,7 +35,6 @@ Enterprise_Boundary(acme_enterprise, "Acme Corp", $tags="Enterprise", $descr="In
 Rel(customer, retail_platform, "Browses and places orders", "HTTPS", $tags="Synchronous")
 Rel(retail_platform, payment_gateway, "Charges card", "REST API", $tags="Synchronous")
 Rel(support_agent, crm_platform, "Manages customer issues", "Web UI", $tags="Manual")
-
 Lay_R(customer, retail_platform)
 Lay_R(retail_platform, payment_gateway)
 Lay_D(support_agent, crm_platform)

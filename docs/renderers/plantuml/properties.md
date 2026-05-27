@@ -11,8 +11,8 @@ from c4 import (
     Person,
     Rel,
     SystemBoundary,
-    RelLeft
 )
+from c4.contrib.plantuml import RelLeft
 
 
 with ContainerDiagram(title="Properties") as diagram:
@@ -64,6 +64,13 @@ This produces the following diagram:
 
     Adds a row to the property table. The number of values must match the number of columns in the header.
 
+- `with_properties(*properties, header=None, show_header=True)`
+
+    Adds one or more rows to the property table and returns the element.
+    This is available as
+    [`BaseDiagramElement.with_properties`](../../api_docs/core/#c4.diagrams.core.components.BaseDiagramElement.with_properties).
+    For one row, pass values directly; for multiple rows, pass row sequences.
+
 - `set_property_header(*args: str)`
 
     Sets the column headers for the property table.
@@ -72,12 +79,11 @@ This produces the following diagram:
     The default header is `("Property", "Value")`.
 
 - `without_property_header`
-   Disables rendering of the header row for the property table.
+
+    Disables rendering of the header row for the property table.
 
 ## Supported elements
 
-Properties can be added to any diagram element or relationship except:
-
-- [`SystemBoundary`](../../api_docs/system-context/#c4.diagrams.system_context.SystemBoundary)
-- [`EnterpriseBoundary`](../../api_docs/system-context/#c4.diagrams.system_context.EnterpriseBoundary)
-- [`ContainerBoundary`](../../api_docs/container/#c4.diagrams.container.ContainerBoundary)
+Properties can be added to diagram elements and relationships supported by
+C4-PlantUML. They are emitted as C4-PlantUML property macros before the target
+element or relationship.

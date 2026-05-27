@@ -19,6 +19,7 @@ from c4.cli.exceptions import (
     TargetParseError,
 )
 from c4.diagrams.core import Diagram
+from c4.enums import RendererEnum
 from tests.conftest import MakeTmpPyFile
 
 pytestmark = [pytest.mark.usefixtures("clean_sys_modules")]
@@ -906,6 +907,62 @@ def test_resolve_diagram__json_target(
     assert result.title == "Example"
 
 
+def test_resolve_diagram__python_target(
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    make_tmp_py_file(
+        "module.py",
+        textwrap.dedent(
+            """
+            from c4 import SystemContextDiagram
+
+            with SystemContextDiagram("Example") as diagram:
+                ...
+            """
+        ),
+    )
+
+    diagram = discover.resolve_diagram("module:diagram")
+
+    assert isinstance(diagram, Diagram)
+    assert diagram.title == "Example"
+
+
+def test_resolve_target_backend__json_target(
+    tmp_path: Path,
+):
+    file_path = tmp_path / "diagram.json"
+    file_path.write_text(
+        """
+        {"backend": "mermaid", "type": "SystemContextDiagram", "title": "Example"}
+        """
+    )
+
+    result = discover.resolve_target_backend(file_path)
+
+    assert result == RendererEnum.MERMAID
+
+
+def test_resolve_target_backend__python_target(
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    make_tmp_py_file(
+        "module.py",
+        textwrap.dedent(
+            """
+            from c4 import SystemContextDiagram
+
+            with SystemContextDiagram("Example") as diagram:
+                ...
+            """
+        ),
+    )
+
+    result = discover.resolve_target_backend("module:diagram")
+
+    assert result is None
+
+
 def test_resolve_diagram__json_target__missing_dependencies(
     mocker: MockerFixture,
     tmp_path: Path,
@@ -927,5 +984,31 @@ def test_resolve_diagram__json_target__diagram_file_not_found(
 
     with pytest.raises(ImportFromStringError, match=expected_error):
         discover.resolve_diagram(file_path)
+
+    assert not file_path.exists()
+
+
+def test_resolve_target_backend__json_target__missing_dependencies(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    # to prevent caching in _import_json_converter
+    sys.modules.pop("c4.converters.json.converter", None)
+    file_path = tmp_path / "diagram.json"
+    file_path.touch()
+    mocker.patch.dict("sys.modules", {"pydantic": None})
+
+    with pytest.raises(MissingConverterDependency):
+        discover.resolve_target_backend(file_path)
+
+
+def test_resolve_target_backend__json_target__diagram_file_not_found(
+    tmp_path: Path,
+):
+    file_path = tmp_path / "diagram.json"
+    expected_error = f"Diagram file not found: {file_path!s}"
+
+    with pytest.raises(ImportFromStringError, match=expected_error):
+        discover.resolve_target_backend(file_path)
 
     assert not file_path.exists()

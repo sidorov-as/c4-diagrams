@@ -17,20 +17,24 @@ from c4 import (
     SystemContextDiagram,
     SystemLandscapeDiagram,
 )
+from c4.contrib.plantuml.components import Layout, increment, set_index
 from c4.diagrams.core import (
     BaseDiagramElement,
     Boundary,
     Diagram,
     Element,
-    Layout,
     Relationship,
-    _TDiagram,
-    increment,
-    set_index,
+    TDiagram,
 )
 from c4.diagrams.dynamic import DynamicDiagram
+from c4.enums import RendererEnum
 from c4.exceptions import PlantUMLBackendConfigurationError
-from c4.renderers.base import BaseRenderer, IndentedStringBuilder
+from c4.renderers.base import (
+    IGNORE_FOREIGN,
+    BaseRenderer,
+    ExtensionValidationModeType,
+    IndentedStringBuilder,
+)
 from c4.renderers.plantuml.backends import BasePlantUMLBackend, DiagramFormat
 from c4.renderers.plantuml.constants import (
     C4_COMPONENT_INCLUDE,
@@ -63,6 +67,7 @@ from c4.renderers.plantuml.macros import (
     WithoutPropertyHeaderPlantUMLMacro,
 )
 from c4.renderers.plantuml.options import PlantUMLRenderOptions
+from c4.renderers.plantuml.validation import validate_plantuml_diagram
 
 
 class PlantUMLRenderOptionsRenderer:
@@ -159,7 +164,7 @@ class PlantUMLRenderOptionsRenderer:
 
         return builder.get_result()
 
-    def render_header(self, diagram: _TDiagram) -> str:
+    def render_header(self, diagram: TDiagram) -> str:
         builder = IndentedStringBuilder()
 
         builder.add(*self._includes, blank_line_after=True)
@@ -191,9 +196,10 @@ class PlantUMLRenderOptionsRenderer:
         return builder.get_result()
 
 
-class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
+class BasePlantUMLRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
     """A base renderer for converting a Diagram object into PlantUML syntax."""
 
+    renderer_type: RendererEnum = RendererEnum.PLANTUML
     default_includes: ClassVar[list[str]]
 
     def __init__(
@@ -202,6 +208,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         render_options: PlantUMLRenderOptions | None = None,
         backend: BasePlantUMLBackend | None = None,
         use_new_c4_style: bool = False,
+        extension_validation_mode: ExtensionValidationModeType = IGNORE_FOREIGN,
     ) -> None:
         """
         Initialize the renderer.
@@ -220,10 +227,13 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
                 If ``True``, activates the new C4-PlantUML style by injecting
                 the following directive into the generated source:
                     !NEW_C4_STYLE=1
+            extension_validation_mode:
+                Policy for foreign backend extensions.
         """
+        super().__init__(extension_validation_mode=extension_validation_mode)
         self._render_options = render_options or PlantUMLRenderOptions()
 
-        _includes = getattr(self, "default_includes", [])
+        _includes = list(getattr(self, "default_includes", []))
         _includes.extend(includes or [])
         _includes.extend(self._render_options.includes)
 
@@ -240,9 +250,6 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         self._includes = includes or []
         self._plantuml_backend = backend
         self._use_new_c4_style = use_new_c4_style
-
-    def _render_base_element(self, element: BaseDiagramElement) -> list[str]:
-        raise NotImplementedError()  # pragma: no cover
 
     def _render_element(self, element: Element) -> list[str]:
         macro = ElementPlantUMLMacro.from_element(element)
@@ -261,37 +268,24 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         builder.add(*properties, element_macro + " {")
 
         with builder.indent() as level:
-            for idx, nested_element in enumerate(boundary.elements, start=1):
-                *properties, element_macro = self._render_element(
-                    nested_element
-                )
-                builder.add(
-                    *properties,
-                    element_macro,
-                    blank_line_after=idx < len(boundary.elements),
-                )
-
-            if boundary.elements and boundary.boundaries:
-                builder.add_blank_line()
-
-            for idx, nested_boundary in enumerate(boundary.boundaries, start=1):
-                builder.add(
-                    self._render_boundary(nested_boundary, depth=level),
-                    indent=False,
-                    blank_line_after=idx < len(boundary.boundaries),
-                )
-
-            if boundary.relationships:
-                builder.add_blank_line()
-
-            for idx, relationship in enumerate(boundary.relationships, start=1):  # noqa: B007
-                *properties, relationship_macro = self._render_relationship(
-                    relationship
-                )
-                builder.add(
-                    *properties,
-                    relationship_macro,
-                )
+            for item in self.iter_boundary_render_items(boundary):
+                if isinstance(item, Boundary):
+                    builder.add(
+                        self._render_boundary(item, depth=level),
+                        indent=False,
+                    )
+                elif isinstance(item, Element):
+                    *properties, element_macro = self._render_element(item)
+                    builder.add(*properties, element_macro)
+                elif isinstance(item, Relationship):
+                    *properties, relationship_macro = self._render_relationship(
+                        item
+                    )
+                    builder.add(*properties, relationship_macro)
+                elif statement := self._render_backend_statement(item):
+                    builder.add(*statement)
+                else:  # pragma: no cover
+                    raise TypeError(f"Unsupported element {item!r}")
 
         builder.add("}")
 
@@ -316,7 +310,13 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
         return [*properties_macros, layout_macro]
 
-    def _render_header(self, diagram: _TDiagram) -> None:
+    def _render_backend_statement(
+        self, item: BaseDiagramElement
+    ) -> list[str] | None:
+        """Render backend-owned ordered statements inside scoped blocks."""
+        return None
+
+    def _render_header(self, diagram: TDiagram) -> None:
         self._builder.add("@startuml")
 
         if self._use_new_c4_style:
@@ -333,51 +333,54 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
         self._builder.add("@enduml")
 
-    def _render_elements(self, diagram: _TDiagram) -> None:
-        for element in diagram.elements:
-            *properties, element_macro = self._render_element(element)
-            self._builder.add(*properties, element_macro, blank_line_after=True)
+    def _render_item(self, item: BaseDiagramElement) -> None:
+        if isinstance(item, Layout):
+            return
 
-    def _render_base_elements(self, diagram: _TDiagram) -> None:
-        for idx, element in enumerate(diagram.base_elements, start=1):
-            *properties, element_macro = self._render_base_element(element)
-            self._builder.add(
-                *properties,
-                element_macro,
-                blank_line_after=idx == len(diagram.base_elements),
-            )
+        if isinstance(item, Boundary):
+            self._builder.add(self._render_boundary(item))
+        elif isinstance(item, Element):
+            *properties, element_macro = self._render_element(item)
+            self._builder.add(*properties, element_macro)
+        elif isinstance(item, Relationship):
+            *properties, relationship_macro = self._render_relationship(item)
+            self._builder.add(*properties, relationship_macro)
+        else:  # pragma: no cover
+            raise TypeError(f"Unsupported element {item!r}")
 
-    def _render_boundaries(self, diagram: _TDiagram) -> None:
-        for boundary in diagram.boundaries:
-            self._builder.add(
-                self._render_boundary(boundary), blank_line_after=True
-            )
+        if not isinstance(item, Relationship):
+            self._builder.add_blank_line()
 
-    def _render_relationships(self, diagram: _TDiagram) -> None:
-        for idx, relationship in enumerate(diagram.relationships, start=1):
-            *properties, relationship_macro = self._render_relationship(
-                relationship
-            )
-            self._builder.add(
-                *properties,
-                relationship_macro,
-                blank_line_after=idx == len(diagram.relationships),
-            )
+    def _render_body(self, diagram: TDiagram) -> None:
+        for item in self.iter_render_items(diagram):
+            self._render_item(item)
 
-            if properties:
-                self._builder.add_blank_line()
+    def _render_layouts(self, diagram: TDiagram) -> None:
+        layouts = [
+            item
+            for item in self.iter_render_items(diagram)
+            if isinstance(item, Layout)
+        ]
 
-    def _render_layouts(self, diagram: _TDiagram) -> None:
-        for idx, layout in enumerate(diagram.layouts, start=1):
+        for idx, layout in enumerate(layouts, start=1):
             *properties, layout_macro = self._render_layout(layout)
             self._builder.add(
                 *properties,
                 layout_macro,
-                blank_line_after=idx == len(diagram.layouts),
+                blank_line_after=idx == len(layouts),
             )
 
     @override
-    def render(self, diagram: _TDiagram) -> str:
+    def validate(self, diagram: TDiagram) -> None:
+        """Validate PlantUML-specific rendering constraints."""
+        validate_plantuml_diagram(
+            diagram,
+            renderer_name=self.__class__.__name__,
+            extension_validation_mode=self._extension_validation_mode,
+        )
+
+    @override
+    def render(self, diagram: TDiagram) -> str:
         """
         Render the given Diagram into PlantUML format.
 
@@ -387,13 +390,11 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         Returns:
             A PlantUML-formatted string representing the diagram.
         """
+        self.validate(diagram)
         self._builder.reset()
 
         self._render_header(diagram)
-        self._render_elements(diagram)
-        self._render_boundaries(diagram)
-        self._render_relationships(diagram)
-        self._render_base_elements(diagram)
+        self._render_body(diagram)
         self._render_layouts(diagram)
         self._render_footer()
 
@@ -401,7 +402,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
     def render_bytes(
         self,
-        diagram: _TDiagram,
+        diagram: TDiagram,
         *,
         format: DiagramFormat,
     ) -> bytes:
@@ -437,7 +438,7 @@ class BasePlantUMLRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
     def render_file(
         self,
-        diagram: _TDiagram,
+        diagram: TDiagram,
         output_path: str | Path,
         *,
         format: DiagramFormat,
@@ -545,29 +546,36 @@ class PlantUMLDynamicDiagramRenderer(BasePlantUMLRenderer[DynamicDiagram]):
     ]
 
     @override
-    def _render_base_element(
-        self,
-        element: BaseDiagramElement,
-    ) -> list[str]:
+    def _render_backend_statement(
+        self, item: BaseDiagramElement
+    ) -> list[str] | None:
         macro: PlantUMLMacro[Any]
 
-        if isinstance(element, Relationship):
-            macro = RelationshipPlantUMLMacro(element)
-        elif isinstance(element, increment):
-            macro = IncrementPlantUMLMacro(element)
-        elif isinstance(element, set_index):
-            macro = SetIndexPlantUMLMacro(element)
+        if isinstance(item, increment):
+            macro = IncrementPlantUMLMacro(item)
+        elif isinstance(item, set_index):
+            macro = SetIndexPlantUMLMacro(item)
         else:
-            raise TypeError(
-                f"Unsupported element {element!r} for DynamicDiagram."
-            )
+            return None
 
-        properties_macros = macro.render_properties(
-            self._without_property_header
-        )
+        properties = macro.render_properties(self._without_property_header)
         element_macro = macro.render()
 
-        return [*properties_macros, element_macro]
+        return [*properties, element_macro]
+
+    @override
+    def _render_item(self, item: BaseDiagramElement) -> None:
+        if isinstance(item, Relationship):
+            *properties, relationship_macro = self._render_relationship(item)
+            self._builder.add(*properties, relationship_macro)
+            if properties:
+                self._builder.add_blank_line()
+        elif statement := self._render_backend_statement(item):
+            self._builder.add(*statement)
+        else:
+            return super()._render_item(item)
+
+        return None
 
 
 class PlantUMLDeploymentDiagramRenderer(
@@ -598,14 +606,15 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
     Renderer for converting a Diagram object into PlantUML syntax.
     """
 
+    renderer_type: RendererEnum = RendererEnum.PLANTUML
+
     def __init__(
         self,
         includes: list[str] | None = None,
         render_options: PlantUMLRenderOptions | None = None,
         backend: BasePlantUMLBackend | None = None,
         use_new_c4_style: bool = False,
-        *args: Any,
-        **kwargs: Any,
+        extension_validation_mode: ExtensionValidationModeType = IGNORE_FOREIGN,
     ):
         """
         Initialize the renderer.
@@ -625,11 +634,15 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
                 If ``True``, activates the new C4-PlantUML style by injecting
                 the following directive into the generated source:
                     `!NEW_C4_STYLE=1`
+            extension_validation_mode:
+                Policy for foreign backend extensions.
 
             *args: Additional positional arguments passed to the base renderer.
             **kwargs: Additional keyword arguments passed to the base renderer.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            extension_validation_mode=extension_validation_mode,
+        )
         self._includes = includes or []
         self._render_options = render_options
         self._plantuml_backend = backend
@@ -653,6 +666,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
             render_options=render_options,
             backend=self._plantuml_backend,
             use_new_c4_style=self._use_new_c4_style,
+            extension_validation_mode=self._extension_validation_mode,
         )
 
     @override

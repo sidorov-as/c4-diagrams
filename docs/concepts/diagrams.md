@@ -1,9 +1,12 @@
-# Diagrams and components
+# Diagrams and Components
 
 !!! note
 
     You can find a detailed description of the different C4 diagram types and components in the
     corresponding sections of the [documentation](../diagrams/system-context.md).
+
+    For the boundary between backend-neutral model data and renderer-specific hints, see
+    [Portable core and backend extensions](portable-core-and-extensions.md).
 
 ## Diagrams
 
@@ -56,7 +59,7 @@ with Diagram("Simple Diagram") as diagram:
 assert diagram.elements == [element1, element2]
 ```
 
-Each C4 component type is implemented as a subclass of  [`Element`][c4.diagrams.core.Element]:
+Each C4 element type is implemented as a subclass of  [`Element`][c4.diagrams.core.Element]:
 
 ```python
 from c4 import (
@@ -81,12 +84,10 @@ from c4 import (
     ContainerQueue,
     ContainerQueueExt,
     DeploymentNode,
-    DeploymentNodeLeft,
-    DeploymentNodeRight,
     Node,
-    NodeLeft,
-    NodeRight,
 )
+from c4.contrib.c4_macros import NodeLeft, NodeRight
+from c4.contrib.plantuml import DeploymentNodeLeft, DeploymentNodeRight
 ```
 
 <br/>
@@ -99,34 +100,44 @@ properties such as direction and label.
 A relationship object contains four primary attributes: **label**, **relationship_type**,
 **from_element**, and **to_element**.
 
-There are shortcut classes for different relationship types and directions:
+The portable core relationship shortcut is [`Rel`][c4.diagrams.core.Rel]:
 
 ```python
-from c4.diagrams.core import (
-    Rel,
-    RelL,
-    RelLeft,
-    RelR,
-    RelRight,
-    RelU,
-    RelUp,
-    RelD,
-    RelDown,
-    RelNeighbor,
-    BiRel,
-    BiRelD,
-    BiRelDown,
-    BiRelL,
-    BiRelLeft,
-    BiRelNeighbor,
-    BiRelR,
-    BiRelRight,
-    BiRelU,
-    BiRelUp,
-    RelBack,
-    RelBackNeighbor,
-)
+from c4.diagrams.core import Rel
 ```
+
+
+??? abstract "PlantUML-specific relationship"
+
+    PlantUML-specific relationship shortcuts for direction, bidirectional
+    relationships, back relationships, and neighbor relationships are available
+    from `c4.contrib.plantuml`:
+
+    ```python
+    from c4.contrib.plantuml import (
+        BiRel,
+        BiRelD,
+        BiRelDown,
+        BiRelL,
+        BiRelLeft,
+        BiRelNeighbor,
+        BiRelR,
+        BiRelRight,
+        BiRelU,
+        BiRelUp,
+        RelBack,
+        RelBackNeighbor,
+        RelD,
+        RelDown,
+        RelL,
+        RelLeft,
+        RelNeighbor,
+        RelR,
+        RelRight,
+        RelU,
+        RelUp,
+    )
+    ```
 
 Relationships must be declared within a diagram context:
 
@@ -177,9 +188,13 @@ with Diagram("Simple Diagram") as diagram:
 
 ??? note "Rel attributes"
 
-    [`Rel`][c4.diagrams.core.Rel] (and other `Relationship` subclasses like `RelUp`, `RelLeft`, etc.)
-    lets you specify additional relationship attributes such as `technology`,
-    `description`, `link`, and `tags`.
+    [`Rel`][c4.diagrams.core.Rel] lets you specify portable relationship attributes
+    such as `technology` and `description`.
+
+    PlantUML-specific attributes such as links, tags, and dynamic indexes belong
+    under the `plantuml={...}` kwarg. PlantUML relationship shortcuts such as
+    [`RelUp`][c4.contrib.plantuml.RelUp] and [`RelLeft`][c4.contrib.plantuml.RelLeft]
+    are available from `c4.contrib.plantuml`.
 
     In most cases, a plain string label (`"Uses"`) is enough.
 
@@ -330,12 +345,10 @@ from c4 import (
     ContainerBoundary,
     EnterpriseBoundary,
     Node,
-    NodeLeft,
-    NodeRight,
     DeploymentNode,
-    DeploymentNodeLeft,
-    DeploymentNodeRight,
 )
+from c4.contrib.c4_macros import NodeLeft, NodeRight
+from c4.contrib.plantuml import DeploymentNodeLeft, DeploymentNodeRight
 ```
 
 ## Examples
@@ -394,11 +407,8 @@ from c4 import (
     Container,
     ContainerDb,
     Rel,
-    RelDown,
-    RelRight,
-    RelUp,
-    RelLeft,
 )
+from c4.contrib.plantuml import RelDown, RelLeft, RelRight, RelUp
 
 with ContainerDiagram("Internet Banking System") as diagram:
     client = Person(

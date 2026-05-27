@@ -8,70 +8,78 @@ from c4 import (
     ContainerQueue,
     ContainerQueueExt,
     EnterpriseBoundary,
-    LayD,
-    LayR,
     Person,
     PersonExt,
     Rel,
     SystemBoundary,
     SystemExt,
 )
+from c4.contrib.plantuml import (
+    LayD,
+    LayR,
+)
 from c4.renderers import (
     PlantUMLRenderOptionsBuilder,
-    RenderOptions,
 )
 
 
 with ContainerDiagram(title='Online Shop - Container Diagram') as diagram:
-    customer = Person('Customer', 'Browses products and places orders.', type_='Primary User', tags=['Customer'], alias='customer')
+    customer = Person('Customer', 'Browses products and places orders.', plantuml={'tags': ['Customer'], 'type': 'Primary User'}, alias='customer')
     customer.add_property('Channel', 'Web / Mobile')
 
-    support_agent = PersonExt('Support Agent', 'Investigates customer issues from an external support tool.', type_='External User', tags=['ExternalSupport'], alias='support_agent')
+    support_agent = PersonExt('Support Agent', 'Investigates customer issues from an external support tool.', plantuml={'tags': ['ExternalSupport'], 'type': 'External User'}, alias='support_agent')
     support_agent.add_property('Organization', 'Support Vendor')
 
-    payment_provider = SystemExt('Payment Provider', 'Processes card payments and payment webhooks.', type_='External System', tags=['ExternalSystem'], alias='payment_provider')
-    recommendation_api = ContainerExt('Recommendation API', 'Returns personalized product recommendations.', tags=['ExternalContainer'], technology='REST API', alias='recommendation_api')
-    fraud_db = ContainerDbExt('Fraud Signals DB', 'External datastore containing fraud intelligence.', tags=['ExternalDataStore'], technology='Vendor DB', alias='fraud_db')
-    shipping_events = ContainerQueueExt('Shipping Events Topic', 'External topic used by logistics partner.', tags=['ExternalAsyncChannel'], technology='Kafka', alias='shipping_events')
+    payment_provider = SystemExt('Payment Provider', 'Processes card payments and payment webhooks.', plantuml={'tags': ['ExternalSystem'], 'type': 'External System'}, alias='payment_provider')
 
-    with EnterpriseBoundary('Acme Corp', 'Enterprise boundary for internal platforms.', tags=['EnterpriseBoundary'], alias='acme'):
-        with SystemBoundary('Online Shop Platform', 'Main system boundary for the commerce platform.', tags=['SystemBoundary'], alias='shop_boundary'):
-            web_app = Container('Web Application', 'Serves the storefront and checkout UI.', tags=['Frontend'], technology='React + Next.js', alias='web_app')
+    recommendation_api = ContainerExt('Recommendation API', 'Returns personalized product recommendations.', plantuml={'tags': ['ExternalContainer']}, technology='REST API', alias='recommendation_api')
+
+    fraud_db = ContainerDbExt('Fraud Signals DB', 'External datastore containing fraud intelligence.', plantuml={'tags': ['ExternalDataStore']}, technology='Vendor DB', alias='fraud_db')
+
+    shipping_events = ContainerQueueExt('Shipping Events Topic', 'External topic used by logistics partner.', plantuml={'tags': ['ExternalAsyncChannel']}, technology='Kafka', alias='shipping_events')
+
+    with EnterpriseBoundary('Acme Corp', 'Enterprise boundary for internal platforms.', plantuml={'tags': ['EnterpriseBoundary']}, alias='acme'):
+        with SystemBoundary('Online Shop Platform', 'Main system boundary for the commerce platform.', plantuml={'tags': ['SystemBoundary']}, alias='shop_boundary'):
+            web_app = Container('Web Application', 'Serves the storefront and checkout UI.', plantuml={'tags': ['Frontend']}, technology='React + Next.js', alias='web_app')
             web_app.add_property('Runtime', 'Node.js')
             web_app.add_property('Team', 'Storefront')
 
-            backend_api = Container('Backend API', 'Handles catalog, carts, checkout, and order APIs.', tags=['Backend', 'CoreRuntime'], technology='Python / FastAPI', alias='backend_api')
+            backend_api = Container('Backend API', 'Handles catalog, carts, checkout, and order APIs.', plantuml={'tags': ['Backend', 'CoreRuntime']}, technology='Python / FastAPI', alias='backend_api')
             backend_api.add_property('Runtime', 'Python 3.12')
             backend_api.add_property('Team', 'Platform')
 
-            orders_db = ContainerDb('Orders Database', 'Stores orders, payments, and status transitions.', tags=['DataStore'], technology='PostgreSQL', alias='orders_db')
+            orders_db = ContainerDb('Orders Database', 'Stores orders, payments, and status transitions.', plantuml={'tags': ['DataStore']}, technology='PostgreSQL', alias='orders_db')
             orders_db.add_property('Engine', 'PostgreSQL 16')
             orders_db.add_property('HA', 'Primary / Replica')
 
-            order_events = ContainerQueue('Order Events Queue', 'Publishes asynchronous order lifecycle events.', tags=['AsyncChannel'], technology='Kafka', alias='order_events')
+            order_events = ContainerQueue('Order Events Queue', 'Publishes asynchronous order lifecycle events.', plantuml={'tags': ['AsyncChannel']}, technology='Kafka', alias='order_events')
             order_events.add_property('Retention', '7 days')
             order_events.add_property('Format', 'JSON')
 
-            with ContainerBoundary('Checkout Subsystem', 'Groups checkout-related containers.', tags=['ContainerBoundary'], alias='checkout_boundary'):
-                checkout_api = Container('Checkout API', 'Handles checkout and payment orchestration.', tags=['Backend'], technology='Python / FastAPI', alias='checkout_api')
-                checkout_db = ContainerDb('Checkout DB', 'Stores checkout sessions.', tags=['DataStore'], technology='PostgreSQL', alias='checkout_db')
+            with ContainerBoundary('Checkout Subsystem', 'Groups checkout-related containers.', plantuml={'tags': ['ContainerBoundary']}, alias='checkout_boundary'):
+                checkout_api = Container('Checkout API', 'Handles checkout and payment orchestration.', plantuml={'tags': ['Backend']}, technology='Python / FastAPI', alias='checkout_api')
 
-                checkout_api >> Rel('Reads and writes', technology='SQL', tags=['DataAccess']) >> checkout_db
+                checkout_db = ContainerDb('Checkout DB', 'Stores checkout sessions.', plantuml={'tags': ['DataStore']}, technology='PostgreSQL', alias='checkout_db')
 
-    customer >> Rel('Uses', technology='HTTPS', tags=['SyncRequest']) >> web_app
-    web_app >> Rel('Calls', technology='HTTPS/JSON', tags=['SyncRequest']) >> backend_api
-    backend_api >> Rel('Reads and writes', technology='SQL', tags=['DataAccess']) >> orders_db
-    backend_api >> Rel('Publishes order events', technology='Kafka', tags=['AsyncRequest']) >> order_events
-    backend_api >> Rel('Creates payment intents', technology='REST API', tags=['ExternalCall']) >> payment_provider
-    backend_api >> Rel('Fetches recommendations', technology='REST API', tags=['ExternalCall']) >> recommendation_api
-    backend_api >> Rel('Checks fraud signals', technology='JDBC', tags=['ExternalCall']) >> fraud_db
-    shipping_events >> Rel('Delivers shipping updates', technology='Kafka', tags=['AsyncRequest']) >> backend_api
-    support_agent >> Rel('Queries order state', technology='HTTPS', tags=['SupportFlow']) >> backend_api
+                checkout_api >> Rel('Reads and writes', technology='SQL', plantuml={'tags': ['DataAccess']}) >> checkout_db
 
+    customer >> Rel('Uses', technology='HTTPS', plantuml={'tags': ['SyncRequest']}) >> web_app
+    web_app >> Rel('Calls', technology='HTTPS/JSON', plantuml={'tags': ['SyncRequest']}) >> backend_api
+    backend_api >> Rel('Reads and writes', technology='SQL', plantuml={'tags': ['DataAccess']}) >> orders_db
+    backend_api >> Rel('Publishes order events', technology='Kafka', plantuml={'tags': ['AsyncRequest']}) >> order_events
+    backend_api >> Rel('Creates payment intents', technology='REST API', plantuml={'tags': ['ExternalCall']}) >> payment_provider
+    backend_api >> Rel('Fetches recommendations', technology='REST API', plantuml={'tags': ['ExternalCall']}) >> recommendation_api
+    backend_api >> Rel('Checks fraud signals', technology='JDBC', plantuml={'tags': ['ExternalCall']}) >> fraud_db
+    shipping_events >> Rel('Delivers shipping updates', technology='Kafka', plantuml={'tags': ['AsyncRequest']}) >> backend_api
+    support_agent >> Rel('Queries order state', technology='HTTPS', plantuml={'tags': ['SupportFlow']}) >> backend_api
     LayR(customer, web_app)
+
     LayR(web_app, backend_api)
+
     LayD(backend_api, orders_db)
+
     LayD(backend_api, order_events)
+
     LayR(backend_api, payment_provider)
 
 
@@ -322,7 +330,6 @@ plantuml_render_options = (
         border_thickness='2',
     )
     .update_system_boundary_style(
-        element_name='systemboundary',
         bg_color='#fff8e1',
         font_color='#5d4037',
         border_color='#ffb300',
@@ -333,7 +340,6 @@ plantuml_render_options = (
         border_thickness='2',
     )
     .update_container_boundary_style(
-        element_name='containerboundary',
         bg_color='#f1f8e9',
         font_color='#33691e',
         border_color='#8bc34a',
@@ -350,8 +356,6 @@ plantuml_render_options = (
     .build()
 )
 
-render_options = RenderOptions(
+diagram.set_render_options(
     plantuml=plantuml_render_options,
 )
-
-diagram.render_options = render_options

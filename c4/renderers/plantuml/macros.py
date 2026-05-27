@@ -28,12 +28,8 @@ from c4 import (
     ContainerQueue,
     ContainerQueueExt,
     DeploymentNode,
-    DeploymentNodeLeft,
-    DeploymentNodeRight,
     EnterpriseBoundary,
     Node,
-    NodeLeft,
-    NodeRight,
     Person,
     PersonExt,
     System,
@@ -44,19 +40,24 @@ from c4 import (
     SystemQueue,
     SystemQueueExt,
 )
+from c4.contrib.c4_macros import NodeLeft, NodeRight
+from c4.contrib.plantuml.components import (
+    DeploymentNodeLeft,
+    DeploymentNodeRight,
+    Layout,
+    LayoutType,
+    increment,
+    set_index,
+)
 from c4.diagrams.core import (
     BaseDiagramElement,
     Boundary,
     DiagramElementProperties,
     Element,
     ElementWithTechnology,
-    Layout,
-    LayoutType,
     Relationship,
-    RelationshipType,
-    increment,
-    set_index,
 )
+from c4.diagrams.core.enums import RelationshipType
 from c4.renderers.macros import (
     Argument,
     BaseMacro,
@@ -172,6 +173,106 @@ LAYOUT_TO_PLANTUML_MACRO_MAP = {
 }
 
 
+TAG_STEREO_ARG = Argument(
+    name="tagStereo",
+    source="tag_stereo",
+    format=quote_and_escape,
+)
+ELEMENT_NAME_ARG = Argument(
+    name="elementName",
+    source="element_name",
+    format=quote_and_escape,
+)
+BG_COLOR_ARG = Argument.keyword(
+    name="bgColor",
+    source="bg_color",
+    format=quote_and_escape,
+)
+FONT_COLOR_ARG = Argument.keyword(
+    name="fontColor",
+    source="font_color",
+    format=quote_and_escape,
+)
+BORDER_COLOR_ARG = Argument.keyword(
+    name="borderColor",
+    source="border_color",
+    format=quote_and_escape,
+)
+SHADOWING_ARG = Argument.keyword(
+    name="shadowing",
+    source="shadowing",
+    format=bool_to_quoted_lower_or_empty,
+)
+SHAPE_ARG = Argument.keyword(
+    name="shape",
+    source="shape",
+    format=macro_call,
+)
+SPRITE_ARG = Argument.keyword(
+    name="sprite",
+    source="sprite",
+    format=quote_and_escape,
+)
+TECHNOLOGY_ARG = Argument.keyword(
+    name="techn",
+    source="technology",
+    format=quote_and_escape,
+)
+TYPE_ARG = Argument.keyword(
+    name="type",
+    source="type_",
+    format=quote_and_escape,
+)
+LEGEND_TEXT_ARG = Argument.keyword(
+    name="legendText",
+    source="legend_text",
+    format=quote_and_escape,
+)
+LEGEND_SPRITE_ARG = Argument.keyword(
+    name="legendSprite",
+    source="legend_sprite",
+    format=quote_and_escape,
+)
+BORDER_STYLE_ARG = Argument.keyword(
+    name="borderStyle",
+    source="border_style",
+    format=macro_call,
+)
+BORDER_THICKNESS_ARG = Argument.keyword(
+    name="borderThickness",
+    source="border_thickness",
+    format=quote_and_escape,
+)
+TEXT_COLOR_ARG = Argument.keyword(
+    name="textColor",
+    source="text_color",
+    format=quote_and_escape,
+)
+LINE_COLOR_ARG = Argument.keyword(
+    name="lineColor",
+    source="line_color",
+    format=quote_and_escape,
+)
+LINE_STYLE_ARG = Argument.keyword(
+    name="lineStyle",
+    source="line_style",
+    format=macro_call,
+)
+LINE_THICKNESS_ARG = Argument.keyword(
+    name="lineThickness",
+    source="line_thickness",
+    format=quote_and_escape,
+)
+
+ELEMENT_STYLE_ARGS = (
+    BG_COLOR_ARG,
+    FONT_COLOR_ARG,
+    BORDER_COLOR_ARG,
+    SHADOWING_ARG,
+    SHAPE_ARG,
+)
+
+
 class PlantUMLMacro(BaseMacro, Generic[_TDiagramElement]):
     """
     Base class for rendering PlantUML macros from diagram elements.
@@ -205,6 +306,14 @@ class PlantUMLMacro(BaseMacro, Generic[_TDiagramElement]):
 
         return self._diagram_element.properties
 
+    def get_plantuml_extensions(self) -> dict[str, Any]:
+        """Returns the PlantUML-specific element extensions"""
+        extensions = getattr(self._diagram_element, "extensions", None) or {}
+
+        plantuml_extensions: dict[str, Any] = extensions.get("plantuml", {})
+
+        return plantuml_extensions
+
     def render_properties(
         self, global_without_property_header: bool = False
     ) -> list[str]:
@@ -230,7 +339,7 @@ class PlantUMLMacro(BaseMacro, Generic[_TDiagramElement]):
 
         properties = self.get_properties()
 
-        if properties is None or not properties.properties:
+        if not properties:
             return lines
 
         if not global_without_property_header:
@@ -294,17 +403,14 @@ class ElementPlantUMLMacro(PlantUMLMacro[Element]):
         Extracts relevant attributes from the element for rendering.
         """
         element = self._diagram_element
+        extensions = self.get_plantuml_extensions()
 
         return {
             "label": element.label,
             "alias": element.alias,
-            "sprite": element.sprite,
-            "type": element.type,
-            "tags": element.tags,
-            "link": element.link,
             "description": element.description,
-            "base_shape": element.base_shape,
             "technology": element.technology,
+            **extensions,
         }
 
     @classmethod
@@ -456,20 +562,19 @@ class RelationshipPlantUMLMacro(PlantUMLMacro[Relationship]):
         """
         Extracts relevant attributes from the element for rendering.
         """
-        relationship = self._diagram_element
+        relationship: Relationship = self._diagram_element
 
-        from_element, to_element = relationship.get_participants()
+        extensions = self.get_plantuml_extensions()
+
+        from_element, to_element = relationship.get_participants()  # type: ignore[var-annotated]
 
         return {
             "from": from_element.alias,
             "to": to_element.alias,
             "label": relationship.label,
-            "sprite": relationship.sprite,
-            "tags": relationship.tags,
-            "link": relationship.link,
-            "index": relationship.index,
             "description": relationship.description,
             "technology": relationship.technology,
+            **extensions,
         }
 
 
@@ -528,6 +633,13 @@ class IncrementPlantUMLMacro(PlantUMLMacro[increment]):
 
     macro: ClassVar[str | None] = "increment"
     args: ClassVar[list[Argument]] = []
+
+    @override
+    def render(self) -> str:
+        if self._diagram_element.offset == 1:
+            return super().render()
+
+        return f"{self.check_macro()}({self._diagram_element.offset})"
 
 
 class SetIndexPlantUMLMacro(PlantUMLMacro[set_index]):
@@ -889,66 +1001,14 @@ class ElementTagArgsMixin:
     """
 
     args: ClassVar[list[Argument]] = [
-        Argument(
-            name="tagStereo",
-            source="tag_stereo",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="bgColor",
-            source="bg_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="fontColor",
-            source="font_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderColor",
-            source="border_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="shadowing",
-            source="shadowing",
-            format=bool_to_quoted_lower_or_empty,
-        ),
-        Argument.keyword(
-            name="shape",
-            source="shape",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="sprite",
-            source="sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="techn",
-            source="technology",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendText",
-            source="legend_text",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendSprite",
-            source="legend_sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderStyle",
-            source="border_style",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="borderThickness",
-            source="border_thickness",
-            format=quote_and_escape,
-        ),
+        TAG_STEREO_ARG,
+        *ELEMENT_STYLE_ARGS,
+        SPRITE_ARG,
+        TECHNOLOGY_ARG,
+        LEGEND_TEXT_ARG,
+        LEGEND_SPRITE_ARG,
+        BORDER_STYLE_ARG,
+        BORDER_THICKNESS_ARG,
     ]
 
 
@@ -969,39 +1029,37 @@ class AddRelTagPlantUMLMacro(ElementTagArgsMixin, TagPlantUMLMacro[RelTag]):
 
     macro: ClassVar[str | None] = "AddRelTag"
     args: ClassVar[list[Argument]] = [
-        Argument(
-            name="tagStereo", source="tag_stereo", format=quote_and_escape
-        ),
-        Argument.keyword(
-            name="textColor",
-            source="text_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="lineColor",
-            source="line_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="lineStyle",
-            source="line_style",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="lineThickness",
-            source="line_thickness",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="techn",
-            source="technology",
-            format=quote_and_escape,
-        ),
+        TAG_STEREO_ARG,
+        TEXT_COLOR_ARG,
+        LINE_COLOR_ARG,
+        LINE_STYLE_ARG,
+        SPRITE_ARG,
+        TECHNOLOGY_ARG,
+        LEGEND_TEXT_ARG,
+        LEGEND_SPRITE_ARG,
+        LINE_THICKNESS_ARG,
+    ]
+
+
+class BoundaryTagArgsMixin:
+    """
+    Mixin providing C4-PlantUML `AddBoundaryTag` arguments.
+    """
+
+    args: ClassVar[list[Argument]] = [
+        TAG_STEREO_ARG,
+        *ELEMENT_STYLE_ARGS,
+        TYPE_ARG,
+        LEGEND_TEXT_ARG,
+        BORDER_STYLE_ARG,
+        BORDER_THICKNESS_ARG,
+        SPRITE_ARG,
+        LEGEND_SPRITE_ARG,
     ]
 
 
 class AddBoundaryTagPlantUMLMacro(
-    ElementTagArgsMixin, TagPlantUMLMacro[BoundaryTag]
+    BoundaryTagArgsMixin, TagPlantUMLMacro[BoundaryTag]
 ):
     """
     PlantUML macro renderer for `AddBoundaryTag`.
@@ -1050,7 +1108,24 @@ class AddExternalContainerTagPlantUMLMacro(
     macro: ClassVar[str | None] = "AddExternalContainerTag"
 
 
-class AddNodeTagPlantUMLMacro(ElementTagArgsMixin, TagPlantUMLMacro[NodeTag]):
+class NodeTagArgsMixin:
+    """
+    Mixin providing C4-PlantUML `AddNodeTag` arguments.
+    """
+
+    args: ClassVar[list[Argument]] = [
+        TAG_STEREO_ARG,
+        *ELEMENT_STYLE_ARGS,
+        SPRITE_ARG,
+        TYPE_ARG,
+        LEGEND_TEXT_ARG,
+        LEGEND_SPRITE_ARG,
+        BORDER_STYLE_ARG,
+        BORDER_THICKNESS_ARG,
+    ]
+
+
+class AddNodeTagPlantUMLMacro(NodeTagArgsMixin, TagPlantUMLMacro[NodeTag]):
     """
     PlantUML macro renderer for `AddNodeTag`.
     """
@@ -1065,66 +1140,14 @@ class PersonTagArgsMixin:
     """
 
     args: ClassVar[list[Argument]] = [
-        Argument(
-            name="tagStereo",
-            source="tag_stereo",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="bgColor",
-            source="bg_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="fontColor",
-            source="font_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderColor",
-            source="border_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="shadowing",
-            source="shadowing",
-            format=bool_to_quoted_lower_or_empty,
-        ),
-        Argument.keyword(
-            name="shape",
-            source="shape",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="sprite",
-            source="sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="type",
-            source="type_",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendText",
-            source="legend_text",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendSprite",
-            source="legend_sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderStyle",
-            source="border_style",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="borderThickness",
-            source="border_thickness",
-            format=quote_and_escape,
-        ),
+        TAG_STEREO_ARG,
+        *ELEMENT_STYLE_ARGS,
+        SPRITE_ARG,
+        TYPE_ARG,
+        LEGEND_TEXT_ARG,
+        LEGEND_SPRITE_ARG,
+        BORDER_STYLE_ARG,
+        BORDER_THICKNESS_ARG,
     ]
 
 
@@ -1155,66 +1178,14 @@ class SystemTagArgsMixin:
     """
 
     args: ClassVar[list[Argument]] = [
-        Argument(
-            name="tagStereo",
-            source="tag_stereo",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="bgColor",
-            source="bg_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="fontColor",
-            source="font_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderColor",
-            source="border_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="shadowing",
-            source="shadowing",
-            format=bool_to_quoted_lower_or_empty,
-        ),
-        Argument.keyword(
-            name="shape",
-            source="shape",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="sprite",
-            source="sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="type",
-            source="type_",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendText",
-            source="legend_text",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendSprite",
-            source="legend_sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderStyle",
-            source="border_style",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="borderThickness",
-            source="border_thickness",
-            format=quote_and_escape,
-        ),
+        TAG_STEREO_ARG,
+        *ELEMENT_STYLE_ARGS,
+        SPRITE_ARG,
+        TYPE_ARG,
+        LEGEND_TEXT_ARG,
+        LEGEND_SPRITE_ARG,
+        BORDER_STYLE_ARG,
+        BORDER_THICKNESS_ARG,
     ]
 
 
@@ -1362,66 +1333,14 @@ class UpdateElementStylePlantUMLMacro(StylePlantUMLMacro[ElementStyle]):
 
     macro: ClassVar[str | None] = "UpdateElementStyle"
     args: ClassVar[list[Argument]] = [
-        Argument(
-            name="elementName",
-            source="element_name",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="bgColor",
-            source="bg_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="fontColor",
-            source="font_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderColor",
-            source="border_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="shadowing",
-            source="shadowing",
-            format=bool_to_quoted_lower_or_empty,
-        ),
-        Argument.keyword(
-            name="shape",
-            source="shape",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="sprite",
-            source="sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="techn",
-            source="technology",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendText",
-            source="legend_text",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendSprite",
-            source="legend_sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderStyle",
-            source="border_style",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="borderThickness",
-            source="border_thickness",
-            format=quote_and_escape,
-        ),
+        ELEMENT_NAME_ARG,
+        *ELEMENT_STYLE_ARGS,
+        SPRITE_ARG,
+        TECHNOLOGY_ARG,
+        LEGEND_TEXT_ARG,
+        LEGEND_SPRITE_ARG,
+        BORDER_STYLE_ARG,
+        BORDER_THICKNESS_ARG,
     ]
 
 
@@ -1432,89 +1351,26 @@ class UpdateRelStylePlantUMLMacro(StylePlantUMLMacro[RelStyle]):
 
     macro: ClassVar[str | None] = "UpdateRelStyle"
     args: ClassVar[list[Argument]] = [
-        Argument.keyword(
-            name="textColor",
-            source="text_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="lineColor",
-            source="line_color",
-            format=quote_and_escape,
-        ),
+        TEXT_COLOR_ARG,
+        LINE_COLOR_ARG,
     ]
 
 
 class BoundaryStyleArgsMixin:
     """
     Mixin providing common style-related arguments for `BoundaryStyle`
-    and its subclasses.
+    macros.
     """
 
     args: ClassVar[list[Argument]] = [
-        Argument(
-            name="elementName", source="element_name", format=quote_and_escape
-        ),
-        Argument.keyword(
-            name="bgColor",
-            source="bg_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="fontColor",
-            source="font_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderColor",
-            source="border_color",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="shadowing",
-            source="shadowing",
-            format=bool_to_quoted_lower_or_empty,
-        ),
-        Argument.keyword(
-            name="shape",
-            source="shape",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="type",
-            source="type_",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="sprite",
-            source="sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="techn",
-            source="technology",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendText",
-            source="legend_text",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="legendSprite",
-            source="legend_sprite",
-            format=quote_and_escape,
-        ),
-        Argument.keyword(
-            name="borderStyle",
-            source="border_style",
-            format=macro_call,
-        ),
-        Argument.keyword(
-            name="borderThickness",
-            source="border_thickness",
-            format=quote_and_escape,
-        ),
+        ELEMENT_NAME_ARG,
+        *ELEMENT_STYLE_ARGS,
+        TYPE_ARG,
+        LEGEND_TEXT_ARG,
+        BORDER_STYLE_ARG,
+        BORDER_THICKNESS_ARG,
+        SPRITE_ARG,
+        LEGEND_SPRITE_ARG,
     ]
 
 
@@ -1528,8 +1384,24 @@ class UpdateBoundaryStylePlantUMLMacro(
     macro: ClassVar[str | None] = "UpdateBoundaryStyle"
 
 
+class SpecificBoundaryStyleArgsMixin:
+    """
+    Mixin providing arguments for boundary-style shortcut macros.
+    """
+
+    args: ClassVar[list[Argument]] = [
+        *ELEMENT_STYLE_ARGS,
+        TYPE_ARG,
+        LEGEND_TEXT_ARG,
+        BORDER_STYLE_ARG,
+        BORDER_THICKNESS_ARG,
+        SPRITE_ARG,
+        LEGEND_SPRITE_ARG,
+    ]
+
+
 class UpdateContainerBoundaryStylePlantUMLMacro(
-    BoundaryStyleArgsMixin, StylePlantUMLMacro[ContainerBoundaryStyle]
+    SpecificBoundaryStyleArgsMixin, StylePlantUMLMacro[ContainerBoundaryStyle]
 ):
     """
     PlantUML macro renderer for `UpdateContainerBoundaryStyle`.
@@ -1539,7 +1411,7 @@ class UpdateContainerBoundaryStylePlantUMLMacro(
 
 
 class UpdateSystemBoundaryStylePlantUMLMacro(
-    BoundaryStyleArgsMixin, StylePlantUMLMacro[SystemBoundaryStyle]
+    SpecificBoundaryStyleArgsMixin, StylePlantUMLMacro[SystemBoundaryStyle]
 ):
     """
     PlantUML macro renderer for `UpdateSystemBoundaryStyle`.
@@ -1549,7 +1421,7 @@ class UpdateSystemBoundaryStylePlantUMLMacro(
 
 
 class UpdateEnterpriseBoundaryStylePlantUMLMacro(
-    BoundaryStyleArgsMixin, StylePlantUMLMacro[EnterpriseBoundaryStyle]
+    SpecificBoundaryStyleArgsMixin, StylePlantUMLMacro[EnterpriseBoundaryStyle]
 ):
     """
     PlantUML macro renderer for `UpdateEnterpriseBoundaryStyle`.

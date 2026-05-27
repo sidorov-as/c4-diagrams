@@ -1,11 +1,18 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generic
+from typing import TYPE_CHECKING, Generic
 
 from c4 import DiagramFormat
-from c4.diagrams.core import _TDiagram
+from c4.diagrams.core import ExtensionValidationModeType
+from c4.diagrams.core.diagram import TDiagram
+from c4.enums import IGNORE_FOREIGN, ExtensionValidationMode, RendererEnum
+
+if TYPE_CHECKING:  # pragma: no cover
+    from c4.diagrams.core import BaseDiagramElement, Boundary
 
 
 class IndentedStringBuilder:
@@ -108,7 +115,7 @@ class IndentedStringBuilder:
         return "\n".join(self._lines)
 
 
-class BaseRenderer(ABC, Generic[_TDiagram]):
+class BaseRenderer(ABC, Generic[TDiagram]):
     """
     Abstract base class for all diagram renderers.
 
@@ -119,8 +126,45 @@ class BaseRenderer(ABC, Generic[_TDiagram]):
     a specific format (e.g., PlantUML, Mermaid, etc.).
     """
 
+    renderer_type: RendererEnum
+
+    def __init__(
+        self,
+        extension_validation_mode: ExtensionValidationModeType = IGNORE_FOREIGN,
+    ) -> None:
+        """
+        Initialize the renderer.
+
+        Args:
+            extension_validation_mode: How strictly renderer-specific
+                extension data is validated before rendering.
+        """
+        self._extension_validation_mode = ExtensionValidationMode(
+            extension_validation_mode
+        )
+
+    def iter_render_items(
+        self,
+        diagram: TDiagram,
+    ) -> Iterator[BaseDiagramElement]:
+        """Return this renderer's top-level declaration render stream."""
+        yield from diagram.ordered_elements
+
+    def iter_boundary_render_items(
+        self,
+        boundary: Boundary,
+    ) -> Iterator[BaseDiagramElement]:
+        """Return this renderer's declaration stream inside a boundary."""
+        yield from boundary.ordered_elements
+
+    def validate(self, diagram: TDiagram) -> None:
+        """Validate that this renderer can faithfully render the diagram."""
+        raise NotImplementedError(  # pragma: no cover
+            "Renderer class requires .validate() to be implemented"
+        )
+
     @abstractmethod
-    def render(self, diagram: _TDiagram) -> str:
+    def render(self, diagram: TDiagram) -> str:
         """
         Render the provided Diagram into a textual format.
 
@@ -137,16 +181,15 @@ class BaseRenderer(ABC, Generic[_TDiagram]):
     @abstractmethod
     def render_bytes(
         self,
-        diagram: _TDiagram,
+        diagram: TDiagram,
         *,
         format: DiagramFormat,
     ) -> bytes:
         """
         Render a Diagram and return the result as raw bytes.
 
-        This method first converts the Diagram into PlantUML source text
-        and then delegates the actual rendering to the
-        configured PlantUML backend.
+        Concrete renderers may delegate conversion of their textual source to
+        a local or remote backend.
 
         Args:
             diagram: The diagram instance to render.
@@ -162,7 +205,7 @@ class BaseRenderer(ABC, Generic[_TDiagram]):
     @abstractmethod
     def render_file(
         self,
-        diagram: _TDiagram,
+        diagram: TDiagram,
         output_path: Path,
         *,
         format: DiagramFormat,

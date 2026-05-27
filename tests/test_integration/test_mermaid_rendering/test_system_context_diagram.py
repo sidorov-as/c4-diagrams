@@ -16,7 +16,8 @@ from c4 import (
     SystemQueue,
     SystemQueueExt,
 )
-from c4.diagrams.core import BiRel, Boundary
+from c4.contrib.mermaid import BiRel
+from c4.diagrams.core import Boundary
 from c4.renderers import MermaidRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -75,7 +76,11 @@ def test_render_system_context_diagram(
                     alias="SystemD",
                 )
 
-                with Boundary("BankBoundary3", alias="b3", type_="boundary"):
+                with Boundary(
+                    "BankBoundary3",
+                    alias="b3",
+                    extensions={"mermaid": {"type": "boundary"}},
+                ):
                     SystemQueue(
                         "Banking System F Queue",
                         "A system of the bank.",

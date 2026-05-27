@@ -1,0 +1,32 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Deployment.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+!endif
+
+title Retail Platform - Deployment
+
+Person(customer, "Customer", "Uses the online shop through a browser.")
+
+System_Ext(payment_provider, "Payment Provider", "External service that processes payments.")
+
+Node(production, "Production Environment", $descr="Cloud-hosted production runtime.") {
+    Deployment_Node(edge, "Edge", $descr="Public entrypoint for web traffic.") {
+        Container(web_app, "Web Application", "Next.js", "Serves the storefront UI.")
+    }
+    Deployment_Node(runtime, "Application Runtime", $descr="Runs backend services.") {
+        Container(api, "Backend API", "Python / FastAPI", "Handles catalog, checkout, and orders.")
+    }
+    Deployment_Node(database_node, "Managed Database", $descr="Managed relational database service.") {
+        ContainerDb(database, "Orders Database", "PostgreSQL", "Stores orders and payment state.")
+    }
+}
+
+Rel(customer, web_app, "Uses", "HTTPS")
+Rel(web_app, api, "Calls", "HTTPS/JSON")
+Rel(api, database, "Reads and writes", "SQL")
+Rel(api, payment_provider, "Requests payment authorization from", "HTTPS")
+
+@enduml

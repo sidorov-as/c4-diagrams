@@ -1,4 +1,4 @@
-# Mermaid rendering backends
+# Mermaid Rendering Backends
 
 ::: c4.renderers.mermaid.renderer.MermaidRenderer
     options:

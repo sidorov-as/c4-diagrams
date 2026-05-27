@@ -1,8 +1,11 @@
-# Macros
+# Contrib Helper Index
 
-Some macros, attributes, and style options are **backend-specific**.
+Backend-specific helpers, attributes, and style options live in contrib APIs.
+The portable core does not expose a renderer-neutral macro surface.
 
-They may apply only to a particular renderer, such as **PlantUML**, **Mermaid**, or **Structurizr**,
-and will be ignored or have no effect when used with other backends.
-
-- [PlantUML macros](plantuml/macros.md)
+- [PlantUML dynamic indexes](plantuml/dynamic-indexes.md)
+- [PlantUML relationships](plantuml/relationships.md)
+- [PlantUML layouts](plantuml/layouts.md)
+- [PlantUML extension schemas](plantuml/extensions.md)
+- [Mermaid relationships](mermaid/relationships.md)
+- [Mermaid extension schemas](mermaid/extensions.md)

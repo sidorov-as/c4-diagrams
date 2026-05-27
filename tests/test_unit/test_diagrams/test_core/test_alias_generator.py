@@ -16,6 +16,9 @@ def alias_generator() -> AliasGenerator:
         ("My Label-Here", "my_label_here"),
         ("MiXeD CaSe", "mixed_case"),
         ("a b-c d", "a_b_c_d"),
+        ("SystemBoundary", "systemboundary"),
+        ("Привет", ""),
+        ("Hello, world!", "hello_world"),
     ],
 )
 def test_alias_generator__normalize(label: str, expected: str):
@@ -47,6 +50,38 @@ def test_alias_generator__generate__auto_alias_returns_base_first_time(
     result = alias_generator.generate(label="My Label")
 
     assert result == "my_label"
+
+
+def test_alias_generator__generate__uses_default_fallback_for_invalid_base(
+    alias_generator: AliasGenerator,
+):
+    result = alias_generator.generate(label="Привет")
+
+    assert result == "element"
+
+
+def test_alias_generator__generate__uses_custom_fallback_for_invalid_base(
+    alias_generator: AliasGenerator,
+):
+    result = alias_generator.generate(
+        label="Привет",
+        fallback_prefix="SystemBoundary",
+    )
+
+    assert result == "system_boundary"
+
+
+def test_alias_generator__generate__increments_custom_fallback(
+    alias_generator: AliasGenerator,
+):
+    alias_generator.generate(label="Привет", fallback_prefix="SystemBoundary")
+
+    result = alias_generator.generate(
+        label="Пока",
+        fallback_prefix="SystemBoundary",
+    )
+
+    assert result == "system_boundary_1"
 
 
 @pytest.mark.parametrize(

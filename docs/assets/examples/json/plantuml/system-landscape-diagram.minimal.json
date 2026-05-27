@@ -1,0 +1,25 @@
+{
+  "backend": "plantuml",
+  "type": "SystemLandscapeDiagram",
+  "elements": [
+    {
+      "type": "Person",
+      "alias": "user",
+      "label": "User"
+    },
+    {
+      "type": "System",
+      "alias": "app",
+      "label": "My App"
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "user",
+      "to": "app",
+      "label": "Uses",
+      "technology": "HTTPS"
+    }
+  ]
+}

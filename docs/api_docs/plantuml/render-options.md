@@ -1,4 +1,4 @@
-# Render options
+# Render Options
 
 See the official [C4-PlantUML Layout Options documentation](https://github.com/plantuml-stdlib/C4-PlantUML/blob/master/LayoutOptions.md)
 for additional information.
@@ -59,7 +59,7 @@ for additional information.
         show_bases: false
 
 
-::: c4.renderers.plantuml.options.TagShape
+::: c4.renderers.plantuml.options.DiagramLayout
     options:
         show_root_heading: true
         merge_init_into_class: false
@@ -67,7 +67,18 @@ for additional information.
         show_bases: false
 
 
-::: c4.renderers.plantuml.options.LineStyle
+## Literal Values
+
+Some builder arguments use literal string values instead of enum classes:
+
+- `TagShape`: `EightSidedShape`, `RoundedBoxShape`
+- `LineStyle`: `DashedLine`, `DottedLine`, `BoldLine`, `SolidLine`
+- `Details`: `Small`, `Normal`, `None`
+
+
+## Tag Models
+
+::: c4.renderers.plantuml.options.BaseTag
     options:
         show_root_heading: true
         merge_init_into_class: false
@@ -75,7 +86,179 @@ for additional information.
         show_bases: false
 
 
-::: c4.renderers.plantuml.options.Details
+::: c4.renderers.plantuml.options.ElementTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.RelTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.BoundaryTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.ComponentTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.ExternalComponentTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.ContainerTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.ExternalContainerTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.NodeTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.PersonTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.ExternalPersonTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.SystemTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.ExternalSystemTag
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+## Style Models
+
+::: c4.renderers.plantuml.options.ElementStyle
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.RelStyle
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.BoundaryStyle
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.ContainerBoundaryStyle
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.SystemBoundaryStyle
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.EnterpriseBoundaryStyle
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+## Layout Option Models
+
+::: c4.renderers.plantuml.options.ShowLegend
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.ShowFloatingLegend
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.ShowPersonSprite
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_bases: false
+
+
+::: c4.renderers.plantuml.options.SetSketchStyle
     options:
         show_root_heading: true
         merge_init_into_class: false

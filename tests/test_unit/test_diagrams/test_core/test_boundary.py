@@ -70,30 +70,30 @@ def test_boundary_attrs():
     alias = "boundary1"
     label = "Boundary"
     description = "A boundary"
-    tags = "foo,bar"
-    link = "https://example.com"
-    type_ = "stereotype"
+    extensions = {
+        "plantuml": {
+            "tags": ["foo", "bar"],
+            "link": "https://example.com",
+            "type": "stereotype",
+        },
+        "mermaid": {
+            "type": "boundary",
+        },
+    }
 
     with Diagram():
         boundary = Boundary(
             alias=alias,
             label=label,
             description=description,
-            tags=tags,
-            link=link,
-            type_=type_,
+            extensions=extensions,
         )
 
     assert boundary.alias == alias
     assert boundary.label == label
     assert boundary.description == description
-    assert boundary.tags == tags
-    assert boundary.link == link
-    assert boundary.type == type_
-    # reserved for other elements
-    assert boundary.base_shape is None
+    assert boundary.extensions == extensions
     assert boundary.technology is None
-    assert boundary.sprite is None
 
 
 def test_nested_boundaries():

@@ -50,6 +50,44 @@ def test_handle_render(
     assert diagram_output.read_text(encoding="utf-8") == "diagram-source"
 
 
+def test_handle_render__json_backend_mismatch_cli_renderer(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    diagram_output = tmp_path / "diagram.puml"
+    args = argparse.Namespace(
+        target="diagram.json",
+        renderer="plantuml",
+        output=diagram_output,
+        plantuml_use_new_c4_style=False,
+    )
+    build_render_cli_options = mocker.patch.object(
+        commands,
+        "build_render_cli_options",
+        autospec=True,
+        side_effect=CLIError(
+            "JSON diagram backend 'mermaid' does not match "
+            "selected renderer 'plantuml'."
+        ),
+    )
+    build_renderer = mocker.patch.object(
+        commands,
+        "build_renderer",
+        autospec=True,
+    )
+    expected_error = (
+        "JSON diagram backend 'mermaid' does not match "
+        "selected renderer 'plantuml'."
+    )
+
+    with pytest.raises(CLIError, match=expected_error):
+        handle_render(args)
+
+    build_render_cli_options.assert_called_once_with(args)
+    build_renderer.assert_not_called()
+    assert not diagram_output.exists()
+
+
 def test_handle_export(
     mocker: MockerFixture,
     tmp_path: Path,
@@ -98,6 +136,101 @@ def test_handle_export(
     assert diagram_output.read_bytes() == b"content"
 
 
+def test_handle_export__json_backend_matches_cli_renderer(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    file_path = tmp_path / "diagram.json"
+    file_path.write_text(
+        """
+        {"backend": "mermaid", "type": "SystemContextDiagram", "title": "Example"}
+        """,
+        encoding="utf-8",
+    )
+    diagram_output = tmp_path / "diagram.png"
+    args = argparse.Namespace(
+        target=str(file_path),
+        renderer="mermaid",
+        format=PNG,
+        output=diagram_output,
+        timeout=30.0,
+    )
+    spied_build_export_cli_options = mocker.spy(
+        commands, "build_export_cli_options"
+    )
+    diagram = Diagram()
+    resolve_diagram = mocker.patch.object(
+        commands,
+        "resolve_diagram",
+        autospec=True,
+        return_value=diagram,
+    )
+    exporter = mocker.Mock(spec=["render_bytes"])
+    exporter.render_bytes.return_value = b"content"
+    build_exporter = mocker.patch.object(
+        commands,
+        "build_exporter",
+        autospec=True,
+        return_value=exporter,
+    )
+
+    result = handle_export(args)
+
+    assert result == 0
+    spied_build_export_cli_options.assert_called_once_with(args)
+    resolve_diagram.assert_called_once_with(str(file_path))
+    build_exporter.assert_called_once_with(
+        spied_build_export_cli_options.spy_return
+    )
+    exporter.render_bytes.assert_called_once_with(diagram, format=PNG)
+    assert diagram_output.read_bytes() == b"content"
+
+
+def test_handle_export__json_backend_mismatch_cli_renderer(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    diagram_output = tmp_path / "diagram.png"
+    args = argparse.Namespace(
+        target="diagram.json",
+        renderer="plantuml",
+        format=PNG,
+        output=diagram_output,
+        plantuml_backend=LOCAL_BACKEND,
+        plantuml_server_url=None,
+        plantuml_bin="plantuml",
+        plantuml_jar=None,
+        java_bin=None,
+        plantuml_skinparam_dpi=None,
+        timeout=30.0,
+    )
+    build_export_cli_options = mocker.patch.object(
+        commands,
+        "build_export_cli_options",
+        autospec=True,
+        side_effect=CLIError(
+            "JSON diagram backend 'mermaid' does not match "
+            "selected renderer 'plantuml'."
+        ),
+    )
+    build_exporter = mocker.patch.object(
+        commands,
+        "build_exporter",
+        autospec=True,
+    )
+    expected_error = (
+        "JSON diagram backend 'mermaid' does not match "
+        "selected renderer 'plantuml'."
+    )
+
+    with pytest.raises(CLIError, match=expected_error):
+        handle_export(args)
+
+    build_export_cli_options.assert_called_once_with(args)
+    build_exporter.assert_not_called()
+    assert not diagram_output.exists()
+
+
 def test_handle_convert(
     mocker: MockerFixture,
     tmp_path: Path,
@@ -117,7 +250,7 @@ def test_handle_convert(
     spied_build_convert_cli_options = mocker.spy(
         commands, "build_convert_cli_options"
     )
-    spied_resolve_diagram = mocker.spy(commands, "resolve_diagram")
+    spied_load_json_diagram = mocker.spy(commands, "resolve_json_diagram")
     spied_diagram_to_python_code = mocker.spy(
         commands, "diagram_to_python_code"
     )
@@ -128,7 +261,7 @@ def test_handle_convert(
         )
 
 
-        with SystemContextDiagram(title='Example'):
+        with SystemContextDiagram(title='Example') as diagram:
             pass
         """
     ).strip()
@@ -137,9 +270,11 @@ def test_handle_convert(
 
     assert result == 0
     spied_build_convert_cli_options.assert_called_once_with(args)
-    spied_resolve_diagram.assert_called_once_with(str(file_path))
+    spied_load_json_diagram.assert_called_once_with(str(file_path))
+    diagram, backend = spied_load_json_diagram.spy_return
     spied_diagram_to_python_code.assert_called_once_with(
-        spied_resolve_diagram.spy_return
+        diagram,
+        backend,
     )
     assert diagram_output.read_text() == expected_output
 
@@ -166,7 +301,7 @@ def test_handle_convert__unsupported_conversion(
     spied_build_convert_cli_options = mocker.spy(
         commands, "build_convert_cli_options"
     )
-    spied_resolve_diagram = mocker.spy(commands, "resolve_diagram")
+    spied_load_json_diagram = mocker.spy(commands, "resolve_json_diagram")
     spied_diagram_to_python_code = mocker.spy(
         commands, "diagram_to_python_code"
     )
@@ -176,7 +311,7 @@ def test_handle_convert__unsupported_conversion(
         handle_convert(args)
 
     spied_build_convert_cli_options.assert_called_once_with(args)
-    spied_resolve_diagram.assert_not_called()
+    spied_load_json_diagram.assert_not_called()
     spied_diagram_to_python_code.assert_not_called()
     assert not diagram_output.exists()
 
@@ -203,7 +338,7 @@ def test_handle_convert__conversion_error(
     spied_build_convert_cli_options = mocker.spy(
         commands, "build_convert_cli_options"
     )
-    spied_resolve_diagram = mocker.spy(commands, "resolve_diagram")
+    spied_load_json_diagram = mocker.spy(commands, "resolve_json_diagram")
     spied_diagram_to_python_code = mocker.spy(
         commands, "diagram_to_python_code"
     )
@@ -213,6 +348,6 @@ def test_handle_convert__conversion_error(
         handle_convert(args)
 
     spied_build_convert_cli_options.assert_called_once_with(args)
-    spied_resolve_diagram.assert_called_once_with(str(file_path))
+    spied_load_json_diagram.assert_called_once_with(str(file_path))
     spied_diagram_to_python_code.assert_not_called()
     assert not diagram_output.exists()

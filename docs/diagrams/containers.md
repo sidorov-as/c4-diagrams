@@ -1,157 +1,89 @@
-# Container diagram
+# Container Diagram
 
-Once you understand how your system fits in to the overall IT environment, a useful next step is to zoom in to the
-system boundary with a container diagram. In C4, a [container](https://c4model.com/abstractions/container)
-is an application or a data store. For example, a
-server-side web application, a client-side single-page application, a desktop application, a mobile app, a database
-schema, a folder on a file system, an Amazon Web Services S3 bucket, etc.
+A container diagram zooms into one software system and shows its applications,
+data stores, message brokers, and other deployable or runnable parts. It is
+most useful for software developers, operators, and technical stakeholders who
+need to understand responsibilities, technology choices, and communication
+paths.
 
-The container diagram shows the high-level shape of the software architecture and how responsibilities are distributed
-across it. It also shows the major technology choices and how the containers communicate with one another. It’s a
-simple, high-level technology focussed diagram that is useful for software developers and support/operations staff
-alike.
+## Supported DSL Classes
 
+Use [`ContainerDiagram`][c4.diagrams.container.ContainerDiagram] with:
+
+- [`Person`][c4.diagrams.system_context.Person] and external people
+- [`Container`][c4.diagrams.container.Container],
+  [`ContainerDb`][c4.diagrams.container.ContainerDb],
+  [`ContainerQueue`][c4.diagrams.container.ContainerQueue], and external
+  variants
+- [`SystemBoundary`][c4.diagrams.system_context.SystemBoundary] for the system
+  being decomposed
+- [`ContainerBoundary`][c4.diagrams.container.ContainerBoundary] when you need
+  a portable boundary around grouped containers
+- portable [`Rel`][c4.diagrams.core.relationships.Rel]
 
 ???+ warning "Containers with nested elements"
 
-    In C4-PlantUML, containers can act as boundaries and contain nested elements.
+    C4-PlantUML containers can visually act like boundaries and contain nested
+    elements. The portable DSL keeps containers and boundaries as separate
+    concepts so the model behaves consistently across renderers.
 
-    In **c4-diagrams**, containers and boundaries are intentionally modeled as **separate concepts**
-    to ensure consistent behavior across different renderers.
+    Use [`ContainerBoundary`][c4.diagrams.container.ContainerBoundary] for
+    portable grouping. Renderer-specific container nesting may be added later
+    as a backend extension; it should not be treated as portable C4 model data.
 
-    Because of this, containers cannot contain nested elements in the portable DSL.
-
-    Support for this pattern may be introduced in the future as a **renderer-specific extension**
-    (see [issue #12](https://github.com/sidorov-as/c4-diagrams/issues/12)).
-
-    For now, use [`ContainerBoundary`][c4.diagrams.container.ContainerBoundary].
-
-## Example
-
-The following example demonstrates how to define a **container diagram** using the Python DSL.
+## Portable Example
 
 ```python
-from c4 import (
-    Container,
-    ContainerDb,
-    ContainerDiagram,
-    ContainerQueue,
-    LayRight,
-    Person,
-    Rel,
-    RelDown,
-    RelUp,
-    SystemBoundary,
-)
-from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
+from c4 import Container, ContainerDb, ContainerDiagram, Person, Rel, SystemBoundary
 
 
-with ContainerDiagram() as diagram:
-    customer = Person("customer", "Customer", "A customer")
+with ContainerDiagram(title="Retail Platform containers") as diagram:
+    customer = Person("Customer", "Places orders through the storefront.")
 
-    with SystemBoundary("c1", "Customer Information"):
-        app = Container(
-            "app",
-            "Customer Application",
-            "Javascript, Angular",
-            "Allows customers to manage their profile",
-        )
-        customer_service = Container(
-            "customer_service",
-            "Customer Service",
-            "Java, Spring Boot",
-            "The point of access for customer information",
-            tags="microService",
-        )
-        message_bus = ContainerQueue(
-            "message_bus",
-            "Message Bus",
-            "RabbitMQ",
-            "Transport for business events",
-        )
-        reporting_service = Container(
-            "reporting_service",
-            "Reporting Service",
-            "Ruby",
-            "Creates normalised data for reporting purposes",
-            tags="microService",
-        )
-        audit_service = Container(
-            "audit_service",
-            "Audit Service",
-            "C#/.NET",
-            "Provides organisation-wide auditing facilities",
-            tags="microService",
-        )
-        customer_db = ContainerDb(
-            "customer_db",
-            "Customer Database",
-            "Oracle 12c",
-            "Stores customer information",
-            tags="storage",
-        )
-        reporting_db = ContainerDb(
-            "reporting_db",
-            "Reporting Database",
-            "MySQL",
-            "Stores a normalized version of all business data for ad hoc reporting purposes",
-            tags="storage",
-        )
-        audit_store = Container(
-            "audit_store",
-            "Audit Store",
-            "Event Store",
-            "Stores information about events that have happened",
-            tags="storage",
-        )
+    with SystemBoundary("Retail Platform"):
+        web = Container("Web Application", "Serves the storefront.", "Next.js")
+        api = Container("Backend API", "Handles checkout and orders.", "Python")
+        db = ContainerDb("Orders Database", "Stores order data.", "PostgreSQL")
 
-        customer >> RelDown("Uses", "HTTPS") >> app
-        app >> RelDown('Updates customer information using', 'async, JSON/HTTPS') >> customer_service  # fmt: off
+    customer >> Rel("Uses", "HTTPS") >> web
+    web >> Rel("Calls", "JSON/HTTPS") >> api
+    api >> Rel("Reads and writes", "SQL") >> db
 
-        customer_service >> RelUp("Sends events to", "WebSocket") >> app
-        customer_service >> RelUp('Sends customer update events to') >> message_bus  # fmt: off
-
-        customer_service >> Rel("Stores data in", "JDBC") >> customer_db
-
-        message_bus >> Rel('Sends customer update events to') >> [reporting_service, audit_service]  # fmt: off
-
-        reporting_service >> Rel("Stores data in") >> reporting_db
-        audit_service >> Rel("Stores events in") >> audit_store
-
-    LayRight(reporting_service, audit_service)
-
-    render_options = (
-        PlantUMLRenderOptionsBuilder()
-        .add_element_tag(
-            "microService",
-            shape="EightSidedShape",
-            bg_color="CornflowerBlue",
-            font_color="white",
-            legend_text="micro service\neight sided",
-        )
-        .add_element_tag(
-            "storage",
-            shape="RoundedBoxShape",
-            bg_color="lightSkyBlue",
-            font_color="white",
-        )
-        .show_person_outline()
-        .show_legend()
-        .build()
-    )
-
-diagram_code = diagram.as_plantuml(render_options=render_options)
+plantuml_source = diagram.as_plantuml()
+mermaid_source = diagram.as_mermaid()
 ```
+
+## PlantUML enhanced example
+
+???+ warning "Non-portable PlantUML example"
+
+    This snippet uses PlantUML extension data and helpers. Render it with the
+    PlantUML rendering backend, or remove those hints before targeting Mermaid.
+
+The generated PlantUML example uses element tags, layout helpers, and a legend.
+Tags are passed with `plantuml={...}` and layout helpers are imported from
+`c4.contrib.plantuml`.
+
+```python
+--8<-- "assets/examples/plantuml/container-diagram.py"
+```
+
+## Renderer Behavior
+
+PlantUML supports C4-PlantUML container rendering, tags, styles, legends, and
+layout hints. Mermaid can render the portable container model and Mermaid style
+options, but it does not understand PlantUML-only layout helpers, sprites, or
+PlantUML tag styling.
+
+## Generated Source and Image
 
 <details>
 <summary>Generated PlantUML source</summary>
 
 ```puml
-{% include-markdown "../../tests/snapshots/plantuml/container_diagram.puml" %}
+--8<-- "assets/examples/plantuml/container-diagram.puml"
 ```
 
 </details>
 
-The PlantUML source can be rendered into the following diagram:
-
-![system context](../assets/diagrams/container_diagram.png)
+![Container diagram](../assets/examples/plantuml/container-diagram.png)

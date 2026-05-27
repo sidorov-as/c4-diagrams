@@ -11,9 +11,9 @@ from c4 import (
     ContainerExt,
     Person,
     Rel,
-    RelBack,
     SystemExt,
 )
+from c4.contrib.mermaid import RelBack
 from c4.renderers import MermaidRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover

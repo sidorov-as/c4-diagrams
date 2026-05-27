@@ -19,13 +19,19 @@ from c4.cli.exceptions import (
     TargetParseError,
 )
 from c4.diagrams.core import Diagram
+from c4.enums import RendererEnum
 
 if TYPE_CHECKING:  # pragma: no cover
 
     class DiagramFromJson(Protocol):
         def __call__(
             self, src: str | bytes | Path | IO[str] | IO[bytes]
-        ) -> Diagram: ...
+        ) -> tuple[Diagram, RendererEnum | None]: ...
+
+    class DiagramBackendFromJson(Protocol):
+        def __call__(
+            self, src: str | bytes | Path | IO[str] | IO[bytes]
+        ) -> RendererEnum | None: ...
 
 
 @dataclass(frozen=True)
@@ -319,20 +325,51 @@ def _parse_target(raw: str | Path) -> Target:
     )
 
 
-def _import_json_converter() -> DiagramFromJson | None:
+def _import_json_converter() -> DiagramFromJson:
     try:
         from c4.converters.json.converter import diagram_from_json
     except ImportError:
-        return None
+        raise MissingConverterDependency() from None
 
     return diagram_from_json
 
 
+def _import_json_backend_resolver() -> DiagramBackendFromJson:
+    try:
+        from c4.converters.json.converter import diagram_backend_from_json
+    except ImportError:
+        raise MissingConverterDependency() from None
+
+    return diagram_backend_from_json
+
+
+def resolve_target_backend(raw_target: str | Path) -> RendererEnum | None:
+    """
+    Resolve renderer backend metadata carried by a CLI target.
+
+    Non-JSON targets do not carry backend metadata and return None. JSON
+    targets are parsed through the JSON converter's schema selection logic.
+    """
+    target = _parse_target(raw_target)
+    if not target.is_json_file:
+        return None
+
+    json_file = Path(raw_target)
+    if not json_file.exists():
+        raise ImportFromStringError(f"Diagram file not found: {json_file!s}.")
+
+    resolve_diagram_backend = _import_json_backend_resolver()
+
+    return resolve_diagram_backend(json_file)
+
+
 def resolve_diagram(raw_target: str | Path) -> Diagram:
     """
-    Resolve a Diagram instance from a CLI target string.
+    Resolve a Diagram instance from a CLI target.
 
     Behavior:
+        - If the target is a JSON file:
+            * Load the JSON diagram.
         - If "<target>:<object_ref>" is provided:
             * Load/import the module and resolve <object_ref> as
               a dotted attribute.
@@ -340,10 +377,6 @@ def resolve_diagram(raw_target: str | Path) -> Diagram:
         - If "<object_ref>" is not provided:
             * Load/import the module and auto-detect exactly one
               module-level Diagram.
-
-    Args:
-        raw_target: Target string ("file.py", "file.py:diagram",
-            "python.module", "python.module:diagram").
 
     Returns:
         Resolved Diagram instance.
@@ -361,17 +394,8 @@ def resolve_diagram(raw_target: str | Path) -> Diagram:
     """
     target = _parse_target(raw_target)
     if target.is_json_file:
-        diagram_from_json = _import_json_converter()
-        if diagram_from_json is None:
-            raise MissingConverterDependency()
-
-        json_file = Path(raw_target)
-        if not json_file.exists():
-            raise ImportFromStringError(
-                f"Diagram file not found: {json_file!s}."
-            )
-
-        return diagram_from_json(Path(raw_target))
+        diagram, _ = resolve_json_diagram(raw_target)
+        return diagram
 
     module = _load_target_module(target)
 
@@ -379,3 +403,34 @@ def resolve_diagram(raw_target: str | Path) -> Diagram:
         return _resolve_diagram_ref(target, module)
 
     return _get_single_diagram_from_module(target, module)
+
+
+def resolve_json_diagram(
+    raw_target: str | Path,
+) -> tuple[Diagram, RendererEnum | None]:
+    """
+    Resolve a Diagram instance from JSON file.
+    Args:
+        raw_target: Target string ("file.json").
+
+    Returns:
+        Resolved Diagram instance and rendering backend.
+
+    Raises:
+        TargetParseError: If the target string is malformed.
+        ImportFromStringError: If the module/file cannot be imported
+            or the ref is not a Diagram.
+        DiagramNotFoundError: If the requested diagram is missing
+            (or no diagrams exist).
+        MultipleDiagramsFoundError: If auto-detection finds more than
+            one diagram.
+        MissingConverterDependency: If converter dependencies
+            are not installed.
+    """
+    diagram_from_json = _import_json_converter()
+
+    json_file = Path(raw_target)
+    if not json_file.exists():
+        raise ImportFromStringError(f"Diagram file not found: {json_file!s}.")
+
+    return diagram_from_json(json_file)

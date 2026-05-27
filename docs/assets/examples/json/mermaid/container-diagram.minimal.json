@@ -1,0 +1,59 @@
+{
+  "backend": "mermaid",
+  "type": "ContainerDiagram",
+  "title": "Web App",
+  "elements": [
+    {
+      "type": "Person",
+      "alias": "user",
+      "label": "User"
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "SystemBoundary",
+      "alias": "system",
+      "label": "Simple System",
+      "elements": [
+        {
+          "type": "Container",
+          "alias": "web",
+          "label": "Web App",
+          "technology": "React"
+        },
+        {
+          "type": "Container",
+          "alias": "api",
+          "label": "API",
+          "technology": "Python"
+        },
+        {
+          "type": "ContainerDb",
+          "alias": "db",
+          "label": "Database",
+          "technology": "PostgreSQL"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "user",
+      "to": "web",
+      "label": "Uses"
+    },
+    {
+      "type": "REL",
+      "from": "web",
+      "to": "api",
+      "label": "Calls"
+    },
+    {
+      "type": "REL",
+      "from": "api",
+      "to": "db",
+      "label": "Reads/Writes"
+    }
+  ]
+}

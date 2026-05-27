@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -129,8 +130,16 @@ class LocalMermaidBackend(BaseMermaidBackend):
         mermaid_bin: Maybe[str | None] = MISSING,
         timeout_seconds: Maybe[float] = MISSING,
         mermaid_args: Sequence[str] = (),
+        puppeteer_config: str | Path | None = None,
+        puppeteer_headless: bool | None = None,
         env: Mapping[str, str] | None = None,
     ) -> None:
+        if puppeteer_config is not None and puppeteer_headless is not None:
+            raise MermaidBackendConfigurationError(
+                "puppeteer_config and puppeteer_headless are mutually "
+                "exclusive."
+            )
+
         self._env = dict(os.environ)
         if env:
             self._env.update(env)
@@ -143,6 +152,12 @@ class LocalMermaidBackend(BaseMermaidBackend):
             self._mermaid_bin = mermaid_bin
 
         self._mermaid_args = list(mermaid_args)
+        self._puppeteer_config = (
+            Path(puppeteer_config).expanduser().resolve()
+            if puppeteer_config is not None
+            else None
+        )
+        self._puppeteer_headless = puppeteer_headless
 
         if timeout_seconds is MISSING:
             timeout_seconds = self._env.get(  # type: ignore[assignment]
@@ -246,5 +261,20 @@ class LocalMermaidBackend(BaseMermaidBackend):
             str(input_path),
             "-o",
             str(output_path),
+            *self._build_puppeteer_args(input_path.parent),
             *self._mermaid_args,
         ]
+
+    def _build_puppeteer_args(self, tmp_dir: Path) -> list[str]:
+        if self._puppeteer_config is not None:
+            return ["-p", str(self._puppeteer_config)]
+
+        if self._puppeteer_headless is None:
+            return []
+
+        config_path = tmp_dir / ".puppeteerrc.json"
+        config_path.write_text(
+            json.dumps({"headless": self._puppeteer_headless}),
+            encoding="utf-8",
+        )
+        return ["-p", str(config_path)]

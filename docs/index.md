@@ -11,6 +11,7 @@
 [![Maintainability](https://qlty.sh/gh/sidorov-as/projects/c4-diagrams/maintainability.svg)](https://qlty.sh/gh/sidorov-as/projects/c4-diagrams)
 [![Code Coverage](https://qlty.sh/gh/sidorov-as/projects/c4-diagrams/coverage.svg)](https://qlty.sh/gh/sidorov-as/projects/c4-diagrams)
 [![License](https://img.shields.io/github/license/sidorov-as/c4-diagrams)](https://img.shields.io/github/license/sidorov-as/c4-diagrams)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sidorov-as/c4-diagrams)
 
 **c4-diagrams** is a Python DSL for defining **[C4 model](https://c4model.com/) architecture diagrams as code**.
 
@@ -23,7 +24,7 @@ and relationships — allowing you to describe software architecture in Python a
 - First-class C4 entities and relationships
 - Multiple rendering backends
 - Suitable for documentation, ADRs, and architecture reviews
-- Renderer-agnostic DSL (same code → different outputs)
+- Portable core DSL for the common C4 subset, with backend-specific features available through contrib extensions
 
 ## Rendering backends
 
@@ -34,23 +35,28 @@ Currently supported backends:
     - local rendering via `plantuml` CLI or `plantuml.jar`
     - remote rendering via PlantUML server
 
-- [**Mermaid**](https://mermaid.js.org/syntax/c4.html)
+- [**Mermaid**](https://mermaid.ai/open-source/syntax/c4.html)
 
     - local rendering via [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli)
-    - Mermaid’s C4 diagram support is currently [experimental](https://mermaid.js.org/syntax/c4.html)
+    - Mermaid’s C4 diagram support is currently [experimental](https://mermaid.ai/open-source/syntax/c4.html)
 
-The following backends are being explored but are not currently planned:
-
-- [**Structurizr**](https://structurizr.com/)
-- [**D2**](https://d2lang.com/)
+- [**Structurizr**](https://structurizr.com/) - WIP
+- [**D2**](https://d2lang.com/) - WIP
 
 ## Example
 
-Here’s an example of **System Context** diagram defined in Python:
+Here’s an example of a **system context diagram** defined in Python:
 
 ```python
 # diagram.py
-from c4 import *
+from c4 import (
+    EnterpriseBoundary,
+    Person,
+    System,
+    SystemContextDiagram,
+    SystemExt,
+)
+from c4.contrib.plantuml import RelDown, RelRight
 
 
 with SystemContextDiagram("Acme Shop Platform") as diagram:

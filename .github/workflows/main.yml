@@ -69,12 +69,29 @@ jobs:
 
   check-docs:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        plantuml-version: ["1.2025.10"]
+        mermaid-version: ["11.4.0"]
     steps:
       - name: Check out
         uses: actions/checkout@v4
 
       - name: Set up the environment
         uses: ./.github/actions/setup-python-env
+
+      - name: Set up PlantUML
+        uses: ./.github/actions/setup-plantuml
+        with:
+          plantuml-version: ${{ matrix.plantuml-version }}
+
+      - name: Set up Mermaid CLI
+        uses: ./.github/actions/setup-mermaid
+        with:
+          mermaid-version: ${{ matrix.mermaid-version }}
+
+      - name: Check generated documentation artifacts
+        run: make check-docs-artifacts
 
       - name: Check if documentation can be built
         run: uv run zensical build -s

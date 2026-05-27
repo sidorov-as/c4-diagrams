@@ -1,0 +1,57 @@
+{
+  "type": "ComponentDiagram",
+  "title": "Checkout API - Component Diagram",
+  "elements": [
+    {
+      "type": "Component",
+      "label": "Checkout Controller",
+      "alias": "checkout_controller",
+      "description": "Receives checkout requests and orchestrates payment flow.",
+      "technology": "FastAPI"
+    },
+    {
+      "type": "Component",
+      "label": "Payment Service",
+      "alias": "payment_service",
+      "description": "Creates payment intents and handles payment state updates.",
+      "technology": "Python"
+    },
+    {
+      "type": "ComponentDb",
+      "label": "Payment Store",
+      "alias": "payment_store",
+      "description": "Stores payment records and statuses.",
+      "technology": "PostgreSQL"
+    },
+    {
+      "type": "ComponentExt",
+      "label": "Payment Gateway API",
+      "alias": "payment_gateway_api",
+      "description": "External API for payment authorization and capture.",
+      "technology": "REST API"
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "checkout_controller",
+      "to": "payment_service",
+      "label": "Calls",
+      "technology": "Python call"
+    },
+    {
+      "type": "REL",
+      "from": "payment_service",
+      "to": "payment_store",
+      "label": "Reads and writes",
+      "technology": "SQL"
+    },
+    {
+      "type": "REL",
+      "from": "payment_service",
+      "to": "payment_gateway_api",
+      "label": "Creates payments via",
+      "technology": "HTTPS/JSON"
+    }
+  ]
+}

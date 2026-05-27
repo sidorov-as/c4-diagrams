@@ -123,13 +123,96 @@ from c4 import (
     SystemContextDiagram,
 )
 
-with SystemContextDiagram():
+with SystemContextDiagram() as diagram:
     user = Person('User', 'System user', alias='user')
     app = System('Backend API', 'Main application backend', alias='app')
     user >> Rel('Uses HTTP API') >> app
 ```
 
 <br/>
+
+## Diagram Targets
+
+The `render` and `export` commands accept a diagram target. For Python targets,
+the optional name after `:` selects a specific diagram object in the file or
+module. If no name is provided, the CLI auto-detects a diagram only when the target
+has **exactly one** module-level
+diagram.
+
+The `convert` command currently supports JSON input targets for
+JSON-to-Python conversion.
+
+| Syntax                                                          | Meaning                                                    | Example                                                                               |
+|-----------------------------------------------------------------|------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| <span style="white-space: nowrap;">`file.py`</span>             | Auto-detect the single diagram in a Python file.           | <span style="white-space: nowrap;">`c4 render diagrams/context.py`</span>             |
+| <span style="white-space: nowrap;">`file.py:diagram`</span>     | Load a named diagram variable from a Python file.          | <span style="white-space: nowrap;">`c4 render diagrams/context.py:public_api`</span>  |
+| <span style="white-space: nowrap;">`module.path`</span>         | Import a Python module and auto-detect its single diagram. | <span style="white-space: nowrap;">`c4 render architecture.context`</span>            |
+| <span style="white-space: nowrap;">`module.path:diagram`</span> | Import a Python module and load a named diagram variable.  | <span style="white-space: nowrap;">`c4 render architecture.context:public_api`</span> |
+| <span style="white-space: nowrap;">`file.json`</span>           | Load a JSON diagram.                                       | <span style="white-space: nowrap;">`c4 render diagrams/context.json`</span>           |
+
+## Examples
+
+Render PlantUML source to stdout:
+
+```shell
+c4 render diagram.py --plantuml
+```
+
+Render Mermaid source:
+
+```shell
+c4 render diagram.py --mermaid -o diagram.mmd
+```
+
+Select a named diagram in a Python file:
+
+```shell
+c4 render diagrams.py:container_diagram -o container.puml
+```
+
+Export SVG with Mermaid:
+
+```shell
+c4 export diagram.py --mermaid -f svg -o diagram.svg
+```
+
+Export SVG with a remote PlantUML server:
+
+```shell
+c4 export diagram.py --plantuml -f svg \
+  --plantuml-backend remote \
+  --plantuml-server-url https://www.plantuml.com/plantuml \
+  -o diagram.svg
+```
+
+Export PNG with local PlantUML and the bundled C4-PlantUML files:
+
+```shell
+c4 export diagram.py --plantuml -f png \
+  --plantuml-use-bundled-c4-plantuml true \
+  -o diagram.png
+```
+
+!!! warning
+
+    `c4 export` writes binary bytes to stdout when `-o` / `--output` is not
+    provided. Use `-o` for PNG, SVG, PDF, EPS, and other rendered artifacts to
+    avoid writing binary data directly to your terminal.
+
+## Environment Variables
+
+CLI flags take precedence over environment variables.
+
+| Variable                                                              | Used by                                                          | Description                                                                                              | Default                                           |
+|-----------------------------------------------------------------------|------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| <span style="white-space: nowrap;">`PLANTUML_SERVER_URL`</span>       | <span style="white-space: nowrap;">`c4 export --plantuml`</span> | PlantUML server URL for <span style="white-space: nowrap;">`--plantuml-backend remote`</span>.           | [plantuml.com](https://www.plantuml.com/plantuml) |
+| <span style="white-space: nowrap;">`PLANTUML_BIN`</span>              | <span style="white-space: nowrap;">`c4 export --plantuml`</span> | Local PlantUML executable when <span style="white-space: nowrap;">`--plantuml-jar`</span> is not set.    | `plantuml`                                        |
+| <span style="white-space: nowrap;">`PLANTUML_JAR`</span>              | <span style="white-space: nowrap;">`c4 export --plantuml`</span> | Local PlantUML JAR path. Takes precedence over <span style="white-space: nowrap;">`PLANTUML_BIN`</span>. | None                                              |
+| <span style="white-space: nowrap;">`JAVA_BIN`</span>                  | <span style="white-space: nowrap;">`c4 export --plantuml`</span> | Java executable used with <span style="white-space: nowrap;">`--plantuml-jar`</span>.                    | `java`                                            |
+| <span style="white-space: nowrap;">`PLANTUML_SKINPARAM_DPI`</span>    | <span style="white-space: nowrap;">`c4 export --plantuml`</span> | Injects <span style="white-space: nowrap;">`skinparam dpi`</span> for PlantUML rendering.                | None                                              |
+| <span style="white-space: nowrap;">`MERMAID_BIN`</span>               | <span style="white-space: nowrap;">`c4 export --mermaid`</span>  | Local Mermaid CLI executable.                                                                            | `mmdc`                                            |
+| <span style="white-space: nowrap;">`MERMAID_SCALE_FACTOR`</span>      | <span style="white-space: nowrap;">`c4 export --mermaid`</span>  | Mermaid CLI Puppeteer scale factor.                                                                      | `1`                                               |
+| <span style="white-space: nowrap;">`RENDERING_TIMEOUT_SECONDS`</span> | <span style="white-space: nowrap;">`c4 export`</span>            | Render timeout in seconds.                                                                               | `30.0`                                            |
 
 ## CLI Reference
 
@@ -141,29 +224,30 @@ Render a diagram to text output (by default, PlantUML source).
 
 ```shell
 c4 render [-h] [-o OUTPUT] \
-          [--renderer {plantuml} | --plantuml] \
+          [--renderer {plantuml,mermaid} | --plantuml | --mermaid] \
           [--plantuml-use-new-c4-style] \
           target
 ```
 
 **Arguments:**
 
-| Name     | Type   | Description                                                                                                                                                         |
-|----------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `target` | string | Diagram target: Python file or module (`file.py`, `file.py:diagram`, `module.path`, `module.path:diagram`) or a [JSON file](converters/json/json.md) (`file.json`). |
+| Name     | Type   | Description                                                                                                                                                                             |
+|----------|--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `target` | string | [Diagram target](#diagram-targets): Python file or module (`file.py`, `file.py:diagram`, `module.path`, `module.path:diagram`) or a [JSON file](converters/json/json.md) (`file.json`). |
 
 **Options**:
 
-| Name                                                       | Type                | Description                                                                                             | Default    |
-|------------------------------------------------------------|---------------------|---------------------------------------------------------------------------------------------------------|------------|
-| `--renderer`                                               | choice (`plantuml`) | Renderer to use (overrides the diagram's default renderer).                                             | `plantuml` |
-| `--plantuml`                                               | boolean             | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>) | False      |
-| <span style="white-space: nowrap;">`-o`, `--output`</span> | path                | Redirect output to a file.                                                                              | stdout     |
-| `-h`, `--help`                                             | boolean             | Show this help message and exit.                                                                        | False      |
+| Name                                                       | Type                           | Description                                                                                             | Default    |
+|------------------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------------|------------|
+| `--renderer`                                               | choice (`plantuml`, `mermaid`) | Renderer to use (overrides the diagram's default renderer).                                             | `plantuml` |
+| `--plantuml`                                               | boolean                        | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>) | False      |
+| `--mermaid`                                                | boolean                        | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>)   | False      |
+| <span style="white-space: nowrap;">`-o`, `--output`</span> | path                           | Redirect output to a file.                                                                              | stdout     |
+| `-h`, `--help`                                             | boolean                        | Show this help message and exit.                                                                        | False      |
 
 **PlantUML Options**:
 
-These options apply when using the plantuml renderer.
+These options apply when using the **plantuml** renderer.
 
 | Name                                                                    | Type    | Description                          | Default |
 |-------------------------------------------------------------------------|---------|--------------------------------------|---------|
@@ -193,53 +277,57 @@ c4 export [-h] [-o OUTPUT] [-f {eps,latex,pdf,png,svg,txt,utxt}] \
           [--java-bin JAVA_BIN] \
           [--plantuml-skinparam-dpi PLANTUML_SKINPARAM_DPI] \
           [--plantuml-use-new-c4-style] \
-          [--plantuml-use-bundled-c4-plantuml] \
+          [--plantuml-use-bundled-c4-plantuml PLANTUML_USE_BUNDLED_C4_PLANTUML] \
           [--mermaid-bin MERMAID_BIN] \
           [--mermaid-scale-factor MERMAID_SCALE_FACTOR] \
+          [--mermaid-puppeteer-headless MERMAID_PUPPETEER_HEADLESS | \
+           --mermaid-puppeteer-config MERMAID_PUPPETEER_CONFIG] \
           target
 ```
 
 **Arguments:**
 
-| Name     | Type   | Description                                                                                                                                                         |
-|----------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `target` | string | Diagram target: Python file or module (`file.py`, `file.py:diagram`, `module.path`, `module.path:diagram`) or a [JSON file](converters/json/json.md) (`file.json`). |
+| Name     | Type   | Description                                                                                                                                                                             |
+|----------|--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `target` | string | [Diagram target](#diagram-targets): Python file or module (`file.py`, `file.py:diagram`, `module.path`, `module.path:diagram`) or a [JSON file](converters/json/json.md) (`file.json`). |
 
 **Options**:
 
-| Name                                                       | Type                                                 | Description                                                                                                          | Default    |
-|------------------------------------------------------------|------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|------------|
-| <span style="white-space: nowrap;">`-f`, `--format`</span> | choice (`eps`, `latex`, `png`, `svg`, `txt`, `utxt`) | Output format (render-specific).<br/>Supported formats:<br/>`plantuml`: `eps`, `latex`, `png`, `svg`, `txt`, `utxt`. | `png`      |
-| `--timeout`                                                | integer                                              | Render timeout in seconds.<br/>Can also be set via the `RENDERING_TIMEOUT_SECONDS` environment variable.             | 30         |
-| `--renderer`                                               | choice (`plantuml`)                                  | Renderer to use (overrides the diagram's default renderer).                                                          | `plantuml` |
-| `--plantuml`                                               | boolean                                              | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>).             | False      |
-| `--mermaid`                                                | boolean                                              | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>).               | False      |
-| <span style="white-space: nowrap;">`-o`, `--output`</span> | path                                                 | Redirect output to a file.                                                                                           | `stdout`   |
-| `-h`, `--help`                                             | boolean                                              | Show this help message and exit.                                                                                     | False      |
+| Name                                                       | Type                                                        | Description                                                                                                                                             | Default    |
+|------------------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| <span style="white-space: nowrap;">`-f`, `--format`</span> | choice (`eps`, `latex`, `pdf`, `png`, `svg`, `txt`, `utxt`) | Output format (render-specific).<br/>Supported formats:<br/>`mermaid`: `pdf`, `png`, `svg`<br/>`plantuml`: `eps`, `latex`, `png`, `svg`, `txt`, `utxt`. | `png`      |
+| `--timeout`                                                | float                                                       | Render timeout in seconds.<br/>Can also be set via the `RENDERING_TIMEOUT_SECONDS` environment variable.                                                | 30.0       |
+| `--renderer`                                               | choice (`plantuml`, `mermaid`)                              | Renderer to use (overrides the diagram's default renderer).                                                                                             | `plantuml` |
+| `--plantuml`                                               | boolean                                                     | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>).                                                | False      |
+| `--mermaid`                                                | boolean                                                     | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>).                                                  | False      |
+| <span style="white-space: nowrap;">`-o`, `--output`</span> | path                                                        | Redirect output to a file.                                                                                                                              | `stdout`   |
+| `-h`, `--help`                                             | boolean                                                     | Show this help message and exit.                                                                                                                        | False      |
 
 **PlantUML Options**:
 
 These options apply when using the **plantuml** renderer.
 
-| Name                                                                           | Type                       | Description                                                                                                                                                                                                           | Default                                           |
-|--------------------------------------------------------------------------------|----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
-| <span style="white-space: nowrap;">`--plantuml-backend`</span>                 | choice (`local`, `remote`) | How to run PlantUML: local execution or remote server.                                                                                                                                                                | `local`                                           |
-| <span style="white-space: nowrap;">`--plantuml-server-url`</span>              | string                     | PlantUML server URL.<br/>If not provided, the `PLANTUML_SERVER_URL` environment variable will be used.                                                                                                                | [plantuml.com](https://www.plantuml.com/plantuml) |
-| <span style="white-space: nowrap;">`--plantuml-bin`</span>                     | string (path or command)   | PlantUML executable (command name or full path).<br/>If not provided, the `PLANTUML_BIN` environment variable will be used.                                                                                           | `plantuml`                                        |
-| <span style="white-space: nowrap;">`--plantuml-jar`</span>                     | path                       | Path to the PlantUML JAR file (runs via Java).<br/>If provided, the `PLANTUML_BIN` environment variable is ignored.<br/>Can also be set via the `PLANTUML_JAR` environment variable.                                  | None                                              |
-| <span style="white-space: nowrap;">`--java-bin`</span>                         | string (path or command)   | Java executable to use when running PlantUML via JAR.<br/>If not provided, the `JAVA_BIN` environment variable will be used.                                                                                          | `java`                                            |
-| <span style="white-space: nowrap;">`--plantuml-skinparam-dpi`</span>           | integer                    | Set PlantUML `skinparam dpi` value to control raster (PNG) resolution.<br/>This modifies diagram rendering and affects all output formats.<br/>Can also be set via the `PLANTUML_SKINPARAM_DPI` environment variable. | None                                              |
-| <span style="white-space: nowrap;">`--plantuml-use-new-c4-style`</span>        | boolean                    | Activates the new C4-PlantUML style.                                                                                                                                                                                  | False                                             |
-| <span style="white-space: nowrap;">`--plantuml-use-bundled-c4-plantuml`</span> | boolean                    | Use [bundled C4-PlantUML library](https://github.com/plantuml-stdlib/C4-PlantUML#including-the-c4-plantuml-library) files instead of fetching them from remote sources.                                               | **True**                                          |
+| Name                                                                           | Type                           | Description                                                                                                                                                                                                           | Default                                           |
+|--------------------------------------------------------------------------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| <span style="white-space: nowrap;">`--plantuml-backend`</span>                 | choice (`local`, `remote`)     | How to run PlantUML: local execution or remote server.                                                                                                                                                                | `local`                                           |
+| <span style="white-space: nowrap;">`--plantuml-server-url`</span>              | string                         | PlantUML server URL.<br/>If not provided, the `PLANTUML_SERVER_URL` environment variable will be used.                                                                                                                | [plantuml.com](https://www.plantuml.com/plantuml) |
+| <span style="white-space: nowrap;">`--plantuml-bin`</span>                     | string (path or command)       | PlantUML executable (command name or full path).<br/>If not provided, the `PLANTUML_BIN` environment variable will be used.                                                                                           | `plantuml`                                        |
+| <span style="white-space: nowrap;">`--plantuml-jar`</span>                     | path                           | Path to the PlantUML JAR file (runs via Java).<br/>If provided, the `PLANTUML_BIN` environment variable is ignored.<br/>Can also be set via the `PLANTUML_JAR` environment variable.                                  | None                                              |
+| <span style="white-space: nowrap;">`--java-bin`</span>                         | string (path or command)       | Java executable to use when running PlantUML via JAR.<br/>If not provided, the `JAVA_BIN` environment variable will be used.                                                                                          | `java`                                            |
+| <span style="white-space: nowrap;">`--plantuml-skinparam-dpi`</span>           | integer                        | Set PlantUML `skinparam dpi` value to control raster (PNG) resolution.<br/>This modifies diagram rendering and affects all output formats.<br/>Can also be set via the `PLANTUML_SKINPARAM_DPI` environment variable. | None                                              |
+| <span style="white-space: nowrap;">`--plantuml-use-new-c4-style`</span>        | boolean                        | Activates the new C4-PlantUML style.                                                                                                                                                                                  | False                                             |
+| <span style="white-space: nowrap;">`--plantuml-use-bundled-c4-plantuml`</span> | boolean value (`true`/`false`) | Use [bundled C4-PlantUML library](https://github.com/plantuml-stdlib/C4-PlantUML#including-the-c4-plantuml-library) files instead of fetching them from remote sources.                                               | **True**                                          |
 
 **Mermaid Options**:
 
 These options apply when using the **mermaid** renderer.
 
-| Name                                                               | Type                     | Description                                                                                                                         | Default |
-|--------------------------------------------------------------------|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------|---------|
-| <span style="white-space: nowrap;">`--mermaid-bin`</span>          | string (path or command) | Mermaid executable (command name or full path).<br/>If not provided, the `MERMAID_BIN` environment variable will be used.           | `mmdc`  |
-| <span style="white-space: nowrap;">`--mermaid-scale-factor`</span> | integer                  | Set Mermaid scale value to control Puppeteer scale factor.<br/>Can also be set via the `MERMAID_SCALE_FACTOR` environment variable. | 1       |
+| Name                                                                     | Type                     | Description                                                                                                                                                    | Default |
+|--------------------------------------------------------------------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|
+| <span style="white-space: nowrap;">`--mermaid-bin`</span>                | string (path or command) | Mermaid executable (command name or full path).<br/>If not provided, the `MERMAID_BIN` environment variable will be used.                                      | `mmdc`  |
+| <span style="white-space: nowrap;">`--mermaid-scale-factor`</span>       | integer                  | Set Mermaid scale value to control Puppeteer scale factor.<br/>Can also be set via the `MERMAID_SCALE_FACTOR` environment variable.                            | 1       |
+| <span style="white-space: nowrap;">`--mermaid-puppeteer-headless`</span> | boolean                  | Generate a temporary Puppeteer config with the provided `headless` value and pass it to Mermaid CLI.<br/>Mutually exclusive with `--mermaid-puppeteer-config`. | None    |
+| <span style="white-space: nowrap;">`--mermaid-puppeteer-config`</span>   | path                     | Path to a Puppeteer config passed to Mermaid CLI.<br/>Mutually exclusive with `--mermaid-puppeteer-headless`.                                                  | None    |
 
 ### c4 convert
 

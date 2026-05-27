@@ -7,14 +7,37 @@ from inspect import cleandoc
 from pathlib import Path
 from typing import Any, Iterable
 
-from c4.converters.json.schemas.renderers.mermaid import MermaidRenderOptionsSchema
-from c4.converters.json.schemas.renderers.plantuml import PlantUMLRenderOptionsSchema
-from c4.diagrams.core import EnumDescriptionsMixin
+from c4.contrib.mermaid.converters.json.schemas import (
+    MermaidComponentDiagramSchema,
+    MermaidContainerDiagramSchema,
+    MermaidDeploymentDiagramSchema,
+    MermaidDynamicDiagramSchema,
+    MermaidSystemContextDiagramSchema,
+    MermaidSystemLandscapeDiagramSchema,
+)
+from c4.contrib.mermaid.converters.json.render_options import MermaidRenderOptionsSchema
+from c4.contrib.plantuml.converters.json.schemas import (
+    PlantUMLComponentDiagramSchema,
+    PlantUMLContainerDiagramSchema,
+    PlantUMLDeploymentDiagramSchema,
+    PlantUMLDynamicDiagramSchema,
+    PlantUMLSystemContextDiagramSchema,
+    PlantUMLSystemLandscapeDiagramSchema,
+)
+from c4.contrib.plantuml.converters.json.render_options import PlantUMLRenderOptionsSchema
 from pydantic import BaseModel
 from typing_extensions import get_args, get_origin
 
-from c4.converters.json.schemas import DIAGRAMS_SCHEMAS
+from c4.converters.json.schemas.backends import (
+    CoreComponentDiagramSchema,
+    CoreContainerDiagramSchema,
+    CoreDeploymentDiagramSchema,
+    CoreDynamicDiagramSchema,
+    CoreSystemContextDiagramSchema,
+    CoreSystemLandscapeDiagramSchema,
+)
 from c4.converters.json.schemas.diagrams.common import BaseDiagramSchema
+from c4.diagrams.core.enums import EnumDescriptionsMixin
 
 Json = dict[str, Any]
 
@@ -24,6 +47,62 @@ _CAMEL_TO_SNAKE_RE = re.compile(r"([a-z])([A-Z])")
 
 SPECS_DIR = Path(__file__).parent.parent / "assets" / "specs"
 MD_SPECS_DIR = Path(__file__).parent.parent / "converters/json/specs"
+EXAMPLES_DIR = Path(__file__).parent.parent / "assets" / "examples"
+JSON_EXAMPLES_DIR = EXAMPLES_DIR / "json"
+
+RENDERED_SOURCE_SUFFIXES = {
+    "plantuml": ("puml", "PlantUML"),
+    "mermaid": ("mmd", "Mermaid"),
+}
+
+
+@dataclass(frozen=True)
+class BackendSchemas:
+    """Diagram schemas for a single JSON converter backend."""
+
+    slug: str
+    title: str
+    schemas: tuple[type[BaseDiagramSchema], ...]
+
+
+BACKEND_SCHEMAS = (
+    BackendSchemas(
+        slug="core",
+        title="Core",
+        schemas=(
+            CoreSystemContextDiagramSchema,
+            CoreSystemLandscapeDiagramSchema,
+            CoreContainerDiagramSchema,
+            CoreComponentDiagramSchema,
+            CoreDeploymentDiagramSchema,
+            CoreDynamicDiagramSchema,
+        ),
+    ),
+    BackendSchemas(
+        slug="plantuml",
+        title="PlantUML",
+        schemas=(
+            PlantUMLSystemContextDiagramSchema,
+            PlantUMLSystemLandscapeDiagramSchema,
+            PlantUMLContainerDiagramSchema,
+            PlantUMLComponentDiagramSchema,
+            PlantUMLDeploymentDiagramSchema,
+            PlantUMLDynamicDiagramSchema,
+        ),
+    ),
+    BackendSchemas(
+        slug="mermaid",
+        title="Mermaid",
+        schemas=(
+            MermaidSystemContextDiagramSchema,
+            MermaidSystemLandscapeDiagramSchema,
+            MermaidContainerDiagramSchema,
+            MermaidComponentDiagramSchema,
+            MermaidDeploymentDiagramSchema,
+            MermaidDynamicDiagramSchema,
+        ),
+    ),
+)
 
 TOP_SCHEMA_ORDER = [
     "$schema",
@@ -34,7 +113,6 @@ TOP_SCHEMA_ORDER = [
     "properties",
     "required",
     "additionalProperties",
-    "examples",
     "defs",
     "$defs",
 ]
@@ -75,6 +153,7 @@ DEFINITIONS_ORDER = [
     "ComponentQueueExt",
     "Relationship",
     "RelationshipType",
+    "MermaidRelationshipType",
     "Layout",
     "LayoutType",
     "DiagramElementProperties",
@@ -110,20 +189,11 @@ def reorder_keys(mapping: Json, preferred_order: list[str]) -> Json:
 
 def reorder_schema_for_model(schema: Json, model: type[BaseModel]) -> Json:
     """
-    Reorder schema keys, examples, and properties to match model field order.
+    Reorder schema keys and properties to match model field order.
     """
     schema_copy: Json = reorder_keys(dict(schema), TOP_SCHEMA_ORDER)
 
     field_order = list(model.model_fields.keys())
-
-    examples = schema_copy.get("examples")
-    if isinstance(examples, list) and examples:
-        schema_copy["examples"] = [
-            reorder_keys(example, DIAGRAM_ATTRS_ORDER)
-            if isinstance(example, dict)
-            else example
-            for example in examples
-        ]
 
     properties = schema_copy.get("properties")
     if isinstance(properties, dict):
@@ -338,6 +408,10 @@ def primitive_union_repr(
                     parts.append(f"`{ref_name}`")
                 continue
 
+            if is_enum_schema(option):
+                parts.append(inline_enum_repr(option))
+                continue
+
             option_type = option.get("type")
             if isinstance(option_type, str):
                 parts.append(f"`{option_type}`")
@@ -349,13 +423,23 @@ def primitive_union_repr(
         return f"<span style=\"white-space: nowrap;\">{union}</span>"
 
     node_type = schema_node.get("type")
+    if is_enum_schema(schema_node):
+        return inline_enum_repr(schema_node)
     if isinstance(node_type, list):
         return " \\| ".join(f"`{t}`" for t in node_type)
     if isinstance(node_type, str):
         return f"`{node_type}`"
-    if "enum" in schema_node:
-        return "`string`"
     return "`object`"
+
+
+def inline_enum_repr(schema_node: Json) -> str:
+    """Render inline enum schemas produced by Literal annotations."""
+    values = schema_node.get("enum", []) or []
+    if not isinstance(values, list) or not values:
+        return "`enum`"
+
+    rendered_values = " \\| ".join(md_escape(str(value)) for value in values)
+    return f"<code>enum[{rendered_values}]</code>"
 
 
 @dataclass(frozen=True)
@@ -387,10 +471,12 @@ class DiagramSpecDocsGenerator:
 
     def __init__(
         self,
+        backend: BackendSchemas,
         spec_path: Path,
         md_path: Path,
         diagram_schema: type[BaseDiagramSchema],
     ) -> None:
+        self.backend = backend
         self.spec_path = spec_path
         self.md_path = md_path
         self.diagram_schema = diagram_schema
@@ -437,7 +523,10 @@ class DiagramSpecDocsGenerator:
 
 
     def generate(self) -> None:
-        """Write JSON schema and markdown documentation to disk."""
+        """Write JSON schema and Markdown documentation to disk."""
+        self.spec_path.parent.mkdir(parents=True, exist_ok=True)
+        self.md_path.parent.mkdir(parents=True, exist_ok=True)
+
         self.spec_path.write_text(
             json.dumps(self.diagram_spec, indent=4),
             encoding="utf-8",
@@ -458,12 +547,13 @@ class DiagramSpecDocsGenerator:
         title = self.diagram_spec.get("title", self.spec_path.stem)
 
         lines: list[str] = [
-            f"# {title} Spec",
+            f"# {self.backend.title} {title} Spec",
             "",
             f"> **Source:** [{self.spec_path.name}]({source_link})",
             "",
             "",
-            f"This schema describes the {diagram_class_repr} spec.",
+            f"This schema describes the {diagram_class_repr} spec for "
+            f"the {self.backend.title} backend.",
             "",
             "## Properties",
             "",
@@ -471,7 +561,7 @@ class DiagramSpecDocsGenerator:
             "",
         ]
 
-        lines.extend(self._render_examples_block(self.diagram_spec))
+        lines.extend(self._render_examples_block())
         lines.extend(self._render_diagram_components())
 
         plantuml_render_options_defs = [
@@ -495,61 +585,116 @@ class DiagramSpecDocsGenerator:
         lines.extend(self._render_definitions(exclude=render_options_defs))
         lines.extend(self._render_definitions(include=["RenderOptionsSchema"]))
 
-        lines.extend(["", "", "## PlantUML Render Options", "", ""])
-        lines.extend(self._render_definitions(include=plantuml_render_options_defs))
+        lines.extend(
+            self._render_definitions_section(
+                title="PlantUML Render Options",
+                include=plantuml_render_options_defs,
+            )
+        )
 
-        lines.extend(["", "", "## Mermaid Render Options", "", ""])
-        lines.extend(self._render_definitions(include=mermaid_render_options_defs))
+        lines.extend(
+            self._render_definitions_section(
+                title="Mermaid Render Options",
+                include=mermaid_render_options_defs,
+            )
+        )
 
         return "\n".join(lines).rstrip() + "\n"
 
-    @staticmethod
-    def _get_min_and_advanced_examples(schema: Json) -> tuple[Json, Json]:
-        """Return (minimal, advanced) examples from schema."""
-        examples = schema.get("examples")
-        if isinstance(examples, list) and len(examples) == 2:
-            first, second = examples
-            if isinstance(first, dict) and isinstance(second, dict):
-                return first, second
+    def _example_asset_path(self, variant: str, suffix: str) -> Path:
+        diagram_slug = camel_to_snake(self.diagram_cls.__name__).replace(
+            "_", "-"
+        )
+        example_file = f"{diagram_slug}.{variant}.{suffix}"
+        if suffix == "json":
+            return JSON_EXAMPLES_DIR / self.backend.slug / example_file
+        return EXAMPLES_DIR / self.backend.slug / example_file
 
-        raise ValueError(
-            f"Expected minimal and advanced examples, got {examples}"
+    def _example_asset_include_path(self, path: Path) -> str:
+        return path.relative_to(EXAMPLES_DIR.parent.parent).as_posix()
+
+    def _example_asset_link_path(self, path: Path) -> str:
+        return (
+            "../../../"
+            + path.relative_to(EXAMPLES_DIR.parent.parent).as_posix()
         )
 
-    def _render_examples_block(self, schema: Json) -> list[str]:
-        """Render collapsible blocks for minimal and advanced examples."""
-        min_example, advanced_example = self._get_min_and_advanced_examples(
-            schema
-        )
+    def _render_examples_block(self) -> list[str]:
+        """Render asset-backed minimal and advanced examples."""
+        variant_blocks = [
+            self._render_example_variant(variant)
+            for variant in ("minimal", "advanced")
+        ]
+        variant_blocks = [block for block in variant_blocks if block]
+        if not variant_blocks:
+            return []
 
-        return [
-            *self._render_example_block(min_example, title="Minimal example"),
+        lines = ['??? abstract "Examples"', ""]
+        for index, block in enumerate(variant_blocks):
+            if index:
+                lines.append("")
+            lines.extend(block)
+
+        return [*lines, ""]
+
+    def _render_example_variant(self, variant: str) -> list[str]:
+        """Render a single tab for one example asset variant."""
+        json_path = self._example_asset_path(variant, "json")
+        if not json_path.exists():
+            return []
+
+        variant_title = variant.title()
+        alt_text = f"{self.diagram_cls.__name__} {variant} example"
+
+        lines = [
+            f'    === "{variant_title}"',
             "",
+        ]
+
+        lines.extend([
+            '        ??? example "JSON source"',
             "",
-            *self._render_example_block(
-                advanced_example, title="Advanced example"
+            "            ```json",
+            (
+                "            --8<-- "
+                f'"{self._example_asset_include_path(json_path)}"'
             ),
-        ]
-
-    @staticmethod
-    def _render_example_block(
-        example: Json,
-        title: str = "Example",
-    ) -> list[str]:
-        """Render a single collapsible JSON example."""
-        example_json = json.dumps(example, indent=2, ensure_ascii=False)
-        indented = "\n".join(
-            f"    {line}" for line in example_json.splitlines()
-        )
-
-        return [
-            f'??? abstract "{title}"',
+            "            ```",
             "",
-            "    ```json",
-            indented,
-            "    ```",
-            "",
-        ]
+        ])
+
+        rendered_source = RENDERED_SOURCE_SUFFIXES.get(self.backend.slug)
+        if rendered_source is not None:
+            source_suffix, source_title = rendered_source
+            source_path = self._example_asset_path(variant, source_suffix)
+            if source_path.exists():
+                lines.extend([
+                    f'        ??? example "Rendered {source_title} source"',
+                    "",
+                    f"            ```{source_suffix}",
+                    (
+                        "            --8<-- "
+                        f'"{self._example_asset_include_path(source_path)}"'
+                    ),
+                    "            ```",
+                    "",
+                ])
+
+        image_path = self._example_asset_path(variant, "png")
+        if self.backend.slug != "core" and image_path.exists():
+            lines.extend([
+                f'        ??? example "Rendered image"',
+                "",
+                '            <figure markdown="span">',
+                (
+                    f"            ![{alt_text}]"
+                    f"({self._example_asset_link_path(image_path)})"
+                ),
+                "            </figure>",
+                "",
+            ])
+
+        return lines
 
     def _render_properties_table(self, obj_schema: Json) -> str:
         """Render a properties table wrapped into a collapsible info block."""
@@ -644,7 +789,8 @@ class DiagramSpecDocsGenerator:
         if obj_schema is not None and "$ref" in obj_schema:
             ref_name = resolve_ref_name(obj_schema)
             if ref_name:
-                link = TypeLinkContext(anchor=slug(ref_name), label=ref_name)
+                label = self._display_def_name(ref_name)
+                link = TypeLinkContext(anchor=slug(label), label=label)
                 return (
                     link.render_enum()
                     if self._is_enum_def(ref_name)
@@ -662,23 +808,26 @@ class DiagramSpecDocsGenerator:
 
         direct_ref = resolve_ref_name(items_schema)
         if direct_ref:
+            label = self._display_def_name(direct_ref)
             return TypeLinkContext(
-                anchor=slug(direct_ref), label=direct_ref
+                anchor=slug(label), label=label
             ).render_array()
 
         union_refs = anyof_ref_names(items_schema) or oneof_ref_names(items_schema)
         if union_refs:
             if len(union_refs) == 1:
                 only = union_refs[0]
+                label = self._display_def_name(only)
                 return TypeLinkContext(
-                    anchor=slug(only), label=only
+                    anchor=slug(label), label=label
                 ).render_array()
 
             parts = []
 
             for ref in union_refs:
                 if ref in self.defs:
-                    link = TypeLinkContext(anchor=slug(ref), label=ref)
+                    label = self._display_def_name(ref)
+                    link = TypeLinkContext(anchor=slug(label), label=label)
                     parts.append(link.render_object())
                 else:
                     parts.append(f"`{ref}`")
@@ -781,7 +930,10 @@ class DiagramSpecDocsGenerator:
         if enum_defs:
             lines.append("")
             for parent_variant, enum_name in enum_defs:
-                lines.append(f"- [{parent_variant} types](#{slug(enum_name)})")
+                display_name = self._display_def_name(enum_name)
+                lines.append(
+                    f"- [{parent_variant} types](#{slug(display_name)})"
+                )
 
         lines.append("")
         return "\n".join(lines)
@@ -827,6 +979,16 @@ class DiagramSpecDocsGenerator:
         """Check whether a $defs entry is an enum."""
         def_schema = self.defs.get(def_name)
         return isinstance(def_schema, dict) and is_enum_schema(def_schema)
+
+    def _display_def_name(self, def_name: str) -> str:
+        """Return the public name to use for a definition in docs."""
+        def_schema = self.defs.get(def_name)
+        if isinstance(def_schema, dict) and is_enum_schema(def_schema):
+            title = def_schema.get("title")
+            if isinstance(title, str) and title:
+                return title
+
+        return def_name
 
     @staticmethod
     def _render_note_on_aliases() -> list[str]:
@@ -876,9 +1038,28 @@ class DiagramSpecDocsGenerator:
 
         return out
 
+    def _render_definitions_section(
+        self,
+        title: str,
+        include: list[str],
+    ) -> list[str]:
+        """Render a titled definitions section when matching defs exist."""
+        matching_defs = [name for name in include if name in self.defs]
+        if not matching_defs:
+            return []
+
+        return [
+            "",
+            "",
+            f"## {title}",
+            "",
+            "",
+            *self._render_definitions(include=matching_defs),
+        ]
+
     def _render_enum_def(self, name: str, schema: Json) -> str:
         """Render an enum definition section."""
-        lines: list[str] = [f"### {name}", ""]
+        lines: list[str] = [f"### {self._display_def_name(name)}", ""]
         description = schema.get("description", "") or ""
         if description:
             lines.extend([description, ""])
@@ -937,10 +1118,14 @@ class DiagramSpecDocsGenerator:
 
 
 def generate(
-    spec_path: Path, md_path: Path, diagram_schema: type[BaseDiagramSchema]
+    backend: BackendSchemas,
+    spec_path: Path,
+    md_path: Path,
+    diagram_schema: type[BaseDiagramSchema],
 ) -> None:
     """Generate docs for a single diagram schema."""
     generator = DiagramSpecDocsGenerator(
+        backend=backend,
         spec_path=spec_path,
         md_path=md_path,
         diagram_schema=diagram_schema,
@@ -950,18 +1135,23 @@ def generate(
 
 def main() -> None:
     """Generate docs for all registered diagram schemas."""
-    for diagram_schema in DIAGRAMS_SCHEMAS:
-        diagram_cls = diagram_schema.__diagram_class__
-        diagram_name = camel_to_snake(diagram_cls.__name__)
+    for backend in BACKEND_SCHEMAS:
+        for diagram_schema in backend.schemas:
+            diagram_cls = diagram_schema.__diagram_class__
+            diagram_name = camel_to_snake(diagram_cls.__name__)
+            spec_diagram_name = diagram_name.replace("_", "-")
 
-        spec_path = SPECS_DIR / f"{diagram_name}.json"
-        md_path = MD_SPECS_DIR / f"{diagram_name}.md"
+            spec_path = SPECS_DIR / (
+                f"{backend.slug}.{spec_diagram_name}.json"
+            )
+            md_path = MD_SPECS_DIR / f"{backend.slug}.{diagram_name}.md"
 
-        generate(
-            spec_path=spec_path,
-            md_path=md_path,
-            diagram_schema=diagram_schema,
-        )
+            generate(
+                backend=backend,
+                spec_path=spec_path,
+                md_path=md_path,
+                diagram_schema=diagram_schema,
+            )
 
 
 if __name__ == "__main__":

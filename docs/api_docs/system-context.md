@@ -11,14 +11,22 @@
           - __init__
           - title
           - elements
-          - base_elements
           - boundaries
-          - layouts
+          - ordered_elements
           - relationships
+          - get_element_by_alias
+          - get_elements_by_label
+          - generate_alias
+          - __enter__
+          - __exit__
           - as_plantuml
+          - as_mermaid
           - render
           - save
           - save_as_plantuml
+          - save_as_mermaid
+          - render_options
+          - set_render_options
 
 ::: c4.diagrams.system_context.SystemLandscapeDiagram
     options:
@@ -31,14 +39,22 @@
           - __init__
           - title
           - elements
-          - base_elements
           - boundaries
-          - layouts
+          - ordered_elements
           - relationships
+          - get_element_by_alias
+          - get_elements_by_label
+          - generate_alias
+          - __enter__
+          - __exit__
           - as_plantuml
+          - as_mermaid
           - render
           - save
           - save_as_plantuml
+          - save_as_mermaid
+          - render_options
+          - set_render_options
 
 ::: c4.diagrams.system_context.Person
     options:

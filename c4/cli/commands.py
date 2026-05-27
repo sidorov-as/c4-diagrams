@@ -1,6 +1,6 @@
 import argparse
 
-from c4.cli.discover import resolve_diagram
+from c4.cli.discover import resolve_diagram, resolve_json_diagram
 from c4.cli.exceptions import CLIError
 from c4.cli.options import (
     build_convert_cli_options,
@@ -70,8 +70,8 @@ def handle_convert(args: argparse.Namespace) -> int:
     match from_format, to_format:
         case DiagramConvertionFormat.JSON, DiagramConvertionFormat.PY:
             try:
-                diagram = resolve_diagram(args.target)
-                diagram_source = diagram_to_python_code(diagram)
+                diagram, backend = resolve_json_diagram(args.target)
+                diagram_source = diagram_to_python_code(diagram, backend)
             except ConversionError as exc:
                 raise CLIError(exc.message) from None
         case _:

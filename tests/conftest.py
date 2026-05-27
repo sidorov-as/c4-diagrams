@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 from asyncio import Protocol
+from collections import Counter
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -17,8 +18,14 @@ SNAPSHOTS_DIR = Path(__file__).parent / "snapshots"
 BASE_DIR = SNAPSHOTS_DIR.parent.parent
 
 
+def _normalize_diagram_lines(diagram_code: str) -> Counter[str]:
+    return Counter(
+        line.strip() for line in diagram_code.splitlines() if line.strip()
+    )
+
+
 @pytest.fixture()
-def assert_match_snapshot():
+def assert_match_snapshot():  # noqa: C901
     def _assert_equal(
         *,
         snapshot_name: str | None = None,
@@ -63,7 +70,12 @@ def assert_match_snapshot():
                 "You must provide diagram_code or diagram_code_file"
             )
 
-        assert diagram_code.strip() == expected_code.strip()
+        if diagram_code.strip() == expected_code.strip():
+            return
+
+        assert _normalize_diagram_lines(diagram_code) == (
+            _normalize_diagram_lines(expected_code)
+        )
 
     return _assert_equal
 

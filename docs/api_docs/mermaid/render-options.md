@@ -1,6 +1,6 @@
-# Render options
+# Render Options
 
-See the official [Mermaid documentation](https://mermaid.js.org/syntax/c4.html)
+See the official [Mermaid documentation](https://mermaid.ai/open-source/syntax/c4.html)
 for additional information.
 
 ::: c4.renderers.mermaid.options.MermaidRenderOptionsBuilder

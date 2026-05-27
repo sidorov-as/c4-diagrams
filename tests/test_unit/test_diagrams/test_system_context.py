@@ -110,7 +110,7 @@ def test_system_attrs(
     label = "System"
     description = "A system"
     sprite = "$foo1"
-    tags = "foo,bar"
+    tags = ["foo", "bar"]
     link = "https://example.com"
     type_ = "stereotype"
     base_shape = "rectangle"
@@ -120,22 +120,30 @@ def test_system_attrs(
             alias=alias,
             label=label,
             description=description,
-            sprite=sprite,
-            tags=tags,
-            link=link,
-            type_=type_,
-            base_shape=base_shape,
+            extensions={
+                "plantuml": {
+                    "sprite": sprite,
+                    "tags": tags,
+                    "link": link,
+                    "type": type_,
+                    "base_shape": base_shape,
+                }
+            },
         )
 
     assert diagram.elements == [system]
     assert system.alias == alias
     assert system.label == label
     assert system.description == description
-    assert system.sprite == sprite
-    assert system.tags == tags
-    assert system.link == link
-    assert system.type == type_
-    assert system.base_shape == base_shape
+    assert system.extensions == {
+        "plantuml": {
+            "sprite": sprite,
+            "tags": tags,
+            "link": link,
+            "type": type_,
+            "base_shape": base_shape,
+        }
+    }
     # reserved for other elements
     assert system.technology is None
 
@@ -152,29 +160,30 @@ def test_enterprise_boundary_attrs(
     alias = "boundary1"
     label = "Enterprise Boundary"
     description = "An enterprise boundary"
-    tags = "foo,bar"
-    link = "https://example.com"
+    extensions = {
+        "plantuml": {
+            "tags": ["foo", "bar"],
+            "link": "https://example.com",
+        },
+        "mermaid": {
+            "type": "boundary",
+        },
+    }
 
     with diagram_class() as diagram:
         boundary = boundary_class(
             alias=alias,
             label=label,
             description=description,
-            tags=tags,
-            link=link,
+            extensions=extensions,
         )
 
     assert diagram.boundaries == [boundary]
     assert boundary.alias == alias
     assert boundary.label == label
     assert boundary.description == description
-    assert boundary.tags == tags
-    assert boundary.link == link
-    # reserved for other elements
-    assert boundary.type is None
-    assert boundary.base_shape is None
+    assert boundary.extensions == extensions
     assert boundary.technology is None
-    assert boundary.sprite is None
 
 
 @pytest.mark.parametrize(

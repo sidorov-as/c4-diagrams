@@ -1,95 +1,78 @@
-# System context diagram
+# System Context Diagram
 
-A system context diagram is a good starting point for diagramming and documenting a software system,
-allowing you to step back and see the big picture.
-Draw a diagram showing your system as a box in the centre, surrounded by its users and the other systems
-that it interacts with.
+A system context diagram shows one software system in its environment. It is
+usually the first C4 view for a product or service, and is aimed at both
+technical and non-technical readers who need to understand users, neighboring
+systems, and major integrations.
 
-## Example
+## Supported DSL Classes
 
-The following example demonstrates how to define a **system context diagram** using the Python DSL.
+Use [`SystemContextDiagram`][c4.diagrams.system_context.SystemContextDiagram]
+with people, systems, system boundaries, and enterprise boundaries:
+
+- [`Person`][c4.diagrams.system_context.Person] and
+  [`PersonExt`][c4.diagrams.system_context.PersonExt]
+- [`System`][c4.diagrams.system_context.System],
+  [`SystemExt`][c4.diagrams.system_context.SystemExt],
+  [`SystemDb`][c4.diagrams.system_context.SystemDb], and queue variants
+- [`SystemBoundary`][c4.diagrams.system_context.SystemBoundary] and
+  [`EnterpriseBoundary`][c4.diagrams.system_context.EnterpriseBoundary]
+- portable [`Rel`][c4.diagrams.core.relationships.Rel]
+
+PlantUML relationship direction helpers and layout helpers are available from
+[`c4.contrib.plantuml`](../renderers/plantuml/layout.md), but they are
+PlantUML-specific rendering hints rather than portable model data.
+
+## Portable Example
 
 ```python
-from c4 import (
-    EnterpriseBoundary,
-    LayDown,
-    Person,
-    Rel,
-    RelDown,
-    RelLeft,
-    RelRight,
-    System,
-    SystemContextDiagram,
-)
-from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
+from c4 import Person, Rel, System, SystemContextDiagram, SystemExt
 
 
-with SystemContextDiagram() as diagram:
-    customer = Person(
-        "customer", "Customer", "A customer of Widgets Limited."
-    )
+with SystemContextDiagram(title="Retail Platform context") as diagram:
+    customer = Person("Customer", "Places orders through the storefront.")
+    retail = System("Retail Platform", "Catalog, checkout, and order management.")
+    payments = SystemExt("Payment Gateway", "Processes card payments.")
 
-    with EnterpriseBoundary("c0", "Widgets Limited"):
-        csa = Person(
-            "csa",
-            "Customer Service Agent",
-            "Deals with customer enquiries.",
-        )
+    customer >> Rel("Browses and places orders", "HTTPS") >> retail
+    retail >> Rel("Charges card", "REST API") >> payments
 
-        ecommerce = System(
-            "ecommerce",
-            "E-commerce System",
-            "Allows customers to buy widgets online via the widgets.com website.",
-        )
-
-        fulfillment = System(
-            "fulfillment",
-            "Fulfillment System",
-            "Responsible for processing and shipping of customer orders.",
-        )
-
-    taxamo = System(
-        "taxamo",
-        "Taxamo",
-        "Calculates local tax and acts as a front-end for Braintree Payments.",
-    )
-
-    braintree = System(
-        "braintree",
-        "Braintree Payments",
-        "Processes credit card payments on behalf of Widgets Limited.",
-    )
-
-    post = System(
-        "post",
-        "Jersey Post",
-        "Calculates worldwide shipping costs for packages.",
-    )
-
-    customer >> RelRight("Asks questions to", technology="Telephone") >> csa
-    customer >> RelRight("Places orders for widgets using") >> ecommerce
-    csa >> Rel("Looks up order information using") >> ecommerce
-    ecommerce >> RelRight("Sends order information to") >> fulfillment
-    fulfillment >> RelDown("Gets shipping charges from") >> post
-    ecommerce >> RelDown("Delegates credit card processing to") >> taxamo
-    taxamo >> RelLeft("Uses for credit card processing") >> braintree
-
-    LayDown(customer, braintree)
-
-    render_options = PlantUMLRenderOptionsBuilder().layout_top_down(with_legend=True).build()
-
-diagram_code = diagram.as_plantuml(render_options=render_options)
+plantuml_source = diagram.as_plantuml()
+mermaid_source = diagram.as_mermaid()
 ```
+
+## PlantUML enhanced example
+
+???+ warning "Non-portable PlantUML example"
+
+    This snippet uses PlantUML extension data and helpers. Render it with the
+    PlantUML rendering backend, or remove those hints before targeting Mermaid.
+
+The generated PlantUML example adds tags, links, layout hints, and a legend.
+Those features are owned by the PlantUML rendering backend and use
+`plantuml={...}` data or helpers from `c4.contrib.plantuml`.
+
+```python
+--8<-- "assets/examples/plantuml/system-context-diagram.py"
+```
+
+## Renderer Behavior
+
+PlantUML supports the richest system-context output, including external element
+rendering, tags, sprites, links, relationship styling, legends, and layout hints.
+Mermaid can render the portable model and Mermaid-specific styling, but Mermaid
+C4 syntax is experimental and does not support PlantUML layout helpers or
+PlantUML dynamic index helpers.
+
+## Generated Source and Image
 
 <details>
 <summary>Generated PlantUML source</summary>
 
 ```puml
-{% include-markdown "../../tests/snapshots/plantuml/system_context_diagram.puml" %}
+--8<-- "assets/examples/plantuml/system-context-diagram.puml"
 ```
 
 </details>
 
-The PlantUML source can be rendered into the following diagram:
-
-![system context](../assets/diagrams/system_context_diagram.png)
+![System context diagram](../assets/examples/plantuml/system-context-diagram.png)
