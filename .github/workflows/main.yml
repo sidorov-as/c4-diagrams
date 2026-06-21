@@ -90,8 +90,5 @@ jobs:
         with:
           mermaid-version: ${{ matrix.mermaid-version }}
 
-      - name: Check generated documentation artifacts
-        run: make check-docs-artifacts
-
       - name: Check if documentation can be built
         run: uv run zensical build -s

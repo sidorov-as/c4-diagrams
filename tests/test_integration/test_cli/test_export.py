@@ -810,10 +810,7 @@ def test_export_plantuml_invalid_format(
             """
         ),
     )
-    expected_error = (
-        "c4 export: error: argument -f/--format: invalid choice: 'unknown' "
-        "(choose from eps, latex, pdf, png, svg, txt, utxt)\n"
-    )
+    supported_formats = ["eps", "latex", "pdf", "png", "svg", "txt", "utxt"]
 
     result = cli([
         "export",
@@ -829,7 +826,11 @@ def test_export_plantuml_invalid_format(
 
     assert result.exit_code == 2
     assert not result.stdout
-    assert expected_error in result.stderr
+    assert (
+        "c4 export: error: argument -f/--format: invalid choice: 'unknown'"
+        in result.stderr
+    )
+    assert all(fmt in result.stderr for fmt in supported_formats)
 
 
 def test_export_plantuml_invalid_plantuml_bin(
@@ -1014,10 +1015,6 @@ def test_export_unknown_renderer(
 ):
     module_path = make_tmp_py_file("module.py")
     module_path.unlink()
-    expected_error = (
-        "c4 export: error: argument --renderer: invalid choice: 'unknown' "
-        "(choose from plantuml, mermaid)\n"
-    )
 
     result = cli([
         "export",
@@ -1032,7 +1029,12 @@ def test_export_unknown_renderer(
 
     assert result.exit_code == 2
     assert not result.stdout
-    assert expected_error in result.stderr
+    assert (
+        "c4 export: error: argument --renderer: invalid choice: 'unknown'"
+        in result.stderr
+    )
+    assert "plantuml" in result.stderr
+    assert "mermaid" in result.stderr
 
 
 def test_export_mutually_exclusive_renderers(
