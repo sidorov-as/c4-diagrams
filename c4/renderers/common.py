@@ -26,3 +26,6 @@ class RenderOptions:
                 self.mermaid is None,
             ],
         )
+
+    def __bool__(self) -> bool:
+        return not self.is_empty

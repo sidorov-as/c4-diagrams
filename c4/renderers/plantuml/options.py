@@ -101,12 +101,21 @@ class RelTag(BaseTag):
 
 
 @dataclass
-class BoundaryTag(ElementTag):
+class BoundaryTag(BaseTag):
     """
     Represents a tag for diagram boundaries (e.g., containers or systems).
 
-    Inherits common styling options from ElementTag.
+    Defines color, border, shape, and optional type metadata.
     """
+
+    bg_color: str | None = None
+    font_color: str | None = None
+    border_color: str | None = None
+    shadowing: bool | None = None
+    shape: TagShape | None = None
+    type_: str | None = None
+    border_style: LineStyle | None = None
+    border_thickness: str | None = None
 
 
 @dataclass
@@ -146,12 +155,21 @@ class ExternalContainerTag(ContainerTag):
 
 
 @dataclass
-class NodeTag(ElementTag):
+class NodeTag(BaseTag):
     """
     Represents a tag for nodes, typically infrastructure elements.
 
-    Inherits common styling options from ElementTag.
+    Defines color, border, shape, and optional type metadata.
     """
+
+    bg_color: str | None = None
+    font_color: str | None = None
+    border_color: str | None = None
+    shadowing: bool | None = None
+    shape: TagShape | None = None
+    type_: str | None = None
+    border_style: LineStyle | None = None
+    border_thickness: str | None = None
 
 
 @dataclass
@@ -494,18 +512,22 @@ class PlantUMLRenderOptionsBuilder:
 
     @property
     def sketch_style_defaults(self) -> dict[str, Any]:
+        """Return default arguments for `set_sketch_style()`."""
         return self._set_sketch_style_defaults
 
     @property
     def legend_defaults(self) -> dict[str, Any]:
+        """Return default arguments for `show_legend()`."""
         return self._show_legend_defaults
 
     @property
     def floating_legend_defaults(self) -> dict[str, Any]:
+        """Return default arguments for `show_floating_legend()`."""
         return self._show_floating_legend_defaults
 
     @property
     def person_sprite_defaults(self) -> dict[str, Any]:
+        """Return default arguments for `show_person_sprite()`."""
         return self._show_person_sprite_defaults
 
     def add_element_tag(
@@ -570,7 +592,7 @@ class PlantUMLRenderOptionsBuilder:
         shadowing: bool | None = None,
         shape: TagShape | None = None,
         sprite: str | None = None,
-        technology: str | None = None,
+        type_: str | None = None,
         legend_text: str | None = None,
         legend_sprite: str | None = None,
         border_style: LineStyle | None = None,
@@ -587,7 +609,7 @@ class PlantUMLRenderOptionsBuilder:
             shadowing: Shadow effect setting.
             shape: Optional shape modifier.
             sprite: Optional sprite reference.
-            technology: Technology metadata.
+            type_: Boundary type.
             legend_text: Legend label.
             legend_sprite: Legend sprite.
             border_style: Border style.
@@ -604,7 +626,7 @@ class PlantUMLRenderOptionsBuilder:
             shadowing=shadowing,
             shape=shape,
             sprite=sprite,
-            technology=technology,
+            type_=type_,
             legend_text=legend_text,
             legend_sprite=legend_sprite,
             border_style=border_style,
@@ -894,7 +916,7 @@ class PlantUMLRenderOptionsBuilder:
         shadowing: bool | None = None,
         shape: TagShape | None = None,
         sprite: str | None = None,
-        technology: str | None = None,
+        type_: str | None = None,
         legend_text: str | None = None,
         legend_sprite: str | None = None,
         border_style: LineStyle | None = None,
@@ -911,7 +933,7 @@ class PlantUMLRenderOptionsBuilder:
             shadowing: Shadow effect setting.
             shape: Optional shape modifier.
             sprite: Optional sprite reference.
-            technology: Technology metadata.
+            type_: Node type.
             legend_text: Legend label.
             legend_sprite: Legend sprite.
             border_style: Border style.
@@ -928,7 +950,7 @@ class PlantUMLRenderOptionsBuilder:
             shadowing=shadowing,
             shape=shape,
             sprite=sprite,
-            technology=technology,
+            type_=type_,
             legend_text=legend_text,
             legend_sprite=legend_sprite,
             border_style=border_style,
@@ -1214,7 +1236,6 @@ class PlantUMLRenderOptionsBuilder:
         shape: TagShape | None = None,
         type_: str | None = None,
         sprite: str | None = None,
-        technology: str | None = None,
         legend_text: str | None = None,
         legend_sprite: str | None = None,
         border_style: LineStyle | None = None,
@@ -1233,7 +1254,6 @@ class PlantUMLRenderOptionsBuilder:
             shape: Optional shape modifier.
             type_: Element type.
             sprite: Optional sprite reference.
-            technology: Technology metadata.
             legend_text: Legend label.
             legend_sprite: Legend sprite.
             border_style: Border style.
@@ -1250,7 +1270,6 @@ class PlantUMLRenderOptionsBuilder:
             shadowing=shadowing,
             shape=shape,
             sprite=sprite,
-            technology=technology,
             legend_text=legend_text,
             legend_sprite=legend_sprite,
             border_style=border_style,
@@ -1286,7 +1305,6 @@ class PlantUMLRenderOptionsBuilder:
 
     def update_container_boundary_style(
         self,
-        element_name: str | None = None,
         bg_color: str | None = None,
         font_color: str | None = None,
         border_color: str | None = None,
@@ -1294,7 +1312,6 @@ class PlantUMLRenderOptionsBuilder:
         shape: TagShape | None = None,
         type_: str | None = None,
         sprite: str | None = None,
-        technology: str | None = None,
         legend_text: str | None = None,
         legend_sprite: str | None = None,
         border_style: LineStyle | None = None,
@@ -1304,8 +1321,6 @@ class PlantUMLRenderOptionsBuilder:
         Adds an UpdateContainerBoundaryStyle() macro configuration.
 
         Args:
-            element_name: C4 element type to style
-                (e.g. 'person', 'system', 'container').
             bg_color: Background color.
             font_color: Font color.
             border_color: Border color.
@@ -1313,7 +1328,6 @@ class PlantUMLRenderOptionsBuilder:
             shape: Optional shape modifier.
             type_: Element type.
             sprite: Optional sprite reference.
-            technology: Technology metadata.
             legend_text: Legend label.
             legend_sprite: Legend sprite.
             border_style: Border style.
@@ -1323,14 +1337,12 @@ class PlantUMLRenderOptionsBuilder:
             The updated render options.
         """
         style = ContainerBoundaryStyle(
-            element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
             shadowing=shadowing,
             shape=shape,
             sprite=sprite,
-            technology=technology,
             legend_text=legend_text,
             legend_sprite=legend_sprite,
             border_style=border_style,
@@ -1343,7 +1355,6 @@ class PlantUMLRenderOptionsBuilder:
 
     def update_system_boundary_style(
         self,
-        element_name: str | None = None,
         bg_color: str | None = None,
         font_color: str | None = None,
         border_color: str | None = None,
@@ -1351,7 +1362,6 @@ class PlantUMLRenderOptionsBuilder:
         shape: TagShape | None = None,
         type_: str | None = None,
         sprite: str | None = None,
-        technology: str | None = None,
         legend_text: str | None = None,
         legend_sprite: str | None = None,
         border_style: LineStyle | None = None,
@@ -1361,8 +1371,6 @@ class PlantUMLRenderOptionsBuilder:
         Adds an UpdateSystemBoundaryStyle() macro configuration.
 
         Args:
-            element_name: C4 element type to style
-                (e.g. 'person', 'system', 'container').
             bg_color: Background color.
             font_color: Font color.
             border_color: Border color.
@@ -1370,7 +1378,6 @@ class PlantUMLRenderOptionsBuilder:
             shape: Optional shape modifier.
             type_: Container type.
             sprite: Optional sprite reference.
-            technology: Technology metadata.
             legend_text: Legend label.
             legend_sprite: Legend sprite.
             border_style: Border style.
@@ -1380,14 +1387,12 @@ class PlantUMLRenderOptionsBuilder:
             The updated render options.
         """
         style = SystemBoundaryStyle(
-            element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
             shadowing=shadowing,
             shape=shape,
             sprite=sprite,
-            technology=technology,
             legend_text=legend_text,
             legend_sprite=legend_sprite,
             border_style=border_style,
@@ -1400,7 +1405,6 @@ class PlantUMLRenderOptionsBuilder:
 
     def update_enterprise_boundary_style(
         self,
-        element_name: str | None = None,
         bg_color: str | None = None,
         font_color: str | None = None,
         border_color: str | None = None,
@@ -1408,7 +1412,6 @@ class PlantUMLRenderOptionsBuilder:
         shape: TagShape | None = None,
         type_: str | None = None,
         sprite: str | None = None,
-        technology: str | None = None,
         legend_text: str | None = None,
         legend_sprite: str | None = None,
         border_style: LineStyle | None = None,
@@ -1418,8 +1421,6 @@ class PlantUMLRenderOptionsBuilder:
         Adds an UpdateEnterpriseBoundaryStyle() macro configuration.
 
         Args:
-            element_name: C4 element type to style
-                (e.g. 'person', 'system', 'container').
             bg_color: Background color.
             font_color: Font color.
             border_color: Border color.
@@ -1427,7 +1428,6 @@ class PlantUMLRenderOptionsBuilder:
             shape: Optional shape modifier.
             type_: Container type.
             sprite: Optional sprite reference.
-            technology: Technology metadata.
             legend_text: Legend label.
             legend_sprite: Legend sprite.
             border_style: Border style.
@@ -1437,14 +1437,12 @@ class PlantUMLRenderOptionsBuilder:
             The updated render options.
         """
         style = EnterpriseBoundaryStyle(
-            element_name=element_name,
             bg_color=bg_color,
             font_color=font_color,
             border_color=border_color,
             shadowing=shadowing,
             shape=shape,
             sprite=sprite,
-            technology=technology,
             legend_text=legend_text,
             legend_sprite=legend_sprite,
             border_style=border_style,

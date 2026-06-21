@@ -4,13 +4,13 @@ Different backends support various layout and styling options that control
 diagram direction, legend visibility, and overall visual appearance.
 
 
-Backend-specific render options can be configured via [`RenderOptions`][c4.renderers.common.RenderOptions]:
+Backend-specific render options can be configured via [`RenderOptions`][c4.renderers.common.RenderOptions]
+in the constructor, or patched after creation with `diagram.set_render_options(...)`:
 
 
 ```python
 from c4 import SystemContextDiagram
 from c4.renderers.plantuml.options import PlantUMLRenderOptionsBuilder
-from c4.renderers import RenderOptions
 
 
 plantuml_render_options = (
@@ -19,13 +19,10 @@ plantuml_render_options = (
     .build()
 )
 
-render_options = RenderOptions(plantuml=plantuml_render_options)
-
-with SystemContextDiagram(render_options=render_options) as diagram:
+with SystemContextDiagram() as diagram:
     ...
 
-# You can also set render options after diagram creation:
-# diagram.render_options = render_options
+diagram.set_render_options(plantuml=plantuml_render_options)
 
 diagram.save_as_plantuml("output.puml")
 ```

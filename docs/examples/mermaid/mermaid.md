@@ -4,7 +4,7 @@
 
     Mermaid’s C4 diagram support is currently **experimental**.
 
-    According to the official [Mermaid documentation](https://mermaid.js.org/syntax/c4.html):
+    According to the official [Mermaid documentation](https://mermaid.ai/open-source/syntax/c4.html):
 
     >C4 Diagram: This is an experimental diagram for now. The syntax and properties can change in future releases.
     >Proper documentation will be provided when the syntax is stable.
@@ -19,7 +19,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/mermaid/system-context-diagram.json"
+    --8<-- "assets/examples/json/mermaid/system-context-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"
@@ -46,7 +46,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/mermaid/component-diagram.json"
+    --8<-- "assets/examples/json/mermaid/component-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"
@@ -73,7 +73,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/mermaid/container-diagram.json"
+    --8<-- "assets/examples/json/mermaid/container-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"
@@ -100,7 +100,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/mermaid/dynamic-diagram.json"
+    --8<-- "assets/examples/json/mermaid/dynamic-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"
@@ -127,7 +127,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/mermaid/deployment-diagram.json"
+    --8<-- "assets/examples/json/mermaid/deployment-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"

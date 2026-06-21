@@ -419,7 +419,7 @@ def test_render_options_show_person_sprite(
                 "shadowing": "s",
                 "shape": "RoundedBoxShape",
                 "sprite": "sp",
-                "technology": "tech",
+                "type_": "Node",
                 "legend_text": "lt",
                 "legend_sprite": "ls",
                 "border_style": "DashedLine",
@@ -509,7 +509,7 @@ def test_render_options_show_person_sprite(
                 "shadowing": "s",
                 "shape": "RoundedBoxShape",
                 "sprite": "sp",
-                "technology": "tech",
+                "type_": "Node",
                 "legend_text": "lt",
                 "legend_sprite": "ls",
                 "border_style": "DashedLine",
@@ -650,7 +650,6 @@ def test_render_options_add_includes(
                 "shape": "RoundedBoxShape",
                 "type_": "System",
                 "sprite": "sp",
-                "technology": "t",
                 "legend_text": "lt",
                 "legend_sprite": "ls",
                 "border_style": "BoldLine",
@@ -661,7 +660,6 @@ def test_render_options_add_includes(
             "update_container_boundary_style",
             ContainerBoundaryStyle,
             {
-                "element_name": "e",
                 "bg_color": "bg",
                 "font_color": "fc",
                 "border_color": "bc",
@@ -669,7 +667,6 @@ def test_render_options_add_includes(
                 "shape": "RoundedBoxShape",
                 "type_": "Container",
                 "sprite": "sp",
-                "technology": "t",
                 "legend_text": "lt",
                 "legend_sprite": "ls",
                 "border_style": "DottedLine",
@@ -680,7 +677,6 @@ def test_render_options_add_includes(
             "update_system_boundary_style",
             SystemBoundaryStyle,
             {
-                "element_name": "e",
                 "bg_color": "bg",
                 "font_color": "fc",
                 "border_color": "bc",
@@ -688,7 +684,6 @@ def test_render_options_add_includes(
                 "shape": "RoundedBoxShape",
                 "type_": "System",
                 "sprite": "sp",
-                "technology": "t",
                 "legend_text": "lt",
                 "legend_sprite": "ls",
                 "border_style": "DashedLine",
@@ -699,7 +694,6 @@ def test_render_options_add_includes(
             "update_enterprise_boundary_style",
             EnterpriseBoundaryStyle,
             {
-                "element_name": "e",
                 "bg_color": "bg",
                 "font_color": "fc",
                 "border_color": "bc",
@@ -707,7 +701,6 @@ def test_render_options_add_includes(
                 "shape": "RoundedBoxShape",
                 "type_": "System",
                 "sprite": "sp",
-                "technology": "t",
                 "legend_text": "lt",
                 "legend_sprite": "ls",
                 "border_style": "DashedLine",
@@ -735,7 +728,12 @@ def test_render_options_update_style(
     assert result is options_builder
     assert len(cfg.styles) == 1
     assert isinstance(cfg.styles[0], style_cls)
-    assert asdict(cfg.styles[0]) == expected_kwargs
+
+    actual_kwargs = asdict(cfg.styles[0])
+    actual_non_empty_kwargs = {
+        key: value for key, value in actual_kwargs.items() if value is not None
+    }
+    assert actual_non_empty_kwargs == expected_kwargs
 
 
 def test_render_options_declare_and_build() -> None:

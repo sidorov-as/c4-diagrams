@@ -1,0 +1,60 @@
+{
+  "type": "DeploymentDiagram",
+  "title": "Web App Deployment",
+  "elements": [
+    {
+      "type": "Person",
+      "alias": "user",
+      "label": "User",
+      "description": "Uses the web application."
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "DeploymentNode",
+      "alias": "web_node",
+      "label": "Web Server",
+      "description": "Hosts the frontend application.",
+      "elements": [
+        {
+          "type": "Container",
+          "alias": "web_app",
+          "label": "Web App",
+          "description": "Customer-facing web application.",
+          "technology": "Next.js"
+        }
+      ]
+    },
+    {
+      "type": "DeploymentNode",
+      "alias": "db_node",
+      "label": "Database Server",
+      "description": "Hosts the application database.",
+      "elements": [
+        {
+          "type": "ContainerDb",
+          "alias": "app_db",
+          "label": "App Database",
+          "description": "Stores application data.",
+          "technology": "PostgreSQL"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "user",
+      "to": "web_node",
+      "label": "Uses",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "web_node",
+      "to": "db_node",
+      "label": "Reads and writes",
+      "technology": "TLS / SQL"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Component.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!endif
+
+title Order Processing API - Component Diagram
+
+Component(order_controller, "Order Controller", "FastAPI", "HTTP entrypoint for order submission and status queries.", $tags="")
+
+Component(order_app_service, "Order Application Service", "Python", "Coordinates validation, payment, and order creation.", $tags="")
+
+Component(inventory_checker, "Inventory Checker", "Python", "Verifies stock availability before an order is confirmed.", $tags="")
+
+Component(payment_adapter, "Payment Adapter", "Python", "Wraps external payment provider calls.", $tags="")
+
+ComponentDb(order_db, "Order Database", "PostgreSQL", "Stores orders, line items, and order status history.", $tags="")
+
+Component_Ext(payment_gateway_api, "Payment Gateway API", "REST API", "External provider API for payment authorization and capture.", $tags="")
+
+ComponentQueue(order_events_bus, "Order Events Bus", "Kafka", "Publishes order-created and order-paid events.", $tags="")
+
+Rel(order_controller, order_app_service, "Invokes", "Python call", $tags="")
+Rel(order_app_service, inventory_checker, "Checks stock via", "Python call", $tags="")
+Rel(order_app_service, payment_adapter, "Requests payment through", "Python call", $tags="")
+Rel(payment_adapter, payment_gateway_api, "Authorizes payment via", "HTTPS/JSON", $tags="")
+Rel(order_app_service, order_db, "Reads and writes", "SQL", $tags="")
+Rel(order_app_service, order_events_bus, "Publishes events to", "Kafka", $tags="")
+
+@enduml

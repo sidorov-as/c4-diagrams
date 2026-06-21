@@ -5,13 +5,14 @@ object into a textual representation (for example, PlantUML source code).
 
 !!! note
 
-    You can find a detailed description of the different rendering backends in the
-    corresponding sections of the [documentation](../renderers/plantuml/renderers.md).
+    You can find detailed backend documentation in the
+    [backend comparison](../renderers/comparison.md), [PlantUML](../renderers/plantuml/index.md),
+    and [Mermaid](../renderers/mermaid/index.md) sections.
 
 
 ## Basic rendering
 
-Diagram can be rendered to a string using the [`Diagram.render()`][c4.diagrams.core.Diagram.render] method.
+A diagram can be rendered to a string using the [`Diagram.render()`][c4.diagrams.core.Diagram.render] method.
 
 By default, a diagram uses its `default_renderer`, if one is configured.
 

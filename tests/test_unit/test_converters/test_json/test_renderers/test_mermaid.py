@@ -1,9 +1,17 @@
-from c4.converters.json.schemas.renderers.mermaid import (
+from c4 import Person, SystemContextDiagram
+from c4.contrib.mermaid import RelBack
+from c4.contrib.mermaid.converters.json.render_options import (
     MermaidElementStyleSchema,
     MermaidRelStyleSchema,
     MermaidRenderOptionsSchema,
     UpdateLayoutConfigSchema,
 )
+from c4.contrib.mermaid.converters.json.schemas import (
+    MermaidBoundaryFields,
+    MermaidBoundarySchema,
+    MermaidRelationshipSchema,
+)
+from c4.diagrams.core import RelationshipType
 from c4.renderers import MermaidRenderOptions
 from c4.renderers.mermaid.options import (
     ElementStyle,
@@ -63,3 +71,90 @@ def test_mermaid_render_options_schema__to_render_options():
     result = schema.to_render_options()
 
     assert result == expected_result
+
+
+def test_mermaid_render_options_schema__to_render_options_empty():
+    schema = MermaidRenderOptionsSchema()
+    expected_result = MermaidRenderOptions(
+        update_layout_config=None,
+        styles=[],
+    )
+
+    result = schema.to_render_options()
+
+    assert result == expected_result
+
+
+def test_mermaid_relationship_schema__supports_mermaid_relationship_types():
+    schema = MermaidRelationshipSchema(
+        type="REL_BACK",
+        from_="database",
+        to="backend",
+        label="Reads from and writes to",
+    )
+
+    with SystemContextDiagram():
+        database = Person("Database")
+        backend = Person("Backend")
+        result = schema.to_diagram_element(
+            from_element=database,
+            to_element=backend,
+        )
+
+    assert isinstance(result, RelBack)
+    assert result.relationship_type == RelationshipType.REL_BACK
+
+
+def test_mermaid_relationship_schema__documents_concrete_endpoint_constraint():
+    schema = MermaidRelationshipSchema.model_json_schema()
+
+    assert "not a boundary" in schema["properties"]["from"]["description"]
+    assert "not a boundary" in schema["properties"]["to"]["description"]
+
+
+def test_mermaid_boundary_schema__moves_stereotype_to_extensions():
+    schema = MermaidBoundarySchema(
+        type="Boundary",
+        label="Commerce Platform",
+        alias="commerce_platform",
+        stereotype="enterprise",
+    )
+
+    with SystemContextDiagram():
+        result = schema.to_diagram_element()
+
+    assert result.extensions == {"mermaid": {"type": "enterprise"}}
+
+
+def test_mermaid_boundary_schema__keeps_extensions_empty_without_stereotype():
+    schema = MermaidBoundarySchema(
+        type="Boundary",
+        label="Commerce Platform",
+        alias="commerce_platform",
+    )
+
+    with SystemContextDiagram():
+        result = schema.to_diagram_element()
+
+    assert result.extensions is None
+
+
+def test_mermaid_boundary_fields__merges_stereotype_with_extensions():
+    class BaseBoundaryFields:
+        def _to_diagram_element_kwargs(self):
+            return {
+                "stereotype": "enterprise",
+                "extensions": {
+                    "mermaid": {"icon": "cloud"},
+                    "plantuml": {"sprite": "server"},
+                },
+            }
+
+    class BoundaryFields(MermaidBoundaryFields, BaseBoundaryFields): ...
+
+    result = BoundaryFields()._to_diagram_element_kwargs()
+
+    assert result == {
+        "mermaid": {"icon": "cloud", "type": "enterprise"},
+        "extensions": {"plantuml": {"sprite": "server"}},
+    }

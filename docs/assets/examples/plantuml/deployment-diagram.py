@@ -5,48 +5,53 @@ from c4 import (
     ContainerQueue,
     DeploymentDiagram,
     DeploymentNode,
+    Node,
+    Person,
+    Rel,
+)
+from c4.contrib.plantuml import (
     DeploymentNodeLeft,
     DeploymentNodeRight,
     LayD,
     LayR,
-    Node,
     NodeLeft,
     NodeRight,
-    Person,
-    Rel,
 )
 from c4.renderers import (
     PlantUMLRenderOptionsBuilder,
-    RenderOptions,
 )
 
 
 with DeploymentDiagram(title='Online Shop - Production Deployment') as diagram:
-    customer = Person('Customer', 'Uses the online shop through a browser.', tags=['person'], alias='customer')
-    payment_gateway = ContainerExt('Payment Gateway', 'External service that processes card payments.', tags=['external_service'], technology='HTTPS API', alias='payment_gateway')
+    customer = Person('Customer', 'Uses the online shop through a browser.', plantuml={'tags': ['person']}, alias='customer')
 
-    with Node('AWS Production Account', 'Production cloud account for the online shop.', type_='Cloud Account', tags=['cloud_account'], alias='aws_prod'):
-        with NodeLeft('Public Subnet', 'Internet-facing network segment.', type_='Network Segment', tags=['public_network'], alias='public_subnet'):
-            with DeploymentNodeLeft('Application Load Balancer', 'Terminates TLS and routes requests to the web tier.', type_='Ingress', tags=['edge_node'], alias='alb') as alb:
-                web_app = Container('Web Application', 'Serves the storefront UI.', tags=['frontend'], technology='Next.js', alias='web_app')
+    payment_gateway = ContainerExt('Payment Gateway', 'External service that processes card payments.', plantuml={'tags': ['external_service']}, technology='HTTPS API', alias='payment_gateway')
 
-        with NodeRight('Private Subnet', 'Internal network segment for application and data services.', type_='Network Segment', tags=['private_network'], alias='private_subnet'):
-            with DeploymentNode('Kubernetes Cluster', 'Runs backend services and asynchronous workers.', type_='Runtime Environment', tags=['runtime_node'], alias='app_cluster') as app_cluster:
-                backend_api = Container('Backend API', 'Handles catalog, checkout, and order processing.', tags=['backend'], technology='Python / FastAPI', alias='backend_api')
-                order_events = ContainerQueue('Order Events', 'Internal asynchronous event stream.', tags=['message_bus'], technology='Kafka', alias='order_events')
+    with Node('AWS Production Account', 'Production cloud account for the online shop.', plantuml={'tags': ['cloud_account'], 'type': 'Cloud Account'}, alias='aws_prod'):
+        with NodeLeft('Public Subnet', 'Internet-facing network segment.', plantuml={'tags': ['public_network'], 'type': 'Network Segment'}, alias='public_subnet'):
+            with DeploymentNodeLeft('Application Load Balancer', 'Terminates TLS and routes requests to the web tier.', plantuml={'tags': ['edge_node'], 'type': 'Ingress'}, alias='alb') as alb:
+                web_app = Container('Web Application', 'Serves the storefront UI.', plantuml={'tags': ['frontend']}, technology='Next.js', alias='web_app')
 
-            with DeploymentNodeRight('Managed PostgreSQL', 'Managed relational database service.', type_='Data Platform', tags=['data_node'], alias='db_service') as db_service:
-                orders_db = ContainerDb('Orders Database', 'Stores orders, payments, and fulfillment data.', tags=['database'], technology='PostgreSQL', alias='orders_db')
+        with NodeRight('Private Subnet', 'Internal network segment for application and data services.', plantuml={'tags': ['private_network'], 'type': 'Network Segment'}, alias='private_subnet'):
+            with DeploymentNode('Kubernetes Cluster', 'Runs backend services and asynchronous workers.', plantuml={'tags': ['runtime_node'], 'type': 'Runtime Environment'}, alias='app_cluster') as app_cluster:
+                backend_api = Container('Backend API', 'Handles catalog, checkout, and order processing.', plantuml={'tags': ['backend']}, technology='Python / FastAPI', alias='backend_api')
 
-    customer >> Rel('Uses', technology='HTTPS', tags=['encrypted_traffic']) >> alb
-    alb >> Rel('Routes traffic to', technology='HTTPS', tags=['encrypted_traffic']) >> app_cluster
-    app_cluster >> Rel('Reads and writes', technology='TLS / SQL', tags=['encrypted_traffic']) >> db_service
-    app_cluster >> Rel('Calls', technology='HTTPS/JSON', tags=['encrypted_traffic']) >> payment_gateway
-    backend_api >> Rel('Publishes events to', technology='Kafka', tags=['async_flow']) >> order_events
+                order_events = ContainerQueue('Order Events', 'Internal asynchronous event stream.', plantuml={'tags': ['message_bus']}, technology='Kafka', alias='order_events')
 
+            with DeploymentNodeRight('Managed PostgreSQL', 'Managed relational database service.', plantuml={'tags': ['data_node'], 'type': 'Data Platform'}, alias='db_service') as db_service:
+                orders_db = ContainerDb('Orders Database', 'Stores orders, payments, and fulfillment data.', plantuml={'tags': ['database']}, technology='PostgreSQL', alias='orders_db')
+
+    customer >> Rel('Uses', technology='HTTPS', plantuml={'tags': ['encrypted_traffic']}) >> alb
+    alb >> Rel('Routes traffic to', technology='HTTPS', plantuml={'tags': ['encrypted_traffic']}) >> app_cluster
+    app_cluster >> Rel('Reads and writes', technology='TLS / SQL', plantuml={'tags': ['encrypted_traffic']}) >> db_service
+    app_cluster >> Rel('Calls', technology='HTTPS/JSON', plantuml={'tags': ['encrypted_traffic']}) >> payment_gateway
+    backend_api >> Rel('Publishes events to', technology='Kafka', plantuml={'tags': ['async_flow']}) >> order_events
     LayR(customer, alb)
+
     LayR(alb, app_cluster)
+
     LayD(app_cluster, db_service)
+
     LayR(app_cluster, payment_gateway)
 
 
@@ -133,7 +138,7 @@ plantuml_render_options = (
         border_color='#64b5f6',
         shadowing=True,
         shape='RoundedBoxShape',
-        technology='Infrastructure',
+        type_='Infrastructure',
         legend_text='Cloud account boundary',
         legend_sprite='cloud',
         border_style='SolidLine',
@@ -146,7 +151,7 @@ plantuml_render_options = (
         border_color='#8bc34a',
         shadowing=False,
         shape='RoundedBoxShape',
-        technology='DMZ',
+        type_='DMZ',
         legend_text='Public network zone',
         legend_sprite='network',
         border_style='SolidLine',
@@ -159,7 +164,7 @@ plantuml_render_options = (
         border_color='#ff8a65',
         shadowing=False,
         shape='RoundedBoxShape',
-        technology='Internal',
+        type_='Internal',
         legend_text='Private network zone',
         legend_sprite='network',
         border_style='SolidLine',
@@ -172,7 +177,7 @@ plantuml_render_options = (
         border_color='#29b6f6',
         shadowing=False,
         shape='RoundedBoxShape',
-        technology='Ingress',
+        type_='Ingress',
         legend_text='Ingress deployment node',
         legend_sprite='router',
         border_style='BoldLine',
@@ -185,7 +190,7 @@ plantuml_render_options = (
         border_color='#66bb6a',
         shadowing=True,
         shape='RoundedBoxShape',
-        technology='Runtime',
+        type_='Runtime',
         legend_text='Runtime deployment node',
         legend_sprite='server',
         border_style='SolidLine',
@@ -198,7 +203,7 @@ plantuml_render_options = (
         border_color='#ffb300',
         shadowing=False,
         shape='RoundedBoxShape',
-        technology='Data Platform',
+        type_='Data Platform',
         legend_text='Data deployment node',
         legend_sprite='database',
         border_style='SolidLine',
@@ -231,8 +236,6 @@ plantuml_render_options = (
     .build()
 )
 
-render_options = RenderOptions(
+diagram.set_render_options(
     plantuml=plantuml_render_options,
 )
-
-diagram.render_options = render_options

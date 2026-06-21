@@ -1,0 +1,25 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Dynamic.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
+!endif
+
+title Order Fulfillment Flow
+
+Person(customer, "Customer", "Places orders in the online store.", $tags="")
+
+System(online_store, "Online Store", "Customer-facing commerce platform.", $tags="")
+
+System_Ext(payment_gateway, "Payment Gateway", "External provider that authorizes card payments.", $tags="")
+
+System_Ext(warehouse_system, "Warehouse System", "External warehouse platform that reserves and ships items.", $tags="")
+
+Rel(customer, online_store, "Places order", "HTTPS", $tags="")
+Rel(online_store, payment_gateway, "Authorizes payment", "REST API", $tags="")
+Rel(payment_gateway, online_store, "Returns authorization result", "HTTPS", $tags="")
+Rel(online_store, warehouse_system, "Sends fulfillment request", "AMQP", $tags="")
+Rel(warehouse_system, online_store, "Confirms reservation", "AMQP", $tags="")
+
+@enduml

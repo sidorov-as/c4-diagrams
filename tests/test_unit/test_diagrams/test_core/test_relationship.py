@@ -1,34 +1,12 @@
 import pytest
 
 from c4.diagrams.core import (
-    BiRel,
-    BiRelD,
-    BiRelDown,
-    BiRelL,
-    BiRelLeft,
-    BiRelNeighbor,
-    BiRelR,
-    BiRelRight,
-    BiRelU,
-    BiRelUp,
     Diagram,
     Element,
-    Index,
-    Rel,
     Relationship,
     RelationshipType,
-    RelBack,
-    RelBackNeighbor,
-    RelD,
-    RelDown,
-    RelL,
-    RelLeft,
-    RelNeighbor,
-    RelR,
-    RelRight,
-    RelU,
-    RelUp,
 )
+from c4.diagrams.core.relationships import Rel
 
 
 @pytest.fixture()
@@ -83,27 +61,28 @@ def test_create_relationship_with_elements():
     assert relationship.label == "example"
     assert relationship.technology is None
     assert relationship.description is None
-    assert relationship.sprite is None
-    assert relationship.tags is None
-    assert relationship.link is None
-    assert relationship.index is None
+    assert relationship.extensions is None
     assert relationship.relationship_type == RelationshipType.REL
 
 
 @pytest.mark.parametrize(
     "index",
-    ["1", Index(1), f"{Index()}-2"],
-    ids=["str", "index-object", "relative-index"],
+    ["1"],
+    ids=["str"],
 )
 def test_relationship_attrs(index: str):
     attrs = {
         "label": "example",
         "technology": "technology",
         "description": "Description",
-        "sprite": "$sprite",
-        "tags": "tag1,tag2",
-        "link": "https://example.com",
-        "index": index,
+        "extensions": {
+            "plantuml": {
+                "sprite": "$sprite",
+                "tags": ["tag1", "tag2"],
+                "link": "https://example.com",
+                "index": index,
+            }
+        },
         "relationship_type": RelationshipType.BI_REL,
     }
 
@@ -121,10 +100,7 @@ def test_relationship_attrs(index: str):
     assert relationship.label == attrs["label"]
     assert relationship.technology == attrs["technology"]
     assert relationship.description == attrs["description"]
-    assert relationship.sprite == attrs["sprite"]
-    assert relationship.tags == attrs["tags"]
-    assert relationship.link == attrs["link"]
-    assert relationship.index == attrs["index"]
+    assert relationship.extensions == attrs["extensions"]
     assert relationship.relationship_type == attrs["relationship_type"]
     assert relationship.get_attrs() == attrs
 
@@ -134,10 +110,14 @@ def test_copy_relationship(diagram: Diagram):
         "label": "example",
         "technology": "technology",
         "description": "Description",
-        "sprite": "$sprite",
-        "tags": "tag1,tag2",
-        "link": "https://example.com",
-        "index": "1",
+        "extensions": {
+            "plantuml": {
+                "sprite": "$sprite",
+                "tags": ["tag1", "tag2"],
+                "link": "https://example.com",
+                "index": "1",
+            }
+        },
         "relationship_type": RelationshipType.BI_REL,
         "from_element": Element(label="from"),
         "to_element": Element(label="to"),
@@ -153,10 +133,7 @@ def test_copy_relationship(diagram: Diagram):
     assert relationship_copy.label == relationship.label
     assert relationship_copy.technology == relationship.technology
     assert relationship_copy.description == relationship.description
-    assert relationship_copy.sprite == relationship.sprite
-    assert relationship_copy.tags == relationship.tags
-    assert relationship_copy.link == relationship.link
-    assert relationship_copy.index == relationship.index
+    assert relationship_copy.extensions == relationship.extensions
     assert relationship_copy.relationship_type == RelationshipType.REL_BACK
 
 
@@ -165,27 +142,6 @@ def test_copy_relationship(diagram: Diagram):
     [
         (Relationship, RelationshipType.REL),
         (Rel, RelationshipType.REL),
-        (BiRel, RelationshipType.BI_REL),
-        (RelBack, RelationshipType.REL_BACK),
-        (RelNeighbor, RelationshipType.REL_NEIGHBOR),
-        (BiRelNeighbor, RelationshipType.BI_REL_NEIGHBOR),
-        (RelBackNeighbor, RelationshipType.REL_BACK_NEIGHBOR),
-        (RelD, RelationshipType.REL_D),
-        (RelDown, RelationshipType.REL_DOWN),
-        (BiRelD, RelationshipType.BI_REL_D),
-        (BiRelDown, RelationshipType.BI_REL_DOWN),
-        (RelU, RelationshipType.REL_U),
-        (RelUp, RelationshipType.REL_UP),
-        (BiRelU, RelationshipType.BI_REL_U),
-        (BiRelUp, RelationshipType.BI_REL_UP),
-        (RelL, RelationshipType.REL_L),
-        (RelLeft, RelationshipType.REL_LEFT),
-        (BiRelL, RelationshipType.BI_REL_L),
-        (BiRelLeft, RelationshipType.BI_REL_LEFT),
-        (RelR, RelationshipType.REL_R),
-        (RelRight, RelationshipType.REL_RIGHT),
-        (BiRelR, RelationshipType.BI_REL_R),
-        (BiRelRight, RelationshipType.BI_REL_RIGHT),
     ],
 )
 def test_relationship_type(
@@ -199,27 +155,6 @@ def test_relationship_type(
     ("expected_class", "relationship_type"),
     [
         (Rel, RelationshipType.REL),
-        (BiRel, RelationshipType.BI_REL),
-        (RelBack, RelationshipType.REL_BACK),
-        (RelNeighbor, RelationshipType.REL_NEIGHBOR),
-        (BiRelNeighbor, RelationshipType.BI_REL_NEIGHBOR),
-        (RelBackNeighbor, RelationshipType.REL_BACK_NEIGHBOR),
-        (RelD, RelationshipType.REL_D),
-        (RelDown, RelationshipType.REL_DOWN),
-        (BiRelD, RelationshipType.BI_REL_D),
-        (BiRelDown, RelationshipType.BI_REL_DOWN),
-        (RelU, RelationshipType.REL_U),
-        (RelUp, RelationshipType.REL_UP),
-        (BiRelU, RelationshipType.BI_REL_U),
-        (BiRelUp, RelationshipType.BI_REL_UP),
-        (RelL, RelationshipType.REL_L),
-        (RelLeft, RelationshipType.REL_LEFT),
-        (BiRelL, RelationshipType.BI_REL_L),
-        (BiRelLeft, RelationshipType.BI_REL_LEFT),
-        (RelR, RelationshipType.REL_R),
-        (RelRight, RelationshipType.REL_RIGHT),
-        (BiRelR, RelationshipType.BI_REL_R),
-        (BiRelRight, RelationshipType.BI_REL_RIGHT),
     ],
 )
 def test_relationship_by_type(

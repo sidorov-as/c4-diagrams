@@ -1,9 +1,38 @@
 # JSON to Diagram Converter
 
-Diagrams can be defined in a **JSON format** as an alternative to the Python DSL.
+Diagrams can be defined in **JSON** as an alternative to the Python DSL.
 
 This feature allows you to **generate diagrams from structured data** instead of writing Python code,
 making diagram creation more flexible, deterministic, and easier to automate.
+
+JSON schemas follow the same core/backend split as the Python DSL. Portable
+fields describe C4 model data, while backend-specific convenience fields are
+normalized into renderer-keyed extension data. See
+[Portable core and backend extensions](../../concepts/portable-core-and-extensions.md)
+for the Python authoring model.
+
+## Canonical schema shape
+
+The canonical JSON shape is a diagram schema with an optional explicit
+`backend` discriminator:
+
+- omit `backend` for the portable core schema;
+- set `"backend": "plantuml"` for PlantUML-specific convenience fields,
+  relationship shortcuts, layouts, dynamic indexes, and PlantUML render
+  options;
+- set `"backend": "mermaid"` for Mermaid-specific relationship shortcuts,
+  Mermaid boundary hints, and Mermaid render options.
+
+Core JSON schemas contain only backend-neutral C4 model fields. Backend schemas
+extend the core shape with convenience fields that are normalized into runtime
+extension data. For example, a PlantUML JSON element field such as
+`"tags": ["storage"]` becomes the Python DSL kwarg
+`plantuml={"tags": ["storage"]}`.
+
+JSON schemas are strict: unknown top-level fields are rejected, and JSON
+elements, boundaries, and relationships do not accept the Python DSL
+`extensions=` compatibility envelope. Use only the fields declared by the
+selected core, PlantUML, or Mermaid JSON schema.
 
 ## Why JSON?
 
@@ -35,7 +64,7 @@ This enables **automatic architecture visualization** without manual diagram mai
 
 ### 3. Service catalogs and metadata-driven diagrams
 
-Teams can define architecture using **declarative metadata files**, for example:
+Architecture can be described using **declarative metadata files**, for example:
 
 - `catalog-info.yaml` (similar to [Backstage](https://backstage.io/docs/features/software-catalog/descriptor-format/) and [Open edX](https://docs.openedx.org/projects/openedx-proposals/en/latest/processes/oep-0055/decisions/0001-use-backstage-to-support-maintainers.html#references))
 - Custom service manifests in each repository
@@ -50,14 +79,30 @@ From this metadata, you can generate a **JSON diagram**, which is then rendered 
 
 ## Supported Diagram Types
 
-Each diagram type has its own JSON specification:
+Each diagram type has a portable core JSON specification, with backend-specific
+variants for PlantUML and Mermaid:
 
-- [SystemContextDiagram](specs/system_context_diagram.md)
-- [SystemLandscapeDiagram](specs/system_landscape_diagram.md)
-- [ContainerDiagram](specs/container_diagram.md)
-- [ComponentDiagram](specs/component_diagram.md)
-- [DeploymentDiagram](specs/deployment_diagram.md)
-- [DynamicDiagram](specs/dynamic_diagram.md)
+- Core:
+  [SystemContextDiagram](specs/core.system_context_diagram.md),
+  [SystemLandscapeDiagram](specs/core.system_landscape_diagram.md),
+  [ContainerDiagram](specs/core.container_diagram.md),
+  [ComponentDiagram](specs/core.component_diagram.md),
+  [DeploymentDiagram](specs/core.deployment_diagram.md),
+  [DynamicDiagram](specs/core.dynamic_diagram.md).
+- PlantUML:
+  [SystemContextDiagram](specs/plantuml.system_context_diagram.md),
+  [SystemLandscapeDiagram](specs/plantuml.system_landscape_diagram.md),
+  [ContainerDiagram](specs/plantuml.container_diagram.md),
+  [ComponentDiagram](specs/plantuml.component_diagram.md),
+  [DeploymentDiagram](specs/plantuml.deployment_diagram.md),
+  [DynamicDiagram](specs/plantuml.dynamic_diagram.md).
+- Mermaid:
+  [SystemContextDiagram](specs/mermaid.system_context_diagram.md),
+  [SystemLandscapeDiagram](specs/mermaid.system_landscape_diagram.md),
+  [ContainerDiagram](specs/mermaid.container_diagram.md),
+  [ComponentDiagram](specs/mermaid.component_diagram.md),
+  [DeploymentDiagram](specs/mermaid.deployment_diagram.md),
+  [DynamicDiagram](specs/mermaid.dynamic_diagram.md).
 
 
 ### Example: System Context Diagram (JSON)
@@ -111,12 +156,113 @@ from c4 import (
     SystemContextDiagram,
 )
 
-with SystemContextDiagram():
+with SystemContextDiagram() as diagram:
     user = Person('User', 'System user', alias='user')
     app = System('Backend API', 'Main application backend', alias='app')
 
     user >> Rel('Uses HTTP API') >> app
 ```
+
+### Backend-specific JSON to Python
+
+Backend-specific JSON keeps JSON authoring compact while generated Python uses
+the explicit backend kwargs:
+
+```json hl_lines="3 14 15 16 25 26 29"
+{
+  "type": "SystemContextDiagram",
+  "backend": "plantuml",
+  "elements": [
+    {
+      "type": "Person",
+      "alias": "customer",
+      "label": "Customer"
+    },
+    {
+      "type": "SystemDb",
+      "alias": "orders_db",
+      "label": "Orders DB",
+      "tags": ["storage"],
+      "sprite": "database",
+      "link": "https://example.com/orders"
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL_R",
+      "from": "customer",
+      "to": "orders_db",
+      "label": "Reads order history",
+      "index": "1",
+      "tags": ["query"]
+    }
+  ],
+  "layouts": [
+    {
+      "type": "LAY_R",
+      "from": "customer",
+      "to": "orders_db"
+    }
+  ]
+}
+```
+
+The generated Python places backend helpers in contrib imports and moves the
+metadata into `plantuml=`:
+
+```python
+from c4 import (
+    Person,
+    SystemContextDiagram,
+    SystemDb,
+)
+from c4.contrib.plantuml import (
+    LayR,
+    RelR,
+)
+
+with SystemContextDiagram() as diagram:
+    customer = Person('Customer', alias='customer')
+    orders_db = SystemDb(
+        'Orders DB',
+        plantuml={
+            'link': 'https://example.com/orders',
+            'sprite': 'database',
+            'tags': ['storage'],
+        },
+        alias='orders_db',
+    )
+
+    customer >> RelR(
+        'Reads order history',
+        plantuml={'index': '1', 'tags': ['query']},
+    ) >> orders_db
+
+    LayR(customer, orders_db)
+```
+
+Every relationship and layout endpoint must resolve to an element alias or to a
+unique element label.
+
+## Backend field normalization
+
+PlantUML JSON schemas accept direct convenience fields because those names are
+natural for JSON generators:
+
+- element fields: `tags`, `sprite`, `link`, `stereotype`, `base_shape`;
+- boundary fields: `tags`, `link`, `stereotype`;
+- relationship fields: `tags`, `sprite`, `link`, `index`;
+- top-level `layouts`;
+- dynamic diagram ordered steps: `set_index` and `increment`.
+
+During conversion these become runtime PlantUML extension data or PlantUML
+contrib helper objects. `stereotype` is emitted as `plantuml={"type": ...}` in
+Python because `type` is the runtime extension key.
+
+Mermaid JSON schemas accept Mermaid-supported relationship types and the
+boundary `stereotype` field. Mermaid boundary stereotypes normalize into
+`mermaid={"type": ...}`. PlantUML-only fields are rejected when
+`"backend": "mermaid"` is selected.
 
 ## How JSON diagrams can be generated
 
@@ -317,15 +463,14 @@ The following example shows how architecture information can be extracted from a
 
         return {
             "type": "ContainerDiagram",
+            "backend": "plantuml",
             "title": title,
             "elements": elements,
             "relationships": relationships,
             "render_options": {
-                "plantuml": {
-                    "show_legend": {
-                        "details": "Normal",
-                        "hide_stereotype": True
-                    },
+                "show_legend": {
+                    "details": "Normal",
+                    "hide_stereotype": True
                 }
             }
         }

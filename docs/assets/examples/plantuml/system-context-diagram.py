@@ -1,7 +1,5 @@
 from c4 import (
     EnterpriseBoundary,
-    LayD,
-    LayR,
     Person,
     PersonExt,
     Rel,
@@ -9,27 +7,34 @@ from c4 import (
     SystemContextDiagram,
     SystemExt,
 )
+from c4.contrib.plantuml import (
+    LayD,
+    LayR,
+)
 from c4.renderers import (
     PlantUMLRenderOptionsBuilder,
-    RenderOptions,
 )
 
 
 with SystemContextDiagram(title='Retail Platform') as diagram:
-    customer = Person('Customer', 'Places orders through the storefront.', tags=['Primary'], alias='customer')
-    support_agent = PersonExt('Support Agent', 'Handles issues in an external CRM.', tags=['External'], alias='support_agent')
-    payment_gateway = SystemExt('Payment Gateway', 'Processes card payments.', tags=['External'], alias='payment_gateway')
-    crm_platform = SystemExt('CRM Platform', 'External CRM used by support agents.', tags=['External'], alias='crm_platform')
+    customer = Person('Customer', 'Places orders through the storefront.', plantuml={'tags': ['Primary']}, alias='customer')
 
-    with EnterpriseBoundary('Acme Corp', 'Internal systems owned by Acme.', tags=['Enterprise'], alias='acme_enterprise'):
-        retail_platform = System('Retail Platform', 'Core platform for catalog, checkout, and order management.', tags=['Core'], link='https://retail.example.com', alias='retail_platform')
+    support_agent = PersonExt('Support Agent', 'Handles issues in an external CRM.', plantuml={'tags': ['External']}, alias='support_agent')
 
-    customer >> Rel('Browses and places orders', technology='HTTPS', tags=['Synchronous']) >> retail_platform
-    retail_platform >> Rel('Charges card', technology='REST API', tags=['Synchronous']) >> payment_gateway
-    support_agent >> Rel('Manages customer issues', technology='Web UI', tags=['Manual']) >> crm_platform
+    payment_gateway = SystemExt('Payment Gateway', 'Processes card payments.', plantuml={'tags': ['External']}, alias='payment_gateway')
 
+    crm_platform = SystemExt('CRM Platform', 'External CRM used by support agents.', plantuml={'tags': ['External']}, alias='crm_platform')
+
+    with EnterpriseBoundary('Acme Corp', 'Internal systems owned by Acme.', plantuml={'tags': ['Enterprise']}, alias='acme_enterprise'):
+        retail_platform = System('Retail Platform', 'Core platform for catalog, checkout, and order management.', plantuml={'link': 'https://retail.example.com', 'tags': ['Core']}, alias='retail_platform')
+
+    customer >> Rel('Browses and places orders', technology='HTTPS', plantuml={'tags': ['Synchronous']}) >> retail_platform
+    retail_platform >> Rel('Charges card', technology='REST API', plantuml={'tags': ['Synchronous']}) >> payment_gateway
+    support_agent >> Rel('Manages customer issues', technology='Web UI', plantuml={'tags': ['Manual']}) >> crm_platform
     LayR(customer, retail_platform)
+
     LayR(retail_platform, payment_gateway)
+
     LayD(support_agent, crm_platform)
 
 
@@ -85,8 +90,6 @@ plantuml_render_options = (
     .build()
 )
 
-render_options = RenderOptions(
+diagram.set_render_options(
     plantuml=plantuml_render_options,
 )
-
-diagram.render_options = render_options

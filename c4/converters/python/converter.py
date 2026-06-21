@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import dataclass, field
 
 from c4.converters.python.renderers import mermaid, plantuml
 from c4.diagrams.core import (
@@ -10,14 +11,35 @@ from c4.diagrams.core import (
     DiagramElementProperties,
     Element,
     Relationship,
-    increment,
-    set_index,
 )
+from c4.enums import RendererEnum
 from c4.renderers import MermaidRenderOptions, RenderOptions
 from c4.renderers.base import IndentedStringBuilder
 from c4.renderers.plantuml.options import PlantUMLRenderOptions
 
 _DEFAULT_PROPERTIES_HEADER: tuple[str, str] = DEFAULT_PROPERTIES_HEADER
+_C4_MACROS_MODULE_PREFIX = "c4.contrib.c4_macros"
+_C4_MACROS_MODULE_PACKAGE = "c4.contrib.c4_macros"
+_PLANTUML_CONTRIB_MODULE_PREFIX = "c4.contrib.plantuml"
+_MERMAID_CONTRIB_MODULE_PREFIX = "c4.contrib.mermaid"
+_PLANTUML_CONTRIB_PACKAGE = "c4.contrib.plantuml"
+_MERMAID_CONTRIB_PACKAGE = "c4.contrib.mermaid"
+_RENDERERS_PACKAGE = "c4.renderers"
+
+
+@dataclass
+class ImportPlan:
+    """Grouped import names required by generated Python code."""
+
+    c4_names: set[str] = field(default_factory=set)
+    contrib_names: dict[str, set[str]] = field(default_factory=dict)
+    renderer_names: set[str] = field(default_factory=set)
+
+    def add_c4(self, name: str) -> None:
+        self.c4_names.add(name)
+
+    def add_contrib(self, package: str, name: str) -> None:
+        self.contrib_names.setdefault(package, set()).add(name)
 
 
 class PythonCodegen:
@@ -30,95 +52,88 @@ class PythonCodegen:
     - Executable: contains imports required to run the DSL.
     - Semantically equivalent: recreates the same structure
         (elements, boundaries, relationships, layouts, and
-        macro-like base elements).
+        macro-like ordered statements).
 
     Rendering rules / invariants:
 
-    - Elements are rendered before relationships so aliases exist.
-    - Relationships are rendered from `parent.relationships`
-      (not from `base_elements`) to avoid duplication
-      (except for DynamicDiagram edge-cases, see below).
-    - `base_elements` are rendered for non-structural macro calls
-      (e.g., index macros in Dynamic diagrams) and in rare cases may also
-      contain relationships
-      (some DynamicDiagram implementations store them there).
+    - Scope children are rendered directly from `ordered_elements`, matching
+      the declaration stream used by runtime renderers.
 
     The codegen relies on `__repr__` implementations of DSL
     objects being valid DSL.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, backend: RendererEnum | None = None) -> None:
+        self._backend = backend
         self._builder = IndentedStringBuilder()
 
-    def _collect_class_names(self, parent: Diagram | Boundary) -> set[str]:
-        """
-        Collect all DSL class names that must be imported to recreate `parent`.
+    def _iter_ordered_items(
+        self,
+        scope: Diagram | Boundary,
+    ) -> Iterator[BaseDiagramElement]:
+        """Yield a scope's ordered items, recursively entering boundaries."""
+        for item in scope.ordered_elements:
+            yield item
 
-        This walks the full subtree:
-        - the parent object itself (Diagram or Boundary)
-        - nested elements
-        - nested boundaries (recursively)
-        - relationships
-        - layouts
-        - base elements (macro-like nodes)
+            if isinstance(item, Boundary):
+                yield from self._iter_ordered_items(item)
 
-        Returns:
-            A set of class names (strings) to import from `c4`.
-        """
-        class_names = {
-            type(parent).__name__,
-        }
+    def _build_import_plan(self, diagram: Diagram) -> ImportPlan:
+        """Collect every import required by generated Python code."""
+        import_plan = ImportPlan(c4_names={type(diagram).__name__})
 
-        layouts = getattr(parent, "layouts", [])
-        base_elements = getattr(parent, "base_elements", [])
+        for item in self._iter_ordered_items(diagram):
+            self._add_item_import(import_plan, item)
 
-        for element in parent.elements:
-            class_names.add(type(element).__name__)
+        render_options = diagram.render_options
+        if render_options:
+            if render_options.plantuml:
+                import_plan.renderer_names.add("PlantUMLRenderOptionsBuilder")
 
-        for nested_boundary in parent.boundaries:
-            class_names.update(self._collect_class_names(nested_boundary))
+            if render_options.mermaid:
+                import_plan.renderer_names.add("MermaidRenderOptionsBuilder")
 
-        for relationship in parent.relationships:
-            class_names.add(type(relationship).__name__)
+        return import_plan
 
-        for layout in layouts:
-            class_names.add(type(layout).__name__)
+    def _add_item_import(
+        self,
+        import_plan: ImportPlan,
+        item: BaseDiagramElement,
+    ) -> None:
+        class_name = type(item).__name__
+        package = self._contrib_import_package(item)
+        if package:
+            import_plan.add_contrib(package, class_name)
+        else:
+            import_plan.add_c4(class_name)
 
-        for base_element in base_elements:
-            class_names.add(type(base_element).__name__)
+    def _contrib_import_package(
+        self,
+        item: BaseDiagramElement,
+    ) -> str | None:
+        module = type(item).__module__
+        if module.startswith(_C4_MACROS_MODULE_PREFIX):
+            if self._backend is RendererEnum.MERMAID:
+                return _MERMAID_CONTRIB_PACKAGE
+            elif self._backend is RendererEnum.PLANTUML:
+                return _PLANTUML_CONTRIB_PACKAGE
+            return _C4_MACROS_MODULE_PACKAGE
+        if module.startswith(_PLANTUML_CONTRIB_MODULE_PREFIX):
+            return _PLANTUML_CONTRIB_PACKAGE
+        if module.startswith(_MERMAID_CONTRIB_MODULE_PREFIX):
+            return _MERMAID_CONTRIB_PACKAGE
 
-        return class_names
+        return None
 
-    def _render_base_element(
+    def _render_ordered_statement(
         self,
         element: BaseDiagramElement,
     ) -> None:
         """
-        Render a single non-structural "base element".
-
-        Base elements usually represent macro-like calls
-        (e.g. index manipulation), but some diagram types may store
-        relationships here as well.
+        Render an ordered item that is not a plain element, boundary, or
+        relationship.
         """
-        if isinstance(element, Relationship):  # Edge case for DynamicDiagram
-            return self._render_relationship(element)
-        elif isinstance(element, (increment, set_index)):
-            return self._builder.add(f"{element!r}")
-
-        raise TypeError(f"Unsupported element {element!r}")
-
-    def _render_base_elements(self, parent: Diagram) -> bool:
-        """
-        Render all `base_elements` for the given parent, preserving
-        their order.
-        """
-        for base_element in parent.base_elements:
-            self._render_base_element(base_element)
-
-        if parent.base_elements:
-            self._builder.add_blank_line()
-
-        return bool(parent.base_elements)
+        self._builder.add(f"{element!r}")
 
     @contextmanager
     def _render_boundary_def(self, boundary: Boundary) -> Iterator[None]:
@@ -132,9 +147,10 @@ class PythonCodegen:
         alias = boundary.alias
         diagram = boundary.diagram
 
+        has_properties = bool(boundary.properties)
+
         need_variable = (
-            diagram.is_element_referenced_by_alias(alias)
-            or boundary.properties.properties
+            diagram.is_element_referenced_by_alias(alias) or has_properties
         )
 
         if need_variable:
@@ -142,7 +158,7 @@ class PythonCodegen:
         else:
             self._builder.add(f"with {boundary!r}:")
 
-        if boundary.properties.properties:
+        if has_properties:
             with self._builder.indent():
                 self._render_properties(alias, boundary.properties)
 
@@ -154,41 +170,17 @@ class PythonCodegen:
         Render a boundary block, including its contents in canonical order.
         """
         with self._render_boundary_def(boundary):
-            has_elements = (
-                self._render_elements(boundary),
-                self._render_boundaries(boundary),
-                self._render_relationships(boundary),
-            )
+            rendered = self._render_scope_items(boundary)
 
-            if not any(has_elements):
+            if not rendered:
                 self._render_pass()
-
-    def _render_boundaries(self, parent: Diagram | Boundary) -> bool:
-        """
-        Render all nested boundaries inside `parent`.
-        """
-        for boundary in parent.boundaries:
-            self._render_boundary(boundary)
-            self._builder.add_blank_line()
-
-        if parent.boundaries:
-            self._builder.add_blank_line()
-
-        return bool(parent.boundaries)
 
     @contextmanager
     def _render_diagram_def(self, diagram: Diagram) -> Iterator[None]:
         """
         Render the outer `with Diagram(...):` block.
         """
-        need_variable = (
-            diagram.render_options and not diagram.render_options.is_empty
-        )
-
-        if need_variable:
-            self._builder.add(f"with {diagram!r} as diagram:")
-        else:
-            self._builder.add(f"with {diagram!r}:")
+        self._builder.add(f"with {diagram!r} as diagram:")
 
         with self._builder.indent():
             yield
@@ -201,22 +193,8 @@ class PythonCodegen:
 
         self._builder.add(f"{alias} = {element!r}")
 
-        if element.properties.properties:
+        if element.properties:
             self._render_properties(alias, element.properties)
-
-    def _render_elements(self, parent: Diagram | Boundary) -> bool:
-        """
-        Render all elements in `parent` in their original order.
-
-        Elements are emitted before relationships so aliases are defined.
-        """
-        for element in parent.elements:
-            self._render_element(element)
-
-        if parent.elements:
-            self._builder.add_blank_line()
-
-        return bool(parent.elements)
 
     def _render_imports(self, diagram: Diagram) -> None:
         """
@@ -226,43 +204,34 @@ class PythonCodegen:
         The import list is alphabetically sorted to keep output stable
         across runs.
         """
-        class_names = self._collect_class_names(diagram)
+        import_plan = self._build_import_plan(diagram)
 
         self._builder.add("from c4 import (")
 
-        for class_name in sorted(class_names):
+        for class_name in sorted(import_plan.c4_names):
             self._builder.add(f"    {class_name},")
 
         self._builder.add(")")
 
-        if diagram.render_options and not diagram.render_options.is_empty:
-            render_options_class_names = ["RenderOptions"]
+        for package, package_class_names in sorted(
+            import_plan.contrib_names.items()
+        ):
+            self._builder.add(f"from {package} import (")
 
-            if diagram.render_options.plantuml:  # pragma: no cover
-                render_options_class_names.append(
-                    "PlantUMLRenderOptionsBuilder"
-                )
+            for class_name in sorted(package_class_names):
+                self._builder.add(f"    {class_name},")
 
-            if diagram.render_options.mermaid:  # pragma: no cover
-                render_options_class_names.append("MermaidRenderOptionsBuilder")
+            self._builder.add(")")
 
-            self._builder.add("from c4.renderers import (")
-            for class_name in sorted(render_options_class_names):
+        if import_plan.renderer_names:
+            self._builder.add(f"from {_RENDERERS_PACKAGE} import (")
+            for class_name in sorted(import_plan.renderer_names):
                 self._builder.add(f"    {class_name},")
 
             self._builder.add(")")
 
         self._builder.add_blank_line(check_duplicates=False)
         self._builder.add_blank_line(check_duplicates=False)
-
-    def _render_layouts(self, diagram: Diagram) -> bool:
-        """
-        Render diagram layouts (if any) at the end of the diagram block.
-        """
-        for layout in diagram.layouts:
-            self._builder.add(f"{layout!r}")
-
-        return bool(diagram.layouts)
 
     def _render_plantuml_render_options(
         self,
@@ -321,12 +290,7 @@ class PythonCodegen:
             self._builder.add_blank_line(check_duplicates=True)
             attrs = [f"    {option}," for option in options_to_render]
             signature = "\n".join(attrs)
-            self._builder.add(
-                f"render_options = RenderOptions(\n{signature}\n)"
-            )
-
-            self._builder.add_blank_line(check_duplicates=False)
-            self._builder.add("diagram.render_options = render_options")
+            self._builder.add(f"diagram.set_render_options(\n{signature}\n)")
 
     def _render_properties(
         self,
@@ -375,7 +339,7 @@ class PythonCodegen:
         diagram = relationship.diagram
         from_, to_ = from_element.alias, to_element.alias
 
-        need_variable = bool(relationship.properties.properties)
+        need_variable = bool(relationship.properties)
 
         if need_variable:
             rel_variable = diagram.generate_alias(label=f"rel_{from_}_{to_}")
@@ -387,23 +351,32 @@ class PythonCodegen:
         else:
             self._builder.add(f"{from_} >> {relationship!r} >> {to_}")
 
-    def _render_relationships(self, parent: Diagram | Boundary) -> bool:
-        """
-        Render relationships for `parent` in their original order.
-        """
-        for relationship in parent.relationships:
-            self._render_relationship(relationship)
-
-        if parent.relationships:
-            self._builder.add_blank_line()
-
-        return bool(parent.relationships)
-
     def _render_pass(self) -> None:
         """
         Add `pass` statement.
         """
         self._builder.add("pass")
+
+    def _render_scope_item(self, item: BaseDiagramElement) -> None:
+        """Render one direct declaration item in a diagram or boundary scope."""
+        if isinstance(item, Boundary):
+            self._render_boundary(item)
+        elif isinstance(item, Element):
+            self._render_element(item)
+        elif isinstance(item, Relationship):
+            self._render_relationship(item)
+        else:
+            self._render_ordered_statement(item)
+
+        if not isinstance(item, Relationship):
+            self._builder.add_blank_line()
+
+    def _render_scope_items(self, parent: Diagram | Boundary) -> bool:
+        """Render direct children in definition order."""
+        for item in parent.ordered_elements:
+            self._render_scope_item(item)
+
+        return bool(parent.ordered_elements)
 
     def generate(
         self,
@@ -424,33 +397,30 @@ class PythonCodegen:
         self._render_imports(diagram)
 
         with self._render_diagram_def(diagram):
-            has_elements = (
-                self._render_elements(diagram),
-                self._render_boundaries(diagram),
-                self._render_relationships(diagram),
-                self._render_base_elements(diagram),
-                self._render_layouts(diagram),
-            )
+            rendered = self._render_scope_items(diagram)
 
-            if not any(has_elements):
+            if not rendered:
                 self._render_pass()
 
-        if diagram.render_options and not diagram.render_options.is_empty:
+        if diagram.render_options:
             self._set_diagram_render_options(diagram.render_options)
 
         return self._builder.get_result()
 
 
-def diagram_to_python_code(diagram: Diagram) -> str:
+def diagram_to_python_code(
+    diagram: Diagram, backend: RendererEnum | None = None
+) -> str:
     """
     Convenience helper to generate Python DSL from a diagram.
 
     Args:
         diagram: The diagram instance to serialize.
+        backend: Optional rendering backend type.
 
     Returns:
         Python code that recreates the given diagram.
     """
-    renderer = PythonCodegen()
+    renderer = PythonCodegen(backend)
 
     return renderer.generate(diagram)

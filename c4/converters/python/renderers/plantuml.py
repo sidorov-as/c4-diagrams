@@ -428,7 +428,7 @@ class PlantUMLRenderOptionsCodegen:
                 "line_thickness": tag.line_thickness,
                 "technology": tag.technology,
             }
-        elif isinstance(tag, (PersonTag, SystemTag)):
+        elif isinstance(tag, (BoundaryTag, NodeTag, PersonTag, SystemTag)):
             tag_kwargs = {
                 **element_kwargs,
                 "type_": getattr(tag, "type_", None),
@@ -464,6 +464,17 @@ class PlantUMLRenderOptionsCodegen:
                 drop_values={"", None},
                 keep=set(),
             )
+        elif isinstance(
+            style,
+            (
+                ContainerBoundaryStyle,
+                SystemBoundaryStyle,
+                EnterpriseBoundaryStyle,
+            ),
+        ):
+            kwargs = self._style_specific_boundary_kwargs(style)
+        elif isinstance(style, BoundaryStyle):
+            kwargs = self._style_boundary_kwargs(style)
         else:
             kwargs = self._style_element_kwargs(style)
 
@@ -493,6 +504,52 @@ class PlantUMLRenderOptionsCodegen:
             base,
             drop_values={"", None},
             keep={"element_name"},
+        )
+
+    def _style_boundary_kwargs(self, style: BoundaryStyle) -> dict[str, Any]:
+        return self._filtered_kwargs(
+            {
+                "element_name": style.element_name,
+                "bg_color": style.bg_color,
+                "font_color": style.font_color,
+                "border_color": style.border_color,
+                "shadowing": style.shadowing,
+                "shape": style.shape,
+                "type_": style.type_,
+                "sprite": style.sprite,
+                "legend_text": style.legend_text,
+                "legend_sprite": style.legend_sprite,
+                "border_style": style.border_style,
+                "border_thickness": style.border_thickness,
+            },
+            drop_values={"", None},
+            keep=set(),
+        )
+
+    def _style_specific_boundary_kwargs(
+        self,
+        style: (
+            ContainerBoundaryStyle
+            | SystemBoundaryStyle
+            | EnterpriseBoundaryStyle
+        ),
+    ) -> dict[str, Any]:
+        return self._filtered_kwargs(
+            {
+                "bg_color": style.bg_color,
+                "font_color": style.font_color,
+                "border_color": style.border_color,
+                "shadowing": style.shadowing,
+                "shape": style.shape,
+                "type_": style.type_,
+                "sprite": style.sprite,
+                "legend_text": style.legend_text,
+                "legend_sprite": style.legend_sprite,
+                "border_style": style.border_style,
+                "border_thickness": style.border_thickness,
+            },
+            drop_values={"", None},
+            keep=set(),
         )
 
     def _render_bool_calls(self, options: PlantUMLRenderOptions) -> list[str]:

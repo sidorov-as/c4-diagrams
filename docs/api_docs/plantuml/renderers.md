@@ -1,4 +1,4 @@
-# PlantUML rendering backends
+# PlantUML Rendering Backends
 
 ::: c4.renderers.plantuml.renderer.PlantUMLRenderer
     options:

@@ -1,3 +1,5 @@
+from typing import Literal
+
 from c4.compat import StrEnum
 
 
@@ -53,3 +55,18 @@ PY = DiagramConvertionFormat.PY
 
 class ConvertShortcut(StrEnum):
     JSON_TO_PY = "json_to_py"
+
+
+class ExtensionValidationMode(StrEnum):
+    """Renderer policy for backend extension validation."""
+
+    STRICT = "strict"
+    IGNORE_FOREIGN = "ignore_foreign"
+
+
+ExtensionValidationModeType = (
+    ExtensionValidationMode | Literal["strict", "ignore_foreign"]
+)
+
+STRICT = ExtensionValidationMode.STRICT
+IGNORE_FOREIGN = ExtensionValidationMode.IGNORE_FOREIGN

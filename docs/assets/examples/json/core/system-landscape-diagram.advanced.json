@@ -1,0 +1,71 @@
+{
+  "type": "SystemLandscapeDiagram",
+  "title": "Retail Platform",
+  "elements": [
+    {
+      "type": "Person",
+      "label": "Customer",
+      "alias": "customer",
+      "description": "Places orders through the storefront."
+    },
+    {
+      "type": "PersonExt",
+      "label": "Support Agent",
+      "alias": "support_agent",
+      "description": "Handles issues in an external CRM."
+    },
+    {
+      "type": "SystemExt",
+      "label": "Payment Gateway",
+      "alias": "payment_gateway",
+      "description": "Processes card payments."
+    },
+    {
+      "type": "SystemExt",
+      "label": "CRM Platform",
+      "alias": "crm_platform",
+      "description": "External CRM used by support agents."
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "EnterpriseBoundary",
+      "label": "Acme Corp",
+      "alias": "acme_enterprise",
+      "description": "Internal systems owned by Acme.",
+      "elements": [
+        {
+          "type": "System",
+          "label": "Retail Platform",
+          "alias": "retail_platform",
+          "description": "Core platform for catalog, checkout, and order management."
+        }
+      ],
+      "boundaries": [],
+      "relationships": []
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "retail_platform",
+      "label": "Browses and places orders",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "retail_platform",
+      "to": "payment_gateway",
+      "label": "Charges card",
+      "technology": "REST API"
+    },
+    {
+      "type": "REL",
+      "from": "support_agent",
+      "to": "crm_platform",
+      "label": "Manages customer issues",
+      "technology": "Web UI"
+    }
+  ]
+}

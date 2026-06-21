@@ -1,0 +1,33 @@
+C4Deployment
+title Online Shop - Production Deployment
+
+Person(customer, "Customer", "Uses the online shop through a browser.")
+
+Container_Ext(payment_gateway, "Payment Gateway", "HTTPS API", "External service that processes card payments.")
+
+Node(aws_prod, "AWS Production Account", "Production cloud account for the online shop.") {
+    Node(public_subnet, "Public Subnet", "Internet-facing network segment.") {
+        Deployment_Node(alb, "Application Load Balancer", "Terminates TLS and routes requests to the web tier.") {
+            Container(web_app, "Web Application", "Next.js", "Serves the storefront UI.")
+        }
+    }
+    Node(private_subnet, "Private Subnet", "Internal network segment for application and data services.") {
+        Deployment_Node(app_cluster, "Kubernetes Cluster", "Runs backend services and asynchronous workers.") {
+            Container(backend_api, "Backend API", "Python / FastAPI", "Handles catalog, checkout, and order processing.")
+            ContainerQueue(order_events, "Order Events", "Kafka", "Internal asynchronous event stream.")
+        }
+        Deployment_Node(db_service, "Managed PostgreSQL", "Managed relational database service.") {
+            ContainerDb(orders_db, "Orders Database", "PostgreSQL", "Stores orders, payments, and fulfillment data.")
+        }
+    }
+}
+
+Rel(customer, web_app, "Uses", "HTTPS")
+
+Rel(web_app, backend_api, "Routes traffic to", "HTTPS")
+
+Rel(backend_api, orders_db, "Reads and writes", "TLS / SQL")
+
+Rel(backend_api, payment_gateway, "Calls", "HTTPS/JSON")
+
+Rel(backend_api, order_events, "Publishes events to", "Kafka")

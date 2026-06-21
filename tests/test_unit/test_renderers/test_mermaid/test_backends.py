@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -173,6 +174,94 @@ def test_local_mermaid_backend__build_cmd(
         "--backgroundColor",
         "transparent",
     ]
+
+
+def test_local_mermaid_backend__build_cmd__puppeteer_config(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    mocker.patch.object(
+        LocalMermaidBackend,
+        "_resolve_backend",
+        autospec=True,
+        return_value=None,
+    )
+    config_path = tmp_path / "puppeteer.json"
+    backend = LocalMermaidBackend(
+        mermaid_bin="mmdc",
+        puppeteer_config=config_path,
+    )
+
+    result = backend._build_cmd(
+        input_path=Path("diagram.mmd"),
+        output_path=Path("diagram.svg"),
+    )
+
+    assert result == [
+        "mmdc",
+        "-i",
+        "diagram.mmd",
+        "-o",
+        "diagram.svg",
+        "-p",
+        str(config_path),
+    ]
+
+
+def test_local_mermaid_backend__build_cmd__puppeteer_headless(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    mocker.patch.object(
+        LocalMermaidBackend,
+        "_resolve_backend",
+        autospec=True,
+        return_value=None,
+    )
+    backend = LocalMermaidBackend(
+        mermaid_bin="mmdc",
+        puppeteer_headless=False,
+    )
+
+    result = backend._build_cmd(
+        input_path=tmp_path / "diagram.mmd",
+        output_path=tmp_path / "diagram.svg",
+    )
+
+    config_path = tmp_path / ".puppeteerrc.json"
+    assert result == [
+        "mmdc",
+        "-i",
+        str(tmp_path / "diagram.mmd"),
+        "-o",
+        str(tmp_path / "diagram.svg"),
+        "-p",
+        str(config_path),
+    ]
+    assert json.loads(config_path.read_text(encoding="utf-8")) == {
+        "headless": False
+    }
+
+
+def test_local_mermaid_backend__init__puppeteer_options_are_mutually_exclusive(
+    mocker: MockerFixture,
+):
+    mocker.patch.object(
+        LocalMermaidBackend,
+        "_resolve_backend",
+        autospec=True,
+        return_value=None,
+    )
+
+    with pytest.raises(
+        MermaidBackendConfigurationError,
+        match="mutually exclusive",
+    ):
+        LocalMermaidBackend(
+            mermaid_bin="mmdc",
+            puppeteer_config="puppeteer.json",
+            puppeteer_headless=True,
+        )
 
 
 def test_local_mermaid_backend__to_bytes__generated_file_content(

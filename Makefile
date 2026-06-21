@@ -19,12 +19,24 @@ check: ## Run code quality tools.
 .PHONY: format
 format: ## Run the Ruff formatter.
 	@echo "🚀 Running the Ruff formatter"
-	@uv run ruff format .
+	@uv run ruff format . --no-cache
 
 .PHONY: generate-diagram-specs
 generate-diagram-specs: ## Generate diagram specs.
 	@echo "🚀 Generate diagram specs"
 	@uv run python docs/scripts/generate_diagram_spec_docs.py
+
+.PHONY: generate-examples
+generate-examples: ## Generate docs examples from JSON sources.
+	@echo "🚀 Generate docs examples"
+	@uv run python docs/scripts/generate_examples.py --all
+
+.PHONY: generate-docs-artifacts
+generate-docs-artifacts: generate-examples ## Generate all checked-in docs artifacts.
+
+.PHONY: check-docs-artifacts
+check-docs-artifacts: generate-docs-artifacts ## Check generated docs artifacts are up to date.
+	@git diff --exit-code -- docs/assets/examples docs/assets/specs docs/converters/json/specs
 
 .PHONY: test
 test: ## Test the code with pytest

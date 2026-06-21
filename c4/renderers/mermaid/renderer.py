@@ -15,17 +15,21 @@ from c4 import (
     SystemLandscapeDiagram,
 )
 from c4.diagrams.core import (
+    BaseDiagramElement,
     Boundary,
     Diagram,
     Element,
-    Layout,
     Relationship,
-    _TDiagram,
-    increment,
-    set_index,
+    TDiagram,
 )
+from c4.enums import RendererEnum
 from c4.exceptions import MermaidBackendConfigurationError
-from c4.renderers.base import BaseRenderer, IndentedStringBuilder
+from c4.renderers.base import (
+    IGNORE_FOREIGN,
+    BaseRenderer,
+    ExtensionValidationModeType,
+    IndentedStringBuilder,
+)
 from c4.renderers.macros import BaseMacro
 from c4.renderers.mermaid.backends import BaseMermaidBackend
 from c4.renderers.mermaid.macros import (
@@ -40,6 +44,7 @@ from c4.renderers.mermaid.options import (
     MermaidRenderOptions,
     RelStyle,
 )
+from c4.renderers.mermaid.validation import validate_mermaid_diagram
 
 DIAGRAM_TYPE_TO_MERMAID_DEFINITION_MAP: dict[type[Diagram], str] = {
     SystemContextDiagram: "C4Context",
@@ -91,13 +96,16 @@ class MermaidRenderOptionsRenderer:
         return builder.get_result()
 
 
-class MermaidRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
+class MermaidRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
     """A renderer for converting a Diagram object into Mermaid syntax."""
+
+    renderer_type: RendererEnum = RendererEnum.MERMAID
 
     def __init__(
         self,
         render_options: MermaidRenderOptions | None = None,
         backend: BaseMermaidBackend | None = None,
+        extension_validation_mode: ExtensionValidationModeType = IGNORE_FOREIGN,
     ) -> None:
         """
         Initialize the renderer.
@@ -106,28 +114,16 @@ class MermaidRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
             render_options: Render options that controls
                 diagram rendering behavior, such as direction,
                 spacing, and group alignment.
+            backend: Optional Mermaid backend used for image rendering.
+            extension_validation_mode: Policy for foreign backend extensions.
         """
+        super().__init__(extension_validation_mode=extension_validation_mode)
         self._render_options = render_options or MermaidRenderOptions()
 
         self._builder = IndentedStringBuilder()
         self._mermaid_backend = backend
 
-    def _render_base_elements(self, diagram: _TDiagram) -> None:
-        for idx, element in enumerate(diagram.base_elements, start=1):
-            if isinstance(element, Relationship):
-                macro = RelationshipMermaidMacro(element)
-            elif isinstance(element, (increment, set_index)):
-                # Not supported: https://mermaid.js.org/syntax/c4.html
-                continue
-            else:  # pragma: no cover
-                raise TypeError(f"Unsupported element {element!r}.")
-
-            self._builder.add(
-                macro.render(),
-                blank_line_after=idx == len(diagram.base_elements),
-            )
-
-    def _render_header(self, diagram: _TDiagram) -> None:
+    def _render_header(self, diagram: TDiagram) -> None:
         diagram_type = type(diagram)
 
         diagram_def = DIAGRAM_TYPE_TO_MERMAID_DEFINITION_MAP[diagram_type]
@@ -151,7 +147,7 @@ class MermaidRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         builder.add(element_macro + " {")
 
         with builder.indent() as level:
-            for element in boundary.ordered_elements:
+            for element in self.iter_boundary_render_items(boundary):
                 if isinstance(element, Boundary):
                     builder.add(
                         self._render_boundary(element, depth=level),
@@ -164,8 +160,6 @@ class MermaidRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
                 else:  # pragma: no cover
                     raise TypeError(f"Unsupported element {element!r}")
 
-                self._builder.add_blank_line()
-
         builder.add("}")
 
         return builder.get_result()
@@ -175,25 +169,21 @@ class MermaidRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
         return macro.render()
 
-    def _render_elements(self, diagram: _TDiagram) -> None:
-        for element in diagram.ordered_elements:
-            if element in diagram.base_elements:
-                # base elements are rendered separately
-                continue
+    def _render_item(self, element: BaseDiagramElement) -> None:
+        if isinstance(element, Boundary):
+            self._builder.add(self._render_boundary(element))
+        elif isinstance(element, Element):
+            self._builder.add(self._render_element(element))
+        elif isinstance(element, Relationship):
+            self._builder.add(self._render_relationship(element))
+        else:  # pragma: no cover
+            raise TypeError(f"Unsupported element {element!r}")
 
-            if isinstance(element, Boundary):
-                self._builder.add(self._render_boundary(element))
-            elif isinstance(element, Element):
-                self._builder.add(self._render_element(element))
-            elif isinstance(element, Relationship):
-                self._builder.add(self._render_relationship(element))
-            elif isinstance(element, Layout):
-                # Layouts are not supported: https://mermaid.js.org/syntax/c4.html
-                continue
-            else:  # pragma: no cover
-                raise TypeError(f"Unsupported element {element!r}")
+        self._builder.add_blank_line()
 
-            self._builder.add_blank_line()
+    def _render_body(self, diagram: TDiagram) -> None:
+        for element in self.iter_render_items(diagram):
+            self._render_item(element)
 
     def _render_footer(self, render_options: MermaidRenderOptions) -> None:
         render_options_renderer = MermaidRenderOptionsRenderer(
@@ -205,7 +195,16 @@ class MermaidRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         self._builder.add(footer, blank_line_after=True)
 
     @override
-    def render(self, diagram: _TDiagram) -> str:
+    def validate(self, diagram: TDiagram) -> None:
+        """Validate Mermaid-specific rendering constraints."""
+        validate_mermaid_diagram(
+            diagram,
+            renderer_name=self.__class__.__name__,
+            extension_validation_mode=self._extension_validation_mode,
+        )
+
+    @override
+    def render(self, diagram: TDiagram) -> str:
         """
         Render the given Diagram into Mermaid format.
 
@@ -219,18 +218,18 @@ class MermaidRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
         if diagram.render_options and diagram.render_options.mermaid:
             render_options = diagram.render_options.mermaid
 
+        self.validate(diagram)
         self._builder.reset()
 
         self._render_header(diagram)
-        self._render_elements(diagram)
-        self._render_base_elements(diagram)
+        self._render_body(diagram)
         self._render_footer(render_options)
 
         return self._builder.get_result()
 
     def render_bytes(
         self,
-        diagram: _TDiagram,
+        diagram: TDiagram,
         *,
         format: DiagramFormat,
     ) -> bytes:
@@ -266,7 +265,7 @@ class MermaidRenderer(BaseRenderer[_TDiagram], Generic[_TDiagram]):
 
     def render_file(
         self,
-        diagram: _TDiagram,
+        diagram: TDiagram,
         output_path: str | Path,
         *,
         format: DiagramFormat,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Generic, cast
+from typing import Any, ClassVar, Generic, Literal, cast
 
 from pydantic import BaseModel, Field
 
@@ -10,18 +10,10 @@ from c4.converters.json.schemas.base import (
     TDiagramElement,
     TypeDiagramElement,
 )
-from c4.converters.json.schemas.renderers.mermaid import (
-    MermaidRenderOptionsSchema,
-)
-from c4.converters.json.schemas.renderers.plantuml import (
-    PlantUMLRenderOptionsSchema,
-)
 from c4.diagrams.core import (
     DEFAULT_PROPERTIES_HEADER,
     BaseDiagramElement,
     Diagram,
-    Layout,
-    LayoutType,
     Relationship,
     RelationshipType,
 )
@@ -32,7 +24,9 @@ TypeDiagram = type[Diagram]
 _DEFAULT_PROPERTIES_HEADER_LIST = list(DEFAULT_PROPERTIES_HEADER)
 
 
-class DiagramElementPropertiesSchema(BaseModel, JSONSchemaMixin):
+class DiagramElementPropertiesSchema(JSONSchemaMixin, BaseModel):
+    """JSON schema for tabular diagram element properties."""
+
     show_header: bool = Field(
         True,
         description="Whether to display the header row.",
@@ -49,15 +43,19 @@ class DiagramElementPropertiesSchema(BaseModel, JSONSchemaMixin):
 
     @property
     def is_default_header(self) -> bool:
+        """Return whether the property table uses the default header."""
         return self.header == _DEFAULT_PROPERTIES_HEADER_LIST
 
 
 class PropertiesMixin:
+    """Mixin that applies property table metadata to diagram elements."""
+
     def _add_properties(
         self,
         element: BaseDiagramElement,
         properties: DiagramElementPropertiesSchema,
     ) -> None:
+        """Apply schema property metadata to a diagram element."""
         if not properties.show_header:
             element.without_property_header()
         elif properties.header and not properties.is_default_header:
@@ -67,24 +65,9 @@ class PropertiesMixin:
             element.add_property(*props)
 
 
-class WithType:
-    type_: str | None = Field(
-        None,
-        description="Optional custom type/stereotype label.",
-        alias="stereotype",
-    )
-
-
-class WithBaseShape:
-    base_shape: str | None = Field(
-        None,
-        description=(
-            "Optional base shape override (supported by some element classes)."
-        ),
-    )
-
-
 class WithTechnology:
+    """Mixin for schema items that carry an optional technology label."""
+
     technology: str | None = Field(
         None,
         description="Optional technology.",
@@ -92,6 +75,8 @@ class WithTechnology:
 
 
 class ElementBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
+    """Base JSON schema for C4 elements with labels, aliases, and properties."""
+
     type: str = Field(
         ..., description="Discriminator identifying the element type."
     )
@@ -100,19 +85,6 @@ class ElementBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
     )
     description: str | None = Field(
         None, description="Optional description text."
-    )
-    sprite: str | None = Field(
-        None, description="Optional sprite/icon reference."
-    )
-    tags: list[str] = Field(
-        default_factory=list,
-        description=(
-            "Optional tags for grouping/styling. "
-            "These tags can be referenced by `tag_stereo` in tag definitions."
-        ),
-    )
-    link: str | None = Field(
-        None, description="Optional URL associated with the element."
     )
     alias: str | None = Field(
         None,
@@ -144,7 +116,9 @@ class RelationshipSchema(BaseSchemaItem[Relationship], PropertiesMixin):
     diagram component.
     """
 
-    type: RelationshipType = Field(..., description="Type of the relationship.")
+    type: Literal[RelationshipType.REL.value] = Field(  # type: ignore[name-defined]
+        ..., description="Type of the relationship."
+    )
     from_: str = Field(
         ...,
         min_length=1,
@@ -164,25 +138,15 @@ class RelationshipSchema(BaseSchemaItem[Relationship], PropertiesMixin):
         None,
         description="The technology used in the communication.",
     )
-    sprite: str | None = Field(
-        None, description="Optional sprite/icon to represent the relationship."
-    )
-    tags: list[str] = Field(
-        default_factory=list,
-        description=(
-            "Optional tags for grouping/styling. "
-            "These tags can be referenced by `tag_stereo` in tag definitions."
-        ),
-    )
-    link: str | None = Field(
-        None, description="Optional URL link associated with the relationship."
-    )
     properties: DiagramElementPropertiesSchema | None = Field(
         None, description="Optional property table metadata."
     )
 
     def _get_diagram_element_class(self) -> TypeDiagramElement | None:
-        return Relationship.get_relationship_by_type(self.type)
+        """Return the core relationship element class for this schema."""
+        return Relationship.get_relationship_by_type(
+            RelationshipType(self.type)
+        )
 
     def to_diagram_element(self, **overrides: Any) -> BaseDiagramElement:
         """
@@ -197,62 +161,24 @@ class RelationshipSchema(BaseSchemaItem[Relationship], PropertiesMixin):
         return cast(BaseDiagramElement, element)
 
 
-class LayoutSchema(BaseSchemaItem[Layout]):
-    """
-    This schema describes the [`Layout`][c4.diagrams.core.Layout]
-    diagram component.
-    """
-
-    type: LayoutType = Field(..., description="Type of the layout.")
-    from_: str = Field(
-        ...,
-        min_length=1,
-        description="The source element alias (or unique label).",
-        alias="from",
-    )
-    to: str = Field(
-        ...,
-        min_length=1,
-        description="The destination element alias (or unique label).",
-    )
-
-    def _get_diagram_element_class(self) -> TypeDiagramElement | None:
-        return Layout.get_layout_by_type(self.type)
-
-
-class RenderOptionsSchema(BaseSchemaItem):
-    """
-    This schema describes the
-    [`RenderOptions`][c4.renderers.common.RenderOptions]
-    diagram component.
-    """
-
-    plantuml: PlantUMLRenderOptionsSchema | None = Field(
-        None, description="PlantUML-specific render options."
-    )
-    mermaid: MermaidRenderOptionsSchema | None = Field(
-        None, description="Mermaid-specific render options."
-    )
-
-
 class BaseDiagramSchema(BaseSchemaItem):
+    """Base JSON schema for C4 diagrams."""
+
     type: str = Field(
         ...,
     )
     title: str | None = Field(None, description="Optional diagram title.")
-    layouts: list[LayoutSchema] = Field(
-        default_factory=list,
-        description="Relative layout constraints between elements.",
-    )
-
-    render_options: RenderOptionsSchema | None = Field(
-        None, description="Optional renderer-specific options"
-    )
 
     __diagram_class__: ClassVar[TypeDiagram] = Diagram
 
+    def to_diagram(self) -> Diagram:
+        """Instantiate the diagram represented by this schema."""
+        return self.__diagram_class__(title=self.title)
+
 
 class BoundaryBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
+    """Base JSON schema for C4 boundaries."""
+
     type: str = Field(
         ..., description="Discriminator identifying the element type."
     )
@@ -261,16 +187,6 @@ class BoundaryBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
     )
     description: str | None = Field(
         None, description="Optional description text."
-    )
-    tags: list[str] = Field(
-        default_factory=list,
-        description=(
-            "Optional tags for grouping/styling. "
-            "These tags can be referenced by `tag_stereo` in tag definitions."
-        ),
-    )
-    link: str | None = Field(
-        None, description="Optional URL associated with the element."
     )
     alias: str | None = Field(
         None,
@@ -284,6 +200,7 @@ class BoundaryBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
     )
 
     def _to_diagram_element_kwargs(self) -> dict[str, Any]:
+        """Return constructor kwargs for the target boundary element."""
         kwargs = self.model_dump(
             mode="python",
             exclude={
@@ -305,6 +222,8 @@ class BoundaryBase(BaseSchemaItem, PropertiesMixin, Generic[TDiagramElement]):
 
 
 class WithBoundaryRelationship:
+    """Mixin for boundary schemas that can contain relationships."""
+
     relationships: list[RelationshipSchema] = Field(
         default_factory=list,
         description="Relationships declared inside the boundary.",

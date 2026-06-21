@@ -1,0 +1,20 @@
+C4Dynamic
+title Order Fulfillment Flow
+
+Person(customer, "Customer", "Places orders in the online store.")
+
+System(online_store, "Online Store", "Customer-facing commerce platform.")
+
+System_Ext(payment_gateway, "Payment Gateway", "External provider that authorizes card payments.")
+
+System_Ext(warehouse_system, "Warehouse System", "External warehouse platform that reserves and ships items.")
+
+Rel(customer, online_store, "Places order", "HTTPS")
+
+Rel(online_store, payment_gateway, "Authorizes payment", "REST API")
+
+Rel(payment_gateway, online_store, "Returns authorization result", "HTTPS")
+
+Rel(online_store, warehouse_system, "Sends fulfillment request", "AMQP")
+
+Rel(warehouse_system, online_store, "Confirms reservation", "AMQP")

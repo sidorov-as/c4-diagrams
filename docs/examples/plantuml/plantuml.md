@@ -10,7 +10,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/plantuml/system-context-diagram.json"
+    --8<-- "assets/examples/json/plantuml/system-context-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"
@@ -37,7 +37,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/plantuml/component-diagram.json"
+    --8<-- "assets/examples/json/plantuml/component-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"
@@ -64,7 +64,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/plantuml/container-diagram.json"
+    --8<-- "assets/examples/json/plantuml/container-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"
@@ -91,7 +91,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/plantuml/dynamic-diagram.json"
+    --8<-- "assets/examples/json/plantuml/dynamic-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"
@@ -118,7 +118,7 @@
 ??? abstract "JSON diagram"
 
     ```json
-    --8<-- "assets/examples/plantuml/deployment-diagram.json"
+    --8<-- "assets/examples/json/plantuml/deployment-diagram.json"
     ```
 
 ??? abstract "Converted Python diagram"

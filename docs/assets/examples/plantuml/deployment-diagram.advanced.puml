@@ -1,0 +1,38 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Deployment.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+!endif
+
+title Online Shop - Production Deployment
+
+Person(customer, "Customer", "Uses the online shop through a browser.", $tags="")
+
+Container_Ext(payment_gateway, "Payment Gateway", "HTTPS API", "External service that processes card payments.", $tags="")
+
+Node(aws_prod, "AWS Production Account", $descr="Production cloud account for the online shop.") {
+    Node(public_subnet, "Public Subnet", $descr="Internet-facing network segment.") {
+        Deployment_Node(alb, "Application Load Balancer", $descr="Terminates TLS and routes requests to the web tier.") {
+            Container(web_app, "Web Application", "Next.js", "Serves the storefront UI.", $tags="")
+        }
+    }
+    Node(private_subnet, "Private Subnet", $descr="Internal network segment for application and data services.") {
+        Deployment_Node(app_cluster, "Kubernetes Cluster", $descr="Runs backend services and asynchronous workers.") {
+            Container(backend_api, "Backend API", "Python / FastAPI", "Handles catalog, checkout, and order processing.", $tags="")
+            ContainerQueue(order_events, "Order Events", "Kafka", "Internal asynchronous event stream.", $tags="")
+        }
+        Deployment_Node(db_service, "Managed PostgreSQL", $descr="Managed relational database service.") {
+            ContainerDb(orders_db, "Orders Database", "PostgreSQL", "Stores orders, payments, and fulfillment data.", $tags="")
+        }
+    }
+}
+
+Rel(customer, alb, "Uses", "HTTPS", $tags="")
+Rel(alb, app_cluster, "Routes traffic to", "HTTPS", $tags="")
+Rel(app_cluster, db_service, "Reads and writes", "TLS / SQL", $tags="")
+Rel(app_cluster, payment_gateway, "Calls", "HTTPS/JSON", $tags="")
+Rel(backend_api, order_events, "Publishes events to", "Kafka", $tags="")
+
+@enduml

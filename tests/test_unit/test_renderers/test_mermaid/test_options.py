@@ -1,5 +1,6 @@
 import pytest
 
+from c4 import Person, System, SystemContextDiagram
 from c4.renderers.mermaid import MermaidRenderOptionsBuilder
 from c4.renderers.mermaid.options import (
     ElementStyle,
@@ -110,6 +111,30 @@ def test_render_options_update_element_style_sets_values(
 
     assert result is options_builder
     assert cfg.styles == [expected_style]
+
+
+def test_render_options_update_element_style_accepts_element(
+    options_builder: MermaidRenderOptionsBuilder,
+) -> None:
+    with SystemContextDiagram():
+        system = System("System", alias="system")
+
+    result = options_builder.update_element_style(
+        system,
+        bg_color="#ffffff",
+    )
+
+    cfg = options_builder.build()
+
+    assert result is options_builder
+    assert cfg.styles == [
+        ElementStyle(
+            element="system",
+            bg_color="#ffffff",
+            font_color=None,
+            border_color=None,
+        )
+    ]
 
 
 def test_render_options_update_rel_style_adds_style(
@@ -237,6 +262,34 @@ def test_render_options_update_rel_style_sets_values(
 
     assert result is options_builder
     assert cfg.styles == [expected_style]
+
+
+def test_render_options_update_rel_style_accepts_elements(
+    options_builder: MermaidRenderOptionsBuilder,
+) -> None:
+    with SystemContextDiagram():
+        person = Person("Person", alias="person")
+        system = System("System", alias="system")
+
+    result = options_builder.update_rel_style(
+        person,
+        system,
+        line_color="#222222",
+    )
+
+    cfg = options_builder.build()
+
+    assert result is options_builder
+    assert cfg.styles == [
+        RelStyle(
+            from_element="person",
+            to_element="system",
+            text_color=None,
+            line_color="#222222",
+            offset_x=None,
+            offset_y=None,
+        )
+    ]
 
 
 @pytest.mark.parametrize(

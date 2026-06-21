@@ -11,7 +11,9 @@ Container_Boundary(b, "API Application") {
 }
 
 Rel(c1, c2, "Submits credentials to", "JSON/HTTPS")
+
 Rel(c2, c3, "Calls isAuthenticated() on")
+
 Rel(c3, c4, "select * from users where username = ?", "JDBC")
 
 UpdateRelStyle(c1, c2, $textColor="red", $offsetY="-40")

@@ -1,0 +1,30 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Component.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!endif
+
+title Checkout API - Components
+
+Container(web_app, "Web Application", "React", "Starts checkout from the storefront.")
+
+System_Ext(payment_provider, "Payment Provider", "Authorizes and captures card payments.")
+
+Container_Boundary(checkout_api, "Checkout API", $descr="Components that coordinate checkout.") {
+    Component(controller, "Checkout Controller", "FastAPI", "Receives checkout requests.")
+    Component(checkout_service, "Checkout Service", "Python", "Validates carts and creates orders.")
+    Component(payment_adapter, "Payment Adapter", "Python", "Wraps payment provider calls.")
+    ComponentDb(order_store, "Order Store", "PostgreSQL", "Persists checkout and order records.")
+    ComponentQueue(event_publisher, "Event Publisher", "Kafka", "Publishes order-created events.")
+}
+
+Rel(web_app, controller, "Submits checkout to", "HTTPS/JSON")
+Rel(controller, checkout_service, "Delegates to", "Python call")
+Rel(checkout_service, payment_adapter, "Authorizes payment through", "Python call")
+Rel(payment_adapter, payment_provider, "Calls", "HTTPS/JSON")
+Rel(checkout_service, order_store, "Stores order in", "SQL")
+Rel(checkout_service, event_publisher, "Publishes event with", "Kafka")
+
+@enduml

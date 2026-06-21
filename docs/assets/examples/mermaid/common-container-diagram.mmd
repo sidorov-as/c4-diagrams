@@ -1,0 +1,23 @@
+C4Container
+title Retail Platform - Containers
+
+Person(customer, "Customer", "Browses products and places orders.")
+
+System_Ext(payment_provider, "Payment Provider", "Processes card payments.")
+
+System_Boundary(retail_platform, "Retail Platform", "Customer-facing commerce platform.") {
+    Container(web_app, "Web Application", "React", "Serves storefront and checkout screens.")
+    Container(api, "Backend API", "Python / FastAPI", "Handles catalog, cart, checkout, and order APIs.")
+    ContainerDb(database, "Orders Database", "PostgreSQL", "Stores orders, payments, and fulfillment status.")
+    ContainerQueue(events, "Order Events", "Kafka", "Publishes order lifecycle events.")
+}
+
+Rel(customer, web_app, "Uses", "HTTPS")
+
+Rel(web_app, api, "Calls", "HTTPS/JSON")
+
+Rel(api, database, "Reads and writes", "SQL")
+
+Rel(api, events, "Publishes events to", "Kafka")
+
+Rel(api, payment_provider, "Creates payment intents with", "HTTPS")

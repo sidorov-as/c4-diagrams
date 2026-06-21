@@ -1,0 +1,100 @@
+{
+  "backend": "plantuml",
+  "type": "ComponentDiagram",
+  "title": "Order Processing API - Component Diagram",
+  "elements": [
+    {
+      "type": "Component",
+      "label": "Order Controller",
+      "alias": "order_controller",
+      "description": "HTTP entrypoint for order submission and status queries.",
+      "technology": "FastAPI"
+    },
+    {
+      "type": "Component",
+      "label": "Order Application Service",
+      "alias": "order_app_service",
+      "description": "Coordinates validation, payment, and order creation.",
+      "technology": "Python"
+    },
+    {
+      "type": "Component",
+      "label": "Inventory Checker",
+      "alias": "inventory_checker",
+      "description": "Verifies stock availability before an order is confirmed.",
+      "technology": "Python"
+    },
+    {
+      "type": "Component",
+      "label": "Payment Adapter",
+      "alias": "payment_adapter",
+      "description": "Wraps external payment provider calls.",
+      "technology": "Python"
+    },
+    {
+      "type": "ComponentDb",
+      "label": "Order Database",
+      "alias": "order_db",
+      "description": "Stores orders, line items, and order status history.",
+      "technology": "PostgreSQL"
+    },
+    {
+      "type": "ComponentExt",
+      "label": "Payment Gateway API",
+      "alias": "payment_gateway_api",
+      "description": "External provider API for payment authorization and capture.",
+      "technology": "REST API"
+    },
+    {
+      "type": "ComponentQueue",
+      "label": "Order Events Bus",
+      "alias": "order_events_bus",
+      "description": "Publishes order-created and order-paid events.",
+      "technology": "Kafka"
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "order_controller",
+      "to": "order_app_service",
+      "label": "Invokes",
+      "technology": "Python call"
+    },
+    {
+      "type": "REL",
+      "from": "order_app_service",
+      "to": "inventory_checker",
+      "label": "Checks stock via",
+      "technology": "Python call"
+    },
+    {
+      "type": "REL",
+      "from": "order_app_service",
+      "to": "payment_adapter",
+      "label": "Requests payment through",
+      "technology": "Python call"
+    },
+    {
+      "type": "REL",
+      "from": "payment_adapter",
+      "to": "payment_gateway_api",
+      "label": "Authorizes payment via",
+      "technology": "HTTPS/JSON"
+    },
+    {
+      "type": "REL",
+      "from": "order_app_service",
+      "to": "order_db",
+      "label": "Reads and writes",
+      "technology": "SQL"
+    },
+    {
+      "type": "REL",
+      "from": "order_app_service",
+      "to": "order_events_bus",
+      "label": "Publishes events to",
+      "technology": "Kafka"
+    }
+  ]
+}

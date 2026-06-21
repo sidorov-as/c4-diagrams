@@ -754,16 +754,17 @@ def test_render_unknown_renderer(
 ):
     module_path = make_tmp_py_file("module.py")
     module_path.unlink()
-    expected_error = (
-        "c4 render: error: argument --renderer: invalid choice: 'unknown' "
-        "(choose from plantuml, mermaid)"
-    )
 
     result = cli(["render", str(module_path), "--renderer", "unknown"])
 
     assert result.exit_code == 2
     assert not result.stdout
-    assert expected_error in result.stderr
+    assert (
+        "c4 render: error: argument --renderer: invalid choice: 'unknown'"
+        in result.stderr
+    )
+    assert "plantuml" in result.stderr
+    assert "mermaid" in result.stderr
 
 
 def test_render_mutually_exclusive_renderers(

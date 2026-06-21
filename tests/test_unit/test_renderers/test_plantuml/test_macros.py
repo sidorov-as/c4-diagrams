@@ -20,12 +20,8 @@ from c4 import (
     ContainerQueue,
     ContainerQueueExt,
     DeploymentNode,
-    DeploymentNodeLeft,
-    DeploymentNodeRight,
     EnterpriseBoundary,
     Node,
-    NodeLeft,
-    NodeRight,
     Person,
     PersonExt,
     System,
@@ -36,11 +32,10 @@ from c4 import (
     SystemQueue,
     SystemQueueExt,
 )
-from c4.diagrams.core import (
-    Boundary,
-    DiagramElementProperties,
-    Element,
-    ElementWithTechnology,
+from c4.contrib.c4_macros import NodeLeft, NodeRight
+from c4.contrib.plantuml import (
+    DeploymentNodeLeft,
+    DeploymentNodeRight,
     Index,
     LayD,
     LayDown,
@@ -51,26 +46,20 @@ from c4.diagrams.core import (
     LayRight,
     LayU,
     LayUp,
-    Relationship,
-    RelationshipType,
     increment,
     set_index,
+)
+from c4.diagrams.core import (
+    Boundary,
+    DiagramElementProperties,
+    Element,
+    ElementWithTechnology,
+    Relationship,
+    RelationshipType,
 )
 from c4.renderers.plantuml.macros import (
     ELEMENT_TO_PLANTUML_MACRO_MAP,
     RELATIONSHIP_TO_PLANTUML_MACRO_MAP,
-    AddBoundaryTagPlantUMLMacro,
-    AddComponentTagPlantUMLMacro,
-    AddContainerTagPlantUMLMacro,
-    AddElementTagPlantUMLMacro,
-    AddExternalComponentTagPlantUMLMacro,
-    AddExternalContainerTagPlantUMLMacro,
-    AddExternalPersonTagPlantUMLMacro,
-    AddExternalSystemTagPlantUMLMacro,
-    AddNodeTagPlantUMLMacro,
-    AddPersonTagPlantUMLMacro,
-    AddRelTagPlantUMLMacro,
-    AddSystemTagPlantUMLMacro,
     BoundaryPlantUMLMacro,
     ComponentPlantUMLMacro,
     ContainerPlantUMLMacro,
@@ -93,45 +82,21 @@ from c4.renderers.plantuml.macros import (
     ShowLegendPlantUMLMacro,
     ShowPersonOutlinePlantUMLMacro,
     ShowPersonSpritePlantUMLMacro,
-    StylePlantUMLMacro,
     SystemPlantUMLMacro,
-    TagPlantUMLMacro,
-    UpdateBoundaryStylePlantUMLMacro,
-    UpdateContainerBoundaryStylePlantUMLMacro,
-    UpdateElementStylePlantUMLMacro,
-    UpdateEnterpriseBoundaryStylePlantUMLMacro,
     UpdateLegendTitlePlantUMLMacro,
-    UpdateRelStylePlantUMLMacro,
-    UpdateSystemBoundaryStylePlantUMLMacro,
     WithoutPropertyHeaderPlantUMLMacro,
 )
 from c4.renderers.plantuml.options import (
-    BaseStyle,
-    BaseTag,
-    BoundaryStyle,
-    BoundaryTag,
-    ComponentTag,
-    ContainerBoundaryStyle,
-    ContainerTag,
     DiagramLayout,
-    ElementStyle,
-    ElementTag,
-    EnterpriseBoundaryStyle,
-    ExternalComponentTag,
-    ExternalContainerTag,
-    ExternalPersonTag,
-    ExternalSystemTag,
-    NodeTag,
-    PersonTag,
-    RelStyle,
-    RelTag,
     SetSketchStyle,
     ShowFloatingLegend,
     ShowLegend,
     ShowPersonSprite,
-    SystemBoundaryStyle,
-    SystemTag,
 )
+
+
+def plantuml_extensions(**kwargs: Any) -> dict[str, dict[str, Any]]:
+    return {"plantuml": kwargs}
 
 
 @pytest.mark.usefixtures("diagram")
@@ -370,29 +335,39 @@ def test_element_plantuml_macro_get_data(
     set_current_diagram: Callable[[type[Element]], ...],
 ):
     set_current_diagram(element_class)
+    plantuml_kwargs = {
+        "sprite": "$foo1",
+        "tags": ["foo", "bar"],
+        "link": "https://example.com",
+    }
+    if "type_" in override_kwargs:
+        plantuml_kwargs["type"] = override_kwargs["type_"]
+
     kwargs = {
         "alias": "element1",
         "label": "Element",
         "description": "An element",
-        "sprite": "$foo1",
-        "tags": ["foo", "bar"],
-        "link": "https://example.com",
-        **override_kwargs,
+        "extensions": plantuml_extensions(**plantuml_kwargs),
+        **{
+            key: value
+            for key, value in override_kwargs.items()
+            if key != "type_"
+        },
     }
     element = element_class(**kwargs)
     macro = ElementPlantUMLMacro(element)
     expected_kwargs = {
-        **{
-            key: value
-            for key, value in kwargs.items()
-            if key not in ("type_", "technology")
-        },
-        "type": kwargs.get("type_"),
+        "alias": kwargs["alias"],
+        "label": kwargs["label"],
+        "description": kwargs["description"],
+        **plantuml_kwargs,
         "technology": kwargs.get("technology"),
-        "base_shape": None,
     }
+    result = macro.get_data()
+    if "base_shape" in result:
+        expected_kwargs["base_shape"] = None
 
-    assert macro.get_data() == expected_kwargs
+    assert result == expected_kwargs
 
 
 @pytest.mark.parametrize(
@@ -452,9 +427,11 @@ def test_element_with_technology_plantuml_macro_get_data():
         "label": "Element",
         "description": "An element",
         "technology": "tech",
-        "sprite": "$foo1",
-        "tags": ["foo", "bar"],
-        "link": "https://example.com",
+        "extensions": plantuml_extensions(
+            sprite="$foo1",
+            tags=["foo", "bar"],
+            link="https://example.com",
+        ),
     }
     element = ElementWithTechnology(**kwargs)
     macro = ElementWithTechnologyPlantUMLMacro(element)
@@ -465,9 +442,7 @@ def test_element_with_technology_plantuml_macro_get_data():
         "sprite": "$foo1",
         "tags": ["foo", "bar"],
         "link": "https://example.com",
-        "type": None,
         "technology": "tech",
-        "base_shape": None,
     }
 
     assert macro.get_data() == expected_kwargs
@@ -510,10 +485,12 @@ def test_element_plantuml_macro_render(
         "alias": "element1",
         "label": "Element",
         "description": "An element",
-        "sprite": "$spriteValue",
-        "tags": ["foo", "bar"],
-        "link": "https://example.com",
-        "type_": "stereotype",
+        "extensions": plantuml_extensions(
+            sprite="$spriteValue",
+            tags=["foo", "bar"],
+            link="https://example.com",
+            type="stereotype",
+        ),
     }
     element = element_class(**kwargs)
     macro = ElementPlantUMLMacro(element)
@@ -558,9 +535,11 @@ def test_element_with_technology_plantuml_macro_render(
         "label": "Element",
         "description": "An element",
         "technology": "tech",
-        "sprite": "$spriteValue",
-        "tags": ["foo", "bar"],
-        "link": "https://example.com",
+        "extensions": plantuml_extensions(
+            sprite="$spriteValue",
+            tags=["foo", "bar"],
+            link="https://example.com",
+        ),
     }
     element = element_class(**kwargs)
     macro = ElementWithTechnologyPlantUMLMacro(element)
@@ -602,11 +581,13 @@ def test_system_plantuml_macro_render(
         "alias": "element1",
         "label": "Element",
         "description": "An element",
-        "sprite": "$spriteValue",
-        "tags": ["foo", "bar"],
-        "link": "https://example.com",
-        "type_": "stereotype",
-        "base_shape": "rectangle",
+        "extensions": plantuml_extensions(
+            sprite="$spriteValue",
+            tags=["foo", "bar"],
+            link="https://example.com",
+            type="stereotype",
+            base_shape="rectangle",
+        ),
     }
     element = element_class(**kwargs)
     macro = SystemPlantUMLMacro(element)
@@ -633,7 +614,7 @@ def test_system_plantuml_macro_render(
     [
         (
             Boundary,
-            {"type_": "stereotype"},
+            {"type": "stereotype"},
             'Boundary(element1, "Element", $type="stereotype", $tags="foo+bar", $link="https://example.com", $descr="An element")',
         ),
         (
@@ -663,10 +644,14 @@ def test_boundary_plantuml_macro_render(
     kwargs = {
         "alias": "element1",
         "label": "Element",
-        "tags": ["foo", "bar"],
-        "link": "https://example.com",
         "description": "An element",
-        **override_kwargs,
+        "extensions": {
+            "plantuml": {
+                "tags": ["foo", "bar"],
+                "link": "https://example.com",
+                **override_kwargs,
+            }
+        },
     }
     element = element_class(**kwargs)
     macro = BoundaryPlantUMLMacro(element)
@@ -697,12 +682,14 @@ def test_container_plantuml_macro_render(
     kwargs = {
         "alias": "element1",
         "label": "Element",
-        "tags": ["foo", "bar"],
-        "link": "https://example.com",
         "description": "An element",
         "technology": "tech",
-        "sprite": "$foo",
-        "base_shape": "rectangle",
+        "extensions": plantuml_extensions(
+            tags=["foo", "bar"],
+            link="https://example.com",
+            sprite="$foo",
+            base_shape="rectangle",
+        ),
     }
     element = element_class(**kwargs)
     macro = ContainerPlantUMLMacro(element)
@@ -733,12 +720,14 @@ def test_component_plantuml_macro_render(
     kwargs = {
         "alias": "element1",
         "label": "Element",
-        "tags": ["foo", "bar"],
-        "link": "https://example.com",
         "description": "An element",
         "technology": "tech",
-        "sprite": "$foo",
-        "base_shape": "rectangle",
+        "extensions": plantuml_extensions(
+            tags=["foo", "bar"],
+            link="https://example.com",
+            sprite="$foo",
+            base_shape="rectangle",
+        ),
     }
     element = element_class(**kwargs)
     macro = ComponentPlantUMLMacro(element)
@@ -829,10 +818,12 @@ def test_relationship_plantuml_macro_get_data(
         "label": "example",
         "technology": "technology",
         "description": "Description",
-        "sprite": "$sprite",
-        "tags": ["tag1", "tag2"],
-        "link": "https://example.com",
-        "index": index,
+        "extensions": plantuml_extensions(
+            sprite="$sprite",
+            tags=["tag1", "tag2"],
+            link="https://example.com",
+            index=index,
+        ),
     }
     from_element = Element(alias="from", label="From element")
     to_element = Element(alias="to", label="To element")
@@ -844,9 +835,15 @@ def test_relationship_plantuml_macro_get_data(
     )
     macro = RelationshipPlantUMLMacro(relationship)
     expected_data = {
-        **attrs,
         "from": "from",
         "to": "to",
+        "label": attrs["label"],
+        "technology": attrs["technology"],
+        "description": attrs["description"],
+        "sprite": "$sprite",
+        "tags": ["tag1", "tag2"],
+        "link": "https://example.com",
+        "index": index,
     }
 
     result = macro.get_data()
@@ -867,9 +864,11 @@ def test_relationship_plantuml_macro_render(
         "label": "example",
         "technology": "technology",
         "description": "Description",
-        "sprite": "$sprite",
-        "tags": ["tag1", "tag2"],
-        "link": "https://example.com",
+        "extensions": plantuml_extensions(
+            sprite="$sprite",
+            tags=["tag1", "tag2"],
+            link="https://example.com",
+        ),
     }
     signature = (
         '(from, to, "example", '
@@ -915,10 +914,12 @@ def test_relationship_plantuml_macro_render_with_index(
         "label": "example",
         "technology": "technology",
         "description": "Description",
-        "sprite": "$sprite",
-        "tags": ["tag1", "tag2"],
-        "link": "https://example.com",
-        "index": index,
+        "extensions": plantuml_extensions(
+            sprite="$sprite",
+            tags=["tag1", "tag2"],
+            link="https://example.com",
+            index=index,
+        ),
     }
     signature = (
         '(from, to, "example", '
@@ -1060,11 +1061,13 @@ def test_node_plantuml_macro_render(
     kwargs = {
         "alias": "element1",
         "label": "Element",
-        "tags": ["foo", "bar"],
-        "link": "https://example.com",
         "description": "An element",
-        "type_": "type",
-        "sprite": "$foo",
+        "extensions": plantuml_extensions(
+            tags=["foo", "bar"],
+            link="https://example.com",
+            type="type",
+            sprite="$foo",
+        ),
     }
     element = element_class(**kwargs)
     macro = NodePlantUMLMacro(element)
@@ -1194,652 +1197,5 @@ def test_show_person_sprite_plantuml_macro_render():
     element = ShowPersonSprite(alias="example")
     macro = ShowPersonSpritePlantUMLMacro(element)
     expected_macro = 'SHOW_PERSON_SPRITE("example")'
-
-    assert macro.render() == expected_macro
-
-
-def test_tag_plantuml_macro_init_subclass_without_tag_error():
-    expected_error = re.escape(
-        "TestMacro must specify exactly one generic tag type, got: []"
-    )
-
-    with pytest.raises(TypeError, match=expected_error):
-
-        class TestMacro(TagPlantUMLMacro): ...
-
-
-def test_tag_plantuml_macro_init_subclass_already_registered_error():
-    class TestTag: ...
-
-    class TestTagMacro(TagPlantUMLMacro[TestTag]): ...
-
-    expected_error = re.escape("Macro for 'TestTag' already registered")
-
-    with pytest.raises(TypeError, match=expected_error):
-
-        class TestMacro(TagPlantUMLMacro[TestTag]): ...
-
-
-def test_tag_plantuml_macro_get_data_not_dataclass():
-    class TestTag: ...
-
-    class TestTagMacro(TagPlantUMLMacro[TestTag]): ...
-
-    macro = TestTagMacro(diagram_element=TestTag())
-    expected_error = re.escape(
-        "TestTag must be a dataclass to extract macro data"
-    )
-
-    with pytest.raises(TypeError, match=expected_error):
-        macro.get_data()
-
-
-def test_tag_plantuml_macro_get_macro_by_tag_unknown_type_error():
-    class TestTag: ...
-
-    unregistered_tag = TestTag()
-    expected_error = "No macro registered for tag type TestTag"
-
-    with pytest.raises(ValueError, match=expected_error):
-        TagPlantUMLMacro.get_macro_by_tag(unregistered_tag)
-
-
-SAMPLE_TAG_ARGS = {
-    "tag_stereo": "SERVICE",
-    "legend_text": "Core backend service",
-    "legend_sprite": "server",
-    "sprite": "cloud",
-}
-
-SAMPLE_ELEMENT_TAG_ARGS = {
-    "bg_color": "#FDF6E3",
-    "font_color": "#073642",
-    "border_color": "#586E75",
-    "shadowing": "true",
-    "shape": "RoundedBoxShape",
-    "technology": "Python / FastAPI",
-    "border_style": "DashedLine",
-    "border_thickness": "2",
-    **SAMPLE_TAG_ARGS,
-}
-
-SAMPLE_REL_TAG_ARGS = {
-    "text_color": "#073642",
-    "line_color": "#586E75",
-    "line_style": "DashedLine",
-    "line_thickness": "2",
-    "technology": "Python / FastAPI",
-    **SAMPLE_TAG_ARGS,
-}
-
-SAMPLE_PERSON_TAG_ARGS = {
-    "bg_color": "#FDF6E3",
-    "font_color": "#073642",
-    "border_color": "#586E75",
-    "shadowing": "true",
-    "shape": "RoundedBoxShape",
-    "type_": "person",
-    "border_style": "DashedLine",
-    "border_thickness": "2",
-    **SAMPLE_TAG_ARGS,
-}
-
-SAMPLE_SYSTEM_TAG_ARGS = {
-    "bg_color": "#FDF6E3",
-    "font_color": "#073642",
-    "border_color": "#586E75",
-    "shadowing": "true",
-    "shape": "RoundedBoxShape",
-    "type_": "person",
-    "border_style": "DashedLine",
-    "border_thickness": "2",
-    **SAMPLE_TAG_ARGS,
-}
-
-
-@pytest.mark.parametrize(
-    ("tag", "expected_macro"),
-    [
-        (ElementTag(**SAMPLE_ELEMENT_TAG_ARGS), AddElementTagPlantUMLMacro),
-        (RelTag(**SAMPLE_REL_TAG_ARGS), AddRelTagPlantUMLMacro),
-        (BoundaryTag(**SAMPLE_ELEMENT_TAG_ARGS), AddBoundaryTagPlantUMLMacro),
-        (ComponentTag(**SAMPLE_ELEMENT_TAG_ARGS), AddComponentTagPlantUMLMacro),
-        (
-            ExternalComponentTag(**SAMPLE_ELEMENT_TAG_ARGS),
-            AddExternalComponentTagPlantUMLMacro,
-        ),
-        (ContainerTag(**SAMPLE_ELEMENT_TAG_ARGS), AddContainerTagPlantUMLMacro),
-        (
-            ExternalContainerTag(**SAMPLE_ELEMENT_TAG_ARGS),
-            AddExternalContainerTagPlantUMLMacro,
-        ),
-        (NodeTag(**SAMPLE_ELEMENT_TAG_ARGS), AddNodeTagPlantUMLMacro),
-        (PersonTag(**SAMPLE_PERSON_TAG_ARGS), AddPersonTagPlantUMLMacro),
-        (
-            ExternalPersonTag(**SAMPLE_PERSON_TAG_ARGS),
-            AddExternalPersonTagPlantUMLMacro,
-        ),
-        (SystemTag(**SAMPLE_SYSTEM_TAG_ARGS), AddSystemTagPlantUMLMacro),
-        (
-            ExternalSystemTag(**SAMPLE_SYSTEM_TAG_ARGS),
-            AddExternalSystemTagPlantUMLMacro,
-        ),
-    ],
-)
-def test_tag_plantuml_macro_get_macro_by_tag(
-    tag: BaseTag,
-    expected_macro: type[TagPlantUMLMacro],
-):
-    macro = TagPlantUMLMacro.get_macro_by_tag(tag)
-
-    assert type(macro) is expected_macro
-
-
-def test_add_element_tag_plantuml_macro_render():
-    element = ElementTag(**SAMPLE_ELEMENT_TAG_ARGS)
-    macro = AddElementTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddElementTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$techn="Python / FastAPI", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_rel_tag_plantuml_macro_render():
-    element = RelTag(**SAMPLE_REL_TAG_ARGS)
-    macro = AddRelTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddRelTag("
-        '"SERVICE", '
-        '$textColor="#073642", '
-        '$lineColor="#586E75", '
-        "$lineStyle=DashedLine(), "
-        '$lineThickness="2", '
-        '$techn="Python / FastAPI"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_boundary_tag_plantuml_macro_render():
-    element = BoundaryTag(**SAMPLE_ELEMENT_TAG_ARGS)
-    macro = AddBoundaryTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddBoundaryTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$techn="Python / FastAPI", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_component_tag_plantuml_macro_render():
-    element = ComponentTag(**SAMPLE_ELEMENT_TAG_ARGS)
-    macro = AddComponentTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddComponentTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$techn="Python / FastAPI", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_external_component_tag_plantuml_macro_render():
-    element = ExternalComponentTag(**SAMPLE_ELEMENT_TAG_ARGS)
-    macro = AddExternalComponentTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddExternalComponentTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$techn="Python / FastAPI", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_container_tag_plantuml_macro_render():
-    element = ContainerTag(**SAMPLE_ELEMENT_TAG_ARGS)
-    macro = AddContainerTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddContainerTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$techn="Python / FastAPI", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_external_container_tag_plantuml_macro_render():
-    element = ExternalContainerTag(**SAMPLE_ELEMENT_TAG_ARGS)
-    macro = AddExternalContainerTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddExternalContainerTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$techn="Python / FastAPI", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_node_tag_plantuml_macro_render():
-    element = NodeTag(**SAMPLE_ELEMENT_TAG_ARGS)
-    macro = AddNodeTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddNodeTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$techn="Python / FastAPI", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_person_tag_plantuml_macro_render():
-    element = PersonTag(**SAMPLE_PERSON_TAG_ARGS)
-    macro = AddPersonTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddPersonTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$type="person", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_external_person_tag_plantuml_macro_render():
-    element = ExternalPersonTag(**SAMPLE_PERSON_TAG_ARGS)
-    macro = AddExternalPersonTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddExternalPersonTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$type="person", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_system_tag_plantuml_macro_render():
-    element = SystemTag(**SAMPLE_SYSTEM_TAG_ARGS)
-    macro = AddSystemTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddSystemTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$type="person", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_add_external_system_tag_plantuml_macro_render():
-    element = ExternalSystemTag(**SAMPLE_SYSTEM_TAG_ARGS)
-    macro = AddExternalSystemTagPlantUMLMacro(element)
-    expected_macro = (
-        "AddExternalSystemTag("
-        '"SERVICE", '
-        '$bgColor="#FDF6E3", '
-        '$fontColor="#073642", '
-        '$borderColor="#586E75", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="cloud", '
-        '$type="person", '
-        '$legendText="Core backend service", '
-        '$legendSprite="server", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_style_plantuml_macro_init_subclass_without_style_error():
-    expected_error = re.escape(
-        "TestMacro must specify exactly one generic style type, got: []"
-    )
-
-    with pytest.raises(TypeError, match=expected_error):
-
-        class TestMacro(StylePlantUMLMacro): ...
-
-
-def test_style_plantuml_macro_init_subclass_already_registered_error():
-    class TestStyle: ...
-
-    class TestStyleMacro(StylePlantUMLMacro[TestStyle]): ...
-
-    expected_error = re.escape("Macro for 'TestStyle' already registered")
-
-    with pytest.raises(TypeError, match=expected_error):
-
-        class TestMacro(StylePlantUMLMacro[TestStyle]): ...
-
-
-def test_style_plantuml_macro_get_data_not_dataclass():
-    class TestStyle: ...
-
-    class TestStyleMacro(StylePlantUMLMacro[TestStyle]): ...
-
-    macro = TestStyleMacro(diagram_element=TestStyle())
-    expected_error = re.escape(
-        "TestStyle must be a dataclass to extract macro data"
-    )
-
-    with pytest.raises(TypeError, match=expected_error):
-        macro.get_data()
-
-
-def test_style_plantuml_macro_get_macro_by_style_unknown_type_error():
-    class TestStyle: ...
-
-    unregistered_style = TestStyle()
-    expected_error = "No macro registered for style type TestStyle"
-
-    with pytest.raises(ValueError, match=expected_error):
-        StylePlantUMLMacro.get_macro_by_style(unregistered_style)
-
-
-SAMPLE_ELEMENT_STYLE_ARGS = {
-    "element_name": "UserService",
-    "bg_color": "#ffffff",
-    "font_color": "#000000",
-    "border_color": "#333333",
-    "shadowing": "true",
-    "shape": "RoundedBoxShape",
-    "sprite": "user",
-    "technology": "Python",
-    "legend_text": "User Service",
-    "legend_sprite": "user_icon",
-    "border_style": "DashedLine",
-    "border_thickness": "2",
-}
-
-SAMPLE_REL_STYLE_ARGS = {
-    "text_color": "#000000",
-    "line_color": "#333333",
-}
-
-SAMPLE_BOUNDARY_STYLE_ARGS = {
-    **SAMPLE_ELEMENT_STYLE_ARGS,
-    "element_name": "Boundary",
-    "type_": "System",
-}
-
-
-@pytest.mark.parametrize(
-    ("style", "expected_macro"),
-    [
-        (
-            ElementStyle(**SAMPLE_ELEMENT_STYLE_ARGS),
-            UpdateElementStylePlantUMLMacro,
-        ),
-        (
-            RelStyle(**SAMPLE_REL_STYLE_ARGS),
-            UpdateRelStylePlantUMLMacro,
-        ),
-        (
-            BoundaryStyle(**SAMPLE_BOUNDARY_STYLE_ARGS),
-            UpdateBoundaryStylePlantUMLMacro,
-        ),
-        (
-            ContainerBoundaryStyle(**SAMPLE_BOUNDARY_STYLE_ARGS),
-            UpdateContainerBoundaryStylePlantUMLMacro,
-        ),
-        (
-            SystemBoundaryStyle(**SAMPLE_BOUNDARY_STYLE_ARGS),
-            UpdateSystemBoundaryStylePlantUMLMacro,
-        ),
-        (
-            EnterpriseBoundaryStyle(**SAMPLE_BOUNDARY_STYLE_ARGS),
-            UpdateEnterpriseBoundaryStylePlantUMLMacro,
-        ),
-    ],
-)
-def test_style_plantuml_macro_get_macro_by_style(
-    style: BaseStyle,
-    expected_macro: type[StylePlantUMLMacro],
-):
-    macro = StylePlantUMLMacro.get_macro_by_style(style)
-
-    assert type(macro) is expected_macro
-
-
-def test_update_element_style_plantuml_macro_render():
-    element = ElementStyle(**SAMPLE_ELEMENT_STYLE_ARGS)
-    macro = UpdateElementStylePlantUMLMacro(element)
-    expected_macro = (
-        "UpdateElementStyle("
-        '"UserService", '
-        '$bgColor="#ffffff", '
-        '$fontColor="#000000", '
-        '$borderColor="#333333", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$sprite="user", '
-        '$techn="Python", '
-        '$legendText="User Service", '
-        '$legendSprite="user_icon", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_update_rel_style_plantuml_macro_render():
-    element = RelStyle(**SAMPLE_REL_STYLE_ARGS)
-    macro = UpdateRelStylePlantUMLMacro(element)
-    expected_macro = (
-        'UpdateRelStyle($textColor="#000000", $lineColor="#333333")'
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_update_boundary_style_plantuml_macro_render():
-    element = BoundaryStyle(**SAMPLE_BOUNDARY_STYLE_ARGS)
-    macro = UpdateBoundaryStylePlantUMLMacro(element)
-    expected_macro = (
-        "UpdateBoundaryStyle("
-        '"Boundary", '
-        '$bgColor="#ffffff", '
-        '$fontColor="#000000", '
-        '$borderColor="#333333", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$type="System", '
-        '$sprite="user", '
-        '$techn="Python", '
-        '$legendText="User Service", '
-        '$legendSprite="user_icon", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_update_container_boundary_style_plantuml_macro_render():
-    element = ContainerBoundaryStyle(**SAMPLE_BOUNDARY_STYLE_ARGS)
-    macro = UpdateContainerBoundaryStylePlantUMLMacro(element)
-    expected_macro = (
-        "UpdateContainerBoundaryStyle("
-        '"Boundary", '
-        '$bgColor="#ffffff", '
-        '$fontColor="#000000", '
-        '$borderColor="#333333", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$type="System", '
-        '$sprite="user", '
-        '$techn="Python", '
-        '$legendText="User Service", '
-        '$legendSprite="user_icon", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_update_system_boundary_style_plantuml_macro_render():
-    element = SystemBoundaryStyle(**SAMPLE_BOUNDARY_STYLE_ARGS)
-    macro = UpdateSystemBoundaryStylePlantUMLMacro(element)
-    expected_macro = (
-        "UpdateSystemBoundaryStyle("
-        '"Boundary", '
-        '$bgColor="#ffffff", '
-        '$fontColor="#000000", '
-        '$borderColor="#333333", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$type="System", '
-        '$sprite="user", '
-        '$techn="Python", '
-        '$legendText="User Service", '
-        '$legendSprite="user_icon", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
-
-    assert macro.render() == expected_macro
-
-
-def test_update_enterprise_boundary_style_plantuml_macro_render():
-    element = EnterpriseBoundaryStyle(**SAMPLE_BOUNDARY_STYLE_ARGS)
-    macro = UpdateEnterpriseBoundaryStylePlantUMLMacro(element)
-    expected_macro = (
-        "UpdateEnterpriseBoundaryStyle("
-        '"Boundary", '
-        '$bgColor="#ffffff", '
-        '$fontColor="#000000", '
-        '$borderColor="#333333", '
-        '$shadowing="true", '
-        "$shape=RoundedBoxShape(), "
-        '$type="System", '
-        '$sprite="user", '
-        '$techn="Python", '
-        '$legendText="User Service", '
-        '$legendSprite="user_icon", '
-        "$borderStyle=DashedLine(), "
-        '$borderThickness="2"'
-        ")"
-    )
 
     assert macro.render() == expected_macro

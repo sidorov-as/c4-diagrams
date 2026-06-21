@@ -2,12 +2,9 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from typing_extensions import override
-
 from c4.diagrams.core import (
     Diagram,
     DiagramType,
-    _TRelationship,
 )
 
 
@@ -17,21 +14,3 @@ class DynamicDiagram(Diagram):
     """
 
     type: ClassVar[DiagramType] = DiagramType.DYNAMIC_DIAGRAM
-
-    @override
-    def add_relationship(self, relationship: _TRelationship) -> _TRelationship:
-        """
-        Add a relationship between elements.
-
-        In dynamic diagrams, relationships are added as base elements
-        to enforce the required rendering order.
-
-        Args:
-            relationship: The relationship to add.
-
-        Returns:
-            The added relationship.
-        """
-        self.add_base_element(relationship)
-
-        return relationship

@@ -4,7 +4,7 @@ import inspect
 from inspect import cleandoc
 from typing import Any, Generic, TypeVar, cast
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from pydantic.json_schema import (
     CoreSchema,
     GetJsonSchemaHandler,
@@ -53,6 +53,7 @@ class BaseSchemaItem(JSONSchemaMixin, BaseModel, Generic[TDiagramElement]):
     """
 
     __diagram_element__: TypeDiagramElement | None = None
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     @classmethod
     def __get_pydantic_json_schema__(

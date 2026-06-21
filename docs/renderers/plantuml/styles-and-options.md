@@ -42,7 +42,16 @@ The PlantUML renderer supports both:
 ### Classic Style (Default)
 
 ```python
-from c4 import *
+from c4 import (
+    Component,
+    ComponentDiagram,
+    ContainerBoundary,
+    Person,
+    PNG,
+    System,
+    SystemBoundary,
+)
+from c4.contrib.plantuml import RelRight
 from c4.renderers.plantuml import (
     PlantUMLRenderer,
     LocalPlantUMLBackend,
@@ -92,8 +101,17 @@ This produces the classic C4 visual style:
 To enable the updated visual style, pass `use_new_c4_style=True`
 to [`PlantUMLRenderer`][c4.renderers.plantuml.renderer.PlantUMLRenderer]:
 
-```python hl_lines="25"
-from c4 import *
+```python hl_lines="35"
+from c4 import (
+    Component,
+    ComponentDiagram,
+    ContainerBoundary,
+    Person,
+    PNG,
+    System,
+    SystemBoundary,
+)
+from c4.contrib.plantuml import RelRight
 from c4.renderers.plantuml import PlantUMLRenderer, LocalPlantUMLBackend
 from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 

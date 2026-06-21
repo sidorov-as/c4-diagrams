@@ -1,4 +1,4 @@
-from c4.renderers.base import BaseRenderer
+from c4.renderers.base import BaseRenderer, ExtensionValidationMode
 from c4.renderers.common import RenderOptions
 from c4.renderers.mermaid import MermaidRenderer
 from c4.renderers.mermaid.options import (
@@ -13,6 +13,7 @@ from c4.renderers.plantuml.options import (
 
 __all__ = (
     "BaseRenderer",
+    "ExtensionValidationMode",
     "MermaidRenderOptions",
     "MermaidRenderOptionsBuilder",
     "MermaidRenderer",

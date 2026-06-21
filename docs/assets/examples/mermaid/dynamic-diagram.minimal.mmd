@@ -1,0 +1,14 @@
+C4Dynamic
+title Login Flow
+
+Person(user, "User", "Signs in to the application.")
+
+System(web_app, "Web App", "Main application used by customers.")
+
+System_Ext(idp, "Identity Provider", "External authentication service.")
+
+Rel(user, web_app, "Opens sign-in page", "HTTPS")
+
+Rel(web_app, idp, "Authenticates user", "OIDC")
+
+Rel(idp, web_app, "Returns identity token", "OIDC")

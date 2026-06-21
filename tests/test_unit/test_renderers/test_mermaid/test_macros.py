@@ -19,12 +19,8 @@ from c4 import (
     ContainerQueue,
     ContainerQueueExt,
     DeploymentNode,
-    DeploymentNodeLeft,
-    DeploymentNodeRight,
     EnterpriseBoundary,
     Node,
-    NodeLeft,
-    NodeRight,
     Person,
     PersonExt,
     System,
@@ -35,6 +31,7 @@ from c4 import (
     SystemQueue,
     SystemQueueExt,
 )
+from c4.contrib.c4_macros import NodeLeft, NodeRight
 from c4.diagrams.core import (
     Boundary,
     Element,
@@ -79,7 +76,7 @@ def test_element_mermaid_macro_get_macro(
 
 
 @pytest.mark.usefixtures("diagram")
-def test_element_plantuml_macro_get_macro_none():
+def test_element_mermaid_macro_get_macro_none():
     macro = ElementMermaidMacro(...)
 
     assert macro.get_macro() is None
@@ -89,7 +86,7 @@ def test_element_plantuml_macro_get_macro_none():
     "element_class",
     list(ELEMENT_TO_MERMAID_MACRO_MAP),
 )
-def test_element_plantuml_macro_get_data(
+def test_element_mermaid_macro_get_data(
     element_class: type[Element],
     set_current_diagram: Callable[[type[Element]], ...],
 ):
@@ -136,8 +133,6 @@ def test_element_plantuml_macro_get_data(
         (NodeLeft, "Node_L"),
         (NodeRight, "Node_R"),
         (DeploymentNode, "Deployment_Node"),
-        (DeploymentNodeLeft, "Deployment_Node"),
-        (DeploymentNodeRight, "Deployment_Node"),
     ],
 )
 @pytest.mark.usefixtures("diagram")
@@ -172,7 +167,7 @@ def __element_mermaid_macro__from_element__parametrize() -> ParametrizeArgs:
     arg_values = [
         (
             Boundary,
-            {"type_": "Element type"},
+            {"extensions": {"mermaid": {"type": "Element type"}}},
             BoundaryMermaidMacro,
             'Boundary(element1, "Element", "Element type")',
         ),

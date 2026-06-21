@@ -4,15 +4,12 @@ from typing import TYPE_CHECKING
 
 from c4 import (
     EnterpriseBoundary,
-    LayDown,
     Person,
     Rel,
-    RelDown,
-    RelLeft,
-    RelRight,
     System,
     SystemContextDiagram,
 )
+from c4.contrib.plantuml import LayDown, RelDown, RelLeft, RelRight
 from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover

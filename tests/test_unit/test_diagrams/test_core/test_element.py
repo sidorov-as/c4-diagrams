@@ -62,6 +62,23 @@ def test_element_generate_alias(
     assert element3.alias == "element3"
 
 
+@pytest.mark.parametrize(
+    ("element_class", "expected_alias"),
+    [
+        (Element, "element"),
+        (ElementWithTechnology, "element_with_technology"),
+    ],
+)
+def test_element_generate_alias_uses_element_type_as_fallback(
+    element_class: type[Element],
+    expected_alias: str,
+):
+    with Diagram():
+        element = element_class(label="Пример")
+
+    assert element.alias == expected_alias
+
+
 @pytest.mark.parametrize("element_class", [Element, ElementWithTechnology])
 def test_element_repr(
     element_class: type[Element],
@@ -78,32 +95,55 @@ def test_element_attrs():
     alias = "element1"
     label = "Element"
     description = "An element"
-    sprite = "$foo1"
-    tags = "foo,bar"
-    link = "https://example.com"
-    type_ = "stereotype"
+    extensions = {
+        "plantuml": {
+            "sprite": "$foo1",
+            "tags": ["foo", "bar"],
+            "link": "https://example.com",
+            "type": "stereotype",
+        }
+    }
 
     with Diagram():
         element = Element(
             alias=alias,
             label=label,
             description=description,
-            sprite=sprite,
-            tags=tags,
-            link=link,
-            type_=type_,
+            extensions=extensions,
         )
 
     assert element.alias == alias
     assert element.label == label
     assert element.description == description
-    assert element.sprite == sprite
-    assert element.tags == tags
-    assert element.link == link
-    assert element.type == type_
-    # reserved for other elements
-    assert element.base_shape is None
+    assert element.extensions == extensions
     assert element.technology is None
+
+
+def test_element_backend_kwargs_are_merged_into_extensions():
+    with Diagram():
+        element = Element(
+            "Element",
+            plantuml={"sprite": "$foo"},
+            mermaid={"shape": "rect"},
+        )
+
+    assert element.extensions == {
+        "plantuml": {"sprite": "$foo"},
+        "mermaid": {"shape": "rect"},
+    }
+
+
+def test_element_backend_kwargs_reject_duplicate_extension_data():
+    with Diagram():
+        with pytest.raises(
+            ValueError,
+            match="Extension data for 'plantuml' was provided twice",
+        ):
+            Element(
+                "Element",
+                extensions={"plantuml": {"sprite": "$foo"}},
+                plantuml={"sprite": "$bar"},
+            )
 
 
 def test_element_with_technology_attrs():
@@ -111,9 +151,13 @@ def test_element_with_technology_attrs():
     label = "Element"
     technology = "nanotechnology"
     description = "An element"
-    sprite = "$foo1"
-    tags = "foo,bar"
-    link = "https://example.com"
+    extensions = {
+        "plantuml": {
+            "sprite": "$foo1",
+            "tags": ["foo", "bar"],
+            "link": "https://example.com",
+        }
+    }
 
     with Diagram():
         element = ElementWithTechnology(
@@ -121,19 +165,13 @@ def test_element_with_technology_attrs():
             label=label,
             technology=technology,
             description=description,
-            sprite=sprite,
-            tags=tags,
-            link=link,
+            extensions=extensions,
         )
 
     assert element.alias == alias
     assert element.label == label
     assert element.description == description
-    assert element.sprite == sprite
-    assert element.tags == tags
-    assert element.link == link
-    assert element.type is None
-    assert element.base_shape is None
+    assert element.extensions == extensions
     assert element.technology == technology
 
 
@@ -149,34 +187,29 @@ def test_element_with_technology_attrs():
             "Element('User', 'A person', alias='user')",
         ),
         (
-            {"label": "User", "sprite": "person", "alias": "user"},
-            "Element('User', sprite='person', alias='user')",
-        ),
-        (
-            {"label": "User", "type_": "Person", "alias": "user"},
-            "Element('User', type_='Person', alias='user')",
-        ),
-        (
-            {"label": "User", "tags": "external", "alias": "user"},
-            "Element('User', tags='external', alias='user')",
-        ),
-        (
-            {"label": "User", "link": "https://example.com", "alias": "user"},
-            "Element('User', link='https://example.com', alias='user')",
+            {
+                "label": "User",
+                "plantuml": {"sprite": "person"},
+                "alias": "user",
+            },
+            "Element('User', plantuml={'sprite': 'person'}, alias='user')",
         ),
         (
             {
                 "label": "Service",
                 "description": "Does things",
-                "sprite": "service",
-                "type_": "System",
-                "tags": "core,backend",
-                "link": "https://svc.example.com",
+                "plantuml": {
+                    "sprite": "service",
+                    "type": "System",
+                    "tags": ["core", "backend"],
+                    "link": "https://svc.example.com",
+                },
                 "alias": "service",
             },
-            "Element('Service', 'Does things', sprite='service', "
-            "type_='System', tags='core,backend', "
-            "link='https://svc.example.com', alias='service')",
+            "Element('Service', 'Does things', plantuml={"
+            "'sprite': 'service', 'type': 'System', "
+            "'tags': ['core', 'backend'], "
+            "'link': 'https://svc.example.com'}, alias='service')",
         ),
     ],
 )
@@ -196,17 +229,21 @@ def test_element_with_technology_repr(diagram: Diagram):
     kwargs = {
         "label": "Service",
         "description": "Does things",
-        "sprite": "service",
-        "tags": "core,backend",
-        "link": "https://svc.example.com",
+        "plantuml": {
+            "sprite": "service",
+            "tags": ["core", "backend"],
+            "link": "https://svc.example.com",
+        },
         "technology": "Python",
         "alias": "service",
     }
     element = ElementWithTechnology(**kwargs)
     expected = (
-        "ElementWithTechnology('Service', 'Does things', sprite='service', "
-        "tags='core,backend', "
-        "link='https://svc.example.com', technology='Python', alias='service')"
+        "ElementWithTechnology('Service', 'Does things', "
+        "plantuml={'sprite': 'service', "
+        "'tags': ['core', 'backend'], "
+        "'link': 'https://svc.example.com'}, "
+        "technology='Python', alias='service')"
     )
 
     result = repr(element)
@@ -218,19 +255,21 @@ def test_element_with_base_shape_repr(component_diagram: ComponentDiagram):
     kwargs = {
         "label": "Service",
         "description": "Does things",
-        "sprite": "service",
-        "tags": "core,backend",
-        "link": "https://svc.example.com",
+        "plantuml": {
+            "sprite": "service",
+            "tags": ["core", "backend"],
+            "link": "https://svc.example.com",
+            "base_shape": "rect",
+        },
         "technology": "Python",
-        "base_shape": "rect",
         "alias": "service",
     }
     element = Component(**kwargs)
     expected = (
-        "Component('Service', 'Does things', sprite='service', "
-        "tags='core,backend', "
-        "link='https://svc.example.com', technology='Python', "
-        "base_shape='rect', alias='service')"
+        "Component('Service', 'Does things', plantuml={"
+        "'sprite': 'service', 'tags': ['core', 'backend'], "
+        "'link': 'https://svc.example.com', 'base_shape': 'rect'}, "
+        "technology='Python', alias='service')"
     )
 
     result = repr(element)

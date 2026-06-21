@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
     from c4.cli.discover import Target
+    from c4.enums import RendererEnum
 
 
 class CLIError(Exception):
@@ -86,6 +87,23 @@ class ImportFromStringError(CLIError):
     """
 
     pass
+
+
+class RendererBackendMismatchError(CLIError):
+    """
+    Raised when a JSON diagram backend conflicts with a requested renderer.
+    """
+
+    def __init__(
+        self,
+        *,
+        backend: RendererEnum,
+        renderer: RendererEnum,
+    ) -> None:
+        super().__init__(
+            f"JSON diagram backend {backend.value!r} does not match "
+            f"selected renderer {renderer.value!r}."
+        )
 
 
 class MissingConverterDependency(CLIError):

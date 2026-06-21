@@ -16,10 +16,6 @@ def test_add_properties__show_header(
                 "label": "Store Manager",
                 "alias": "store_manager",
                 "description": "Manages product catalog and promotions.",
-                "stereotype": "Business User",
-                "sprite": "user",
-                "tags": ["person", "internal"],
-                "link": "https://intranet.example.com",
                 "properties": {
                     "properties": [
                         ["Department", "Retail Ops"],
@@ -55,10 +51,6 @@ def test_add_properties__show_header_is_false(
                 "label": "Store Manager",
                 "alias": "store_manager",
                 "description": "Manages product catalog and promotions.",
-                "stereotype": "Business User",
-                "sprite": "user",
-                "tags": ["person", "internal"],
-                "link": "https://intranet.example.com",
                 "properties": {
                     "show_header": False,
                     "header": ["Override", "Header"],
@@ -96,10 +88,6 @@ def test_add_properties__override_header(
                 "label": "Store Manager",
                 "alias": "store_manager",
                 "description": "Manages product catalog and promotions.",
-                "stereotype": "Business User",
-                "sprite": "user",
-                "tags": ["person", "internal"],
-                "link": "https://intranet.example.com",
                 "properties": {
                     "show_header": True,
                     "header": ["Override", "Header"],

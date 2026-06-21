@@ -1,0 +1,16 @@
+C4Component
+title Checkout API - Component Diagram
+
+Component(checkout_controller, "Checkout Controller", "FastAPI", "Receives checkout requests and orchestrates payment flow.")
+
+Component(payment_service, "Payment Service", "Python", "Creates payment intents and handles payment state updates.")
+
+ComponentDb(payment_store, "Payment Store", "PostgreSQL", "Stores payment records and statuses.")
+
+Component_Ext(payment_gateway_api, "Payment Gateway API", "REST API", "External API for payment authorization and capture.")
+
+Rel(checkout_controller, payment_service, "Calls", "Python call")
+
+Rel(payment_service, payment_store, "Reads and writes", "SQL")
+
+Rel(payment_service, payment_gateway_api, "Creates payments via", "HTTPS/JSON")

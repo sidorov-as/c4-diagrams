@@ -7,20 +7,26 @@ from pytest_mock import MockerFixture
 
 from c4 import (
     DynamicDiagram,
-    LayDown,
     Person,
     Rel,
-    RelUp,
     System,
     SystemBoundary,
     SystemContextDiagram,
     SystemExt,
+)
+from c4.contrib.plantuml import (
+    LayDown,
+    LayUp,
+    RelBack,
+    RelLeft,
+    RelUp,
     increment,
     set_index,
 )
 from c4.converters.python.converter import PythonCodegen, diagram_to_python_code
 from c4.converters.python.renderers.plantuml import PlantUMLRenderOptionsCodegen
-from c4.diagrams.core import DiagramElementProperties, LayUp, RelLeft
+from c4.diagrams.core import DiagramElementProperties
+from c4.enums import RendererEnum
 from c4.renderers import MermaidRenderOptions, RenderOptions
 from c4.renderers.base import IndentedStringBuilder
 from c4.renderers.plantuml.options import PlantUMLRenderOptions
@@ -36,61 +42,7 @@ def builder(python_codegen: PythonCodegen):
     return python_codegen._builder
 
 
-def test_python_codegen__collect_class_names(
-    python_codegen: PythonCodegen,
-):
-    with SystemContextDiagram() as diagram:
-        user = Person("User", alias="user")
-        system = System("System", alias="system")
-
-        with SystemBoundary("Bound", alias="bound"):
-            Person("Support", alias="support")
-
-        user >> Rel("Uses") >> system
-        LayDown(user, system)
-
-    result = python_codegen._collect_class_names(diagram)
-
-    assert result == {
-        "SystemContextDiagram",
-        "Person",
-        "System",
-        "SystemBoundary",
-        "Rel",
-        "LayDown",
-    }
-
-
-def test_python_codegen__dynamic_diagram__collect_class_names(
-    python_codegen: PythonCodegen,
-):
-    with DynamicDiagram() as diagram:
-        user = Person("User", alias="user")
-        system = System("System", alias="system")
-
-        with SystemBoundary("Bound", alias="bound"):
-            Person("Support", alias="support")
-
-        user >> Rel("Uses") >> system
-        LayDown(user, system)
-        increment(2)
-        set_index(7)
-
-    result = python_codegen._collect_class_names(diagram)
-
-    assert result == {
-        "DynamicDiagram",
-        "Person",
-        "System",
-        "SystemBoundary",
-        "Rel",
-        "LayDown",
-        "increment",
-        "set_index",
-    }
-
-
-def test_python_codegen__render_base_element__relationship(
+def test_python_codegen__render_scope_item__relationship(
     python_codegen: PythonCodegen,
     mocker: MockerFixture,
 ):
@@ -103,67 +55,83 @@ def test_python_codegen__render_base_element__relationship(
         system = System("System")
         relationship = user >> Rel("Uses") >> system
 
-    python_codegen._render_base_element(relationship)
+    python_codegen._render_scope_item(relationship)
 
     spied__render_relationship.assert_called_once_with(relationship)
 
 
-def test_python_codegen__render_base_element__increment(
+def test_python_codegen__render_ordered_statement__increment(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
 ):
     with DynamicDiagram():
         inc = increment(1)
 
-    python_codegen._render_base_element(inc)
+    python_codegen._render_ordered_statement(inc)
 
     assert builder.lines == ["increment(1)"]
 
 
-def test_python_codegen__render_base_element__set_index(
+def test_python_codegen__render_ordered_statement__set_index(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
 ):
     with DynamicDiagram():
         idx = set_index(5)
 
-    python_codegen._render_base_element(idx)
+    python_codegen._render_ordered_statement(idx)
 
     assert builder.lines == ["set_index(5)"]
 
 
-def test_python_codegen__render_base_element__unknown(
+def test_python_codegen__render_scope_item__element(
     python_codegen: PythonCodegen,
-    builder: IndentedStringBuilder,
+    mocker: MockerFixture,
 ):
-    obj = object()
-    expected_error = f"Unsupported element {obj!r}"
+    spied__render_element = mocker.spy(
+        python_codegen,
+        "_render_element",
+    )
+    with SystemContextDiagram():
+        user = Person("User")
 
-    with pytest.raises(TypeError, match=expected_error):
-        python_codegen._render_base_element(obj)
+    python_codegen._render_scope_item(user)
 
-    assert builder.lines == []
+    spied__render_element.assert_called_once_with(user)
 
 
-def test_python_codegen__render_base_elements(
+def test_python_codegen__render_scope_items(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
     mocker: MockerFixture,
 ):
-    spied_render_base_element = mocker.spy(
+    spied_render_scope_item = mocker.spy(
         python_codegen,
-        "_render_base_element",
+        "_render_scope_item",
     )
     with DynamicDiagram() as diagram:
         inc = increment(1)
         idx = set_index(5)
 
-    python_codegen._render_base_elements(diagram)
+    rendered = python_codegen._render_scope_items(diagram)
 
-    spied_render_base_element.assert_has_calls([
+    assert rendered is True
+    spied_render_scope_item.assert_has_calls([
         mocker.call(inc),
         mocker.call(idx),
     ])
+
+
+def test_python_codegen__render_scope_items__empty(
+    python_codegen: PythonCodegen,
+    builder: IndentedStringBuilder,
+):
+    diagram = DynamicDiagram()
+
+    rendered = python_codegen._render_scope_items(diagram)
+
+    assert rendered is False
+    assert builder.lines == []
 
 
 def test_python_codegen__render_boundary_def(
@@ -224,8 +192,10 @@ def test_python_codegen__render_boundary(
     assert builder.lines == [
         "with SystemBoundary('Boundary', alias='sb'):",
         "    user = Person('User', alias='user')",
+        "",
         "    system = System('System', alias='system')",
         "",
+        "    user >> Rel('Uses') >> system",
         "    with SystemBoundary('Nested', alias='nb') as nb:",
         "        nb.set_property_header('A', 'B')",
         "        nb.add_property('k', 'v')",
@@ -233,8 +203,6 @@ def test_python_codegen__render_boundary(
         "        ext_system = System('External System', alias='ext_system')",
         "",
         "        system >> RelLeft('Interacts with') >> ext_system",
-        "",
-        "    user >> Rel('Uses') >> system",
         "",
     ]
 
@@ -255,7 +223,7 @@ def test_python_codegen__render_empty_boundary(
     ]
 
 
-def test_python_codegen__render_boundaries__diagram(
+def test_python_codegen__render_scope_item__boundary(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
     mocker: MockerFixture,
@@ -264,30 +232,24 @@ def test_python_codegen__render_boundaries__diagram(
         python_codegen,
         "_render_boundary",
     )
-    with SystemContextDiagram() as diagram:
+    with SystemContextDiagram():
         with SystemBoundary("Boundary 1", alias="b1") as boundary1:
             Person("User", alias="user")
 
-        with SystemBoundary("Boundary 2", alias="b2") as boundary2:
+        with SystemBoundary("Boundary 2", alias="b2"):
             System("System", alias="system")
 
-    python_codegen._render_boundaries(diagram)
+    python_codegen._render_scope_item(boundary1)
 
     assert builder.lines == [
         "with SystemBoundary('Boundary 1', alias='b1'):",
         "    user = Person('User', alias='user')",
         "",
-        "with SystemBoundary('Boundary 2', alias='b2'):",
-        "    system = System('System', alias='system')",
-        "",
     ]
-    spied_render_boundary.assert_has_calls([
-        mocker.call(boundary1),
-        mocker.call(boundary2),
-    ])
+    spied_render_boundary.assert_called_once_with(boundary1)
 
 
-def test_python_codegen__render_boundaries__boundary(
+def test_python_codegen__render_scope_items__boundary_children(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
     mocker: MockerFixture,
@@ -304,8 +266,9 @@ def test_python_codegen__render_boundaries__boundary(
             with SystemBoundary("Boundary 2", alias="b2") as boundary2:
                 System("System", alias="system")
 
-    python_codegen._render_boundaries(parent)
+    rendered = python_codegen._render_scope_items(parent)
 
+    assert rendered is True
     assert builder.lines == [
         "with SystemBoundary('Boundary 1', alias='b1'):",
         "    user = Person('User', alias='user')",
@@ -331,7 +294,7 @@ def test_python_codegen__render_diagram_def(
         builder.add("must_contain_indent()")
 
     assert builder.lines == [
-        "with SystemContextDiagram(title='Title'):",
+        "with SystemContextDiagram(title='Title') as diagram:",
         "    must_contain_indent()",
     ]
 
@@ -371,7 +334,7 @@ def test_python_codegen__render_element_with_properties(
     ]
 
 
-def test_python_codegen__render_elements__diagram(
+def test_python_codegen__render_scope_items__diagram_elements(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
     mocker: MockerFixture,
@@ -384,15 +347,22 @@ def test_python_codegen__render_elements__diagram(
         user = Person("User", alias="user")
         system = System("System", alias="system")
 
-    python_codegen._render_elements(diagram)
+    rendered = python_codegen._render_scope_items(diagram)
 
+    assert rendered is True
     spied_render_element.assert_has_calls([
         mocker.call(user),
         mocker.call(system),
     ])
+    assert builder.lines == [
+        "user = Person('User', alias='user')",
+        "",
+        "system = System('System', alias='system')",
+        "",
+    ]
 
 
-def test_python_codegen__render_elements__boundary(
+def test_python_codegen__render_scope_items__boundary_elements(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
     mocker: MockerFixture,
@@ -406,12 +376,19 @@ def test_python_codegen__render_elements__boundary(
             user = Person("User", alias="user")
             system = System("System", alias="system")
 
-    python_codegen._render_elements(boundary)
+    rendered = python_codegen._render_scope_items(boundary)
 
+    assert rendered is True
     spied_render_element.assert_has_calls([
         mocker.call(user),
         mocker.call(system),
     ])
+    assert builder.lines == [
+        "user = Person('User', alias='user')",
+        "",
+        "system = System('System', alias='system')",
+        "",
+    ]
 
 
 def test_python_codegen__render_imports(
@@ -435,11 +412,13 @@ def test_python_codegen__render_imports(
     assert builder.lines == [
         "from c4 import (",
         "    DynamicDiagram,",
-        "    LayDown,",
         "    Person,",
         "    Rel,",
         "    System,",
         "    SystemBoundary,",
+        ")",
+        "from c4.contrib.plantuml import (",
+        "    LayDown,",
         "    increment,",
         "    set_index,",
         ")",
@@ -448,24 +427,97 @@ def test_python_codegen__render_imports(
     ]
 
 
-def test_python_codegen__render_layouts(
+def test_python_codegen__render_imports__c4_macros_use_mermaid_contrib_package():
+    python_codegen = PythonCodegen(backend=RendererEnum.MERMAID)
+    builder = python_codegen._builder
+
+    with DynamicDiagram() as diagram:
+        user = Person("User", alias="user")
+        system = System("System", alias="system")
+        system >> RelBack("Returns data") >> user
+
+    python_codegen._render_imports(diagram)
+
+    assert builder.lines == [
+        "from c4 import (",
+        "    DynamicDiagram,",
+        "    Person,",
+        "    System,",
+        ")",
+        "from c4.contrib.mermaid import (",
+        "    RelBack,",
+        ")",
+        "",
+        "",
+    ]
+
+
+def test_python_codegen__render_imports__c4_macros_use_plantuml_contrib_package():
+    python_codegen = PythonCodegen(backend=RendererEnum.PLANTUML)
+    builder = python_codegen._builder
+
+    with DynamicDiagram() as diagram:
+        user = Person("User", alias="user")
+        system = System("System", alias="system")
+        system >> RelBack("Returns data") >> user
+
+    python_codegen._render_imports(diagram)
+
+    assert builder.lines == [
+        "from c4 import (",
+        "    DynamicDiagram,",
+        "    Person,",
+        "    System,",
+        ")",
+        "from c4.contrib.plantuml import (",
+        "    RelBack,",
+        ")",
+        "",
+        "",
+    ]
+
+
+def test_python_codegen__render_imports__use_c4_macros_contrib_package():
+    python_codegen = PythonCodegen(backend=None)
+    builder = python_codegen._builder
+
+    with DynamicDiagram() as diagram:
+        user = Person("User", alias="user")
+        system = System("System", alias="system")
+        system >> RelBack("Returns data") >> user
+
+    python_codegen._render_imports(diagram)
+
+    assert builder.lines == [
+        "from c4 import (",
+        "    DynamicDiagram,",
+        "    Person,",
+        "    System,",
+        ")",
+        "from c4.contrib.c4_macros import (",
+        "    RelBack,",
+        ")",
+        "",
+        "",
+    ]
+
+
+def test_python_codegen__render_ordered_statement__layout(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
 ):
-    with DynamicDiagram() as diagram:
+    with DynamicDiagram():
         user = Person("User", alias="user")
         system = System("System", alias="system")
 
         with SystemBoundary("Bound", alias="bound"):
             support = Person("Support", alias="support")
 
-        user >> Rel("Uses") >> system
-        LayDown(user, system)
-        increment(2)
-        LayUp(support, system)
-        set_index(7)
+        lay_down = LayDown(user, system)
+        lay_up = LayUp(support, system)
 
-    python_codegen._render_layouts(diagram)
+    python_codegen._render_ordered_statement(lay_down)
+    python_codegen._render_ordered_statement(lay_up)
 
     assert builder.lines == [
         "LayDown(user, system)",
@@ -630,14 +682,17 @@ def test_python_codegen__render_relationship_with_attrs(
         "label": "Uses",
         "description": "Interacts with",
         "technology": "HTTP",
-        "sprite": "$sprite",
-        "tags": "web,ui",
-        "link": "https://example.com",
-        "index": "Index(1)",
+        "plantuml": {
+            "sprite": "$sprite",
+            "tags": "web,ui",
+            "link": "https://example.com",
+            "index": "Index(1)",
+        },
     }
     expected_rel_attrs = (
-        "'Uses', 'Interacts with', technology='HTTP', sprite='$sprite', "
-        "tags='web,ui', link='https://example.com', index='Index(1)'"
+        "'Uses', 'Interacts with', technology='HTTP', "
+        "plantuml={'sprite': '$sprite', 'tags': 'web,ui', "
+        "'link': 'https://example.com', 'index': 'Index(1)'}"
     )
     with SystemContextDiagram():
         user = Person("User", alias="user")
@@ -657,7 +712,7 @@ def test_python_codegen__render_relationship_with_properties(
         system = System("System")
         email_provider = SystemExt("Email Provider")
 
-        relationship = user >> RelUp("Uses") >> system
+        relationship = user >> Rel("Uses") >> system
         relationship.set_property_header("Key", "Value")
         relationship.add_property("Channel", "Web")
         relationship.add_property("Region", "EU")
@@ -668,19 +723,20 @@ def test_python_codegen__render_relationship_with_properties(
         from c4 import (
             Person,
             Rel,
-            RelUp,
             System,
             SystemContextDiagram,
             SystemExt,
         )
 
 
-        with SystemContextDiagram():
+        with SystemContextDiagram() as diagram:
             user = Person('User', alias='user')
+
             system = System('System', alias='system')
+
             email_provider = SystemExt('Email Provider', alias='email_provider')
 
-            rel_user_system = user >> RelUp('Uses') >> system
+            rel_user_system = user >> Rel('Uses') >> system
             rel_user_system.set_property_header('Key', 'Value')
             rel_user_system.add_property('Channel', 'Web')
             rel_user_system.add_property('Region', 'EU')
@@ -695,7 +751,7 @@ def test_python_codegen__render_relationship_with_properties(
     assert expected_result == result.strip()
 
 
-def test_python_codegen__render_relationships__diagram(
+def test_python_codegen__render_scope_items__diagram_relationships(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
     mocker: MockerFixture,
@@ -710,20 +766,24 @@ def test_python_codegen__render_relationships__diagram(
         rel1 = user >> Rel("Send requests") >> system
         rel2 = system >> Rel("Send responses") >> user
 
-    python_codegen._render_relationships(diagram)
+    rendered = python_codegen._render_scope_items(diagram)
 
+    assert rendered is True
     spied_render_relationship.assert_has_calls([
         mocker.call(rel1),
         mocker.call(rel2),
     ])
     assert builder.lines == [
+        "user = Person('User', alias='user')",
+        "",
+        "system = System('System', alias='system')",
+        "",
         "user >> Rel('Send requests') >> system",
         "system >> Rel('Send responses') >> user",
-        "",
     ]
 
 
-def test_python_codegen__render_relationships__boundary(
+def test_python_codegen__render_scope_items__boundary_relationships(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
     mocker: MockerFixture,
@@ -739,16 +799,20 @@ def test_python_codegen__render_relationships__boundary(
             rel1 = user >> Rel("Send requests") >> system
             rel2 = system >> Rel("Send responses") >> user
 
-    python_codegen._render_relationships(boundary)
+    rendered = python_codegen._render_scope_items(boundary)
 
+    assert rendered is True
     spied_render_relationship.assert_has_calls([
         mocker.call(rel1),
         mocker.call(rel2),
     ])
     assert builder.lines == [
+        "user = Person('User', alias='user')",
+        "",
+        "system = System('System', alias='system')",
+        "",
         "user >> Rel('Send requests') >> system",
         "system >> Rel('Send responses') >> user",
-        "",
     ]
 
 
@@ -766,20 +830,22 @@ def test_python_codegen__generate(
         """
         from c4 import (
             DynamicDiagram,
-            LayDown,
             Person,
             Rel,
             System,
+        )
+        from c4.contrib.plantuml import (
+            LayDown,
             increment,
         )
         from c4.renderers import (
             PlantUMLRenderOptionsBuilder,
-            RenderOptions,
         )
 
 
         with DynamicDiagram(title='D') as diagram:
             user = Person('User', alias='user')
+
             system = System('System', alias='system')
 
             user >> Rel('Uses') >> system
@@ -790,11 +856,9 @@ def test_python_codegen__generate(
 
         plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
 
-        render_options = RenderOptions(
+        diagram.set_render_options(
             plantuml=plantuml_render_options,
         )
-
-        diagram.render_options = render_options
         """
     ).strip()
 
@@ -815,7 +879,6 @@ def test_python_codegen__generate_empty_diagram(
         )
         from c4.renderers import (
             PlantUMLRenderOptionsBuilder,
-            RenderOptions,
         )
 
 
@@ -825,11 +888,9 @@ def test_python_codegen__generate_empty_diagram(
 
         plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
 
-        render_options = RenderOptions(
+        diagram.set_render_options(
             plantuml=plantuml_render_options,
         )
-
-        diagram.render_options = render_options
         """
     ).strip()
 
@@ -847,20 +908,24 @@ def test_python_codegen__generate__no_render_options(
         user >> Rel("Uses") >> system
         increment()
         LayDown(user, system)
-    expected_result = textwrap.dedent(
-        """
+    expected_result = (
+        textwrap.dedent(
+            """
         from c4 import (
             DynamicDiagram,
-            LayDown,
             Person,
             Rel,
             System,
+        )
+        from c4.contrib.plantuml import (
+            LayDown,
             increment,
         )
 
 
-        with DynamicDiagram(title='D'):
+        with DynamicDiagram(title='D') as diagram:
             user = Person('User', alias='user')
+
             system = System('System', alias='system')
 
             user >> Rel('Uses') >> system
@@ -868,7 +933,9 @@ def test_python_codegen__generate__no_render_options(
 
             LayDown(user, system)
         """
-    ).strip()
+        ).strip()
+        + "\n"
+    )
 
     result = python_codegen.generate(diagram)
 
@@ -889,20 +956,22 @@ def test_diagram_to_python_code__render_options_plantuml(
         """
         from c4 import (
             DynamicDiagram,
-            LayDown,
             Person,
             Rel,
             System,
+        )
+        from c4.contrib.plantuml import (
+            LayDown,
             increment,
         )
         from c4.renderers import (
             PlantUMLRenderOptionsBuilder,
-            RenderOptions,
         )
 
 
         with DynamicDiagram(title='D') as diagram:
             user = Person('User', alias='user')
+
             system = System('System', alias='system')
 
             user >> Rel('Uses') >> system
@@ -913,11 +982,9 @@ def test_diagram_to_python_code__render_options_plantuml(
 
         plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
 
-        render_options = RenderOptions(
+        diagram.set_render_options(
             plantuml=plantuml_render_options,
         )
-
-        diagram.render_options = render_options
         """
     ).strip()
 
@@ -940,20 +1007,22 @@ def test_diagram_to_python_code__render_options_mermaid(
         """
         from c4 import (
             DynamicDiagram,
-            LayDown,
             Person,
             Rel,
             System,
+        )
+        from c4.contrib.plantuml import (
+            LayDown,
             increment,
         )
         from c4.renderers import (
             MermaidRenderOptionsBuilder,
-            RenderOptions,
         )
 
 
         with DynamicDiagram(title='D') as diagram:
             user = Person('User', alias='user')
+
             system = System('System', alias='system')
 
             user >> Rel('Uses') >> system
@@ -964,11 +1033,9 @@ def test_diagram_to_python_code__render_options_mermaid(
 
         mermaid_render_options = MermaidRenderOptionsBuilder().build()
 
-        render_options = RenderOptions(
+        diagram.set_render_options(
             mermaid=mermaid_render_options,
         )
-
-        diagram.render_options = render_options
         """
     ).strip()
 
@@ -993,21 +1060,23 @@ def test_diagram_to_python_code__all_render_options(
         """
         from c4 import (
             DynamicDiagram,
-            LayDown,
             Person,
             Rel,
             System,
+        )
+        from c4.contrib.plantuml import (
+            LayDown,
             increment,
         )
         from c4.renderers import (
             MermaidRenderOptionsBuilder,
             PlantUMLRenderOptionsBuilder,
-            RenderOptions,
         )
 
 
         with DynamicDiagram(title='D') as diagram:
             user = Person('User', alias='user')
+
             system = System('System', alias='system')
 
             user >> Rel('Uses') >> system
@@ -1019,12 +1088,10 @@ def test_diagram_to_python_code__all_render_options(
         plantuml_render_options = PlantUMLRenderOptionsBuilder().build()
         mermaid_render_options = MermaidRenderOptionsBuilder().build()
 
-        render_options = RenderOptions(
+        diagram.set_render_options(
             plantuml=plantuml_render_options,
             mermaid=mermaid_render_options,
         )
-
-        diagram.render_options = render_options
         """
     ).strip()
 
@@ -1042,20 +1109,24 @@ def test_diagram_to_python_code__no_render_options(
         user >> Rel("Uses") >> system
         increment()
         LayDown(user, system)
-    expected_result = textwrap.dedent(
-        """
+    expected_result = (
+        textwrap.dedent(
+            """
         from c4 import (
             DynamicDiagram,
-            LayDown,
             Person,
             Rel,
             System,
+        )
+        from c4.contrib.plantuml import (
+            LayDown,
             increment,
         )
 
 
-        with DynamicDiagram(title='D'):
+        with DynamicDiagram(title='D') as diagram:
             user = Person('User', alias='user')
+
             system = System('System', alias='system')
 
             user >> Rel('Uses') >> system
@@ -1063,7 +1134,9 @@ def test_diagram_to_python_code__no_render_options(
 
             LayDown(user, system)
         """
-    ).strip()
+        ).strip()
+        + "\n"
+    )
 
     result = diagram_to_python_code(diagram)
 
@@ -1080,20 +1153,24 @@ def test_diagram_to_python_code__empty_renderer_options(
         user >> Rel("Uses") >> system
         increment()
         LayDown(user, system)
-    expected_result = textwrap.dedent(
-        """
+    expected_result = (
+        textwrap.dedent(
+            """
         from c4 import (
             DynamicDiagram,
-            LayDown,
             Person,
             Rel,
             System,
+        )
+        from c4.contrib.plantuml import (
+            LayDown,
             increment,
         )
 
 
-        with DynamicDiagram(title='D'):
+        with DynamicDiagram(title='D') as diagram:
             user = Person('User', alias='user')
+
             system = System('System', alias='system')
 
             user >> Rel('Uses') >> system
@@ -1101,7 +1178,9 @@ def test_diagram_to_python_code__empty_renderer_options(
 
             LayDown(user, system)
         """
-    ).strip()
+        ).strip()
+        + "\n"
+    )
 
     result = diagram_to_python_code(diagram)
 

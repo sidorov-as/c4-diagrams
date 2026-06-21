@@ -8,9 +8,8 @@ from c4 import (
     DeploymentDiagram,
     DeploymentNode,
     Rel,
-    RelRight,
-    RelUp,
 )
+from c4.contrib.mermaid import RelRight, RelUp
 from c4.renderers import MermaidRenderOptionsBuilder
 
 if TYPE_CHECKING:  # pragma: no cover

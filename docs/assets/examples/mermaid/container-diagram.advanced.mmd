@@ -1,0 +1,46 @@
+C4Container
+title Online Shop - Container Diagram
+
+Person(customer, "Customer", "Browses products and places orders.")
+
+Person_Ext(support_agent, "Support Agent", "Investigates customer issues from an external support tool.")
+
+System_Ext(payment_provider, "Payment Provider", "Processes card payments and payment webhooks.")
+
+Container_Ext(recommendation_api, "Recommendation API", $descr="Returns personalized product recommendations.")
+
+ContainerDb_Ext(fraud_db, "Fraud Signals DB", "Vendor DB", "External datastore containing fraud intelligence.")
+
+ContainerQueue_Ext(shipping_events, "Shipping Events Topic", "Kafka", "External topic used by logistics partner.")
+
+Enterprise_Boundary(acme, "Acme Corp", "Enterprise boundary for internal platforms.") {
+    System_Boundary(shop_boundary, "Online Shop Platform", "Main system boundary for the commerce platform.") {
+        Container(web_app, "Web Application", "React + Next.js", "Serves the storefront and checkout UI.")
+        Container(backend_api, "Backend API", "Python / FastAPI", "Handles catalog, carts, checkout, and order APIs.")
+        ContainerDb(orders_db, "Orders Database", "PostgreSQL", "Stores orders, payments, and status transitions.")
+        ContainerQueue(order_events, "Order Events Queue", "Kafka", "Publishes asynchronous order lifecycle events.")
+        Container_Boundary(checkout_boundary, "Checkout Subsystem", "Groups checkout-related containers.") {
+            Container(checkout_api, "Checkout API", "Python / FastAPI", "Handles checkout and payment orchestration.")
+            ContainerDb(checkout_db, "Checkout DB", "PostgreSQL", "Stores checkout sessions.")
+            Rel(checkout_api, checkout_db, "Reads and writes", "SQL")
+        }
+    }
+}
+
+Rel(customer, web_app, "Uses", "HTTPS")
+
+Rel(web_app, backend_api, "Calls", "HTTPS/JSON")
+
+Rel(backend_api, orders_db, "Reads and writes", "SQL")
+
+Rel(backend_api, order_events, "Publishes order events", "Kafka")
+
+Rel(backend_api, payment_provider, "Creates payment intents", "REST API")
+
+Rel(backend_api, recommendation_api, "Fetches recommendations", "REST API")
+
+Rel(backend_api, fraud_db, "Checks fraud signals", "JDBC")
+
+Rel(shipping_events, backend_api, "Delivers shipping updates", "Kafka")
+
+Rel(support_agent, backend_api, "Queries order state", "HTTPS")

@@ -10,11 +10,13 @@ from c4.cli.parser import (
     HelpFormatter,
     _env_default,
     _mermaid_bin_type,
+    _mermaid_puppeteer_config_type,
     _output_file_path,
     _plantuml_bin_type,
     _plantuml_jar_type,
     str2bool,
 )
+from c4.constants import JAVA_BIN_ENV_VAR, RENDERING_TIMEOUT_SECONDS_ENV_VAR
 from tests.conftest import MakeTmpPyFile
 
 
@@ -110,6 +112,42 @@ def test_mermaid_bin_type_raises_when_not_found(mocker: MockerFixture):
 
     with pytest.raises(argparse.ArgumentTypeError, match=expected_error):
         _mermaid_bin_type("mmdc")
+
+
+def test_mermaid_puppeteer_config_type_returns_path_for_existing_file(
+    tmp_path: Path,
+):
+    config = tmp_path / "puppeteer.json"
+    config.write_text("{}", encoding="utf-8")
+
+    result = _mermaid_puppeteer_config_type(str(config))
+
+    assert result == config
+
+
+def test_mermaid_puppeteer_config_type_raises_when_path_does_not_exist(
+    tmp_path: Path,
+):
+    config = tmp_path / "missing.json"
+    expected_error = (
+        f"Mermaid Puppeteer config file does not exist: {str(config)!r}."
+    )
+
+    with pytest.raises(argparse.ArgumentTypeError, match=expected_error):
+        _mermaid_puppeteer_config_type(str(config))
+
+
+def test_mermaid_puppeteer_config_type_raises_when_path_is_not_a_file(
+    tmp_path: Path,
+):
+    config_dir = tmp_path / "puppeteer.json"
+    config_dir.mkdir()
+    expected_error = (
+        f"Mermaid Puppeteer config path is not a file: {str(config_dir)!r}."
+    )
+
+    with pytest.raises(argparse.ArgumentTypeError, match=expected_error):
+        _mermaid_puppeteer_config_type(str(config_dir))
 
 
 @pytest.mark.parametrize(
@@ -294,8 +332,99 @@ def test_export_default_cli_args(
     assert args.plantuml_bin is None
     assert args.mermaid_bin is None
     assert args.mermaid_scale_factor is None
+    assert args.mermaid_puppeteer_headless is None
+    assert args.mermaid_puppeteer_config is None
     assert args.java_bin == "java"
     assert args.plantuml_server_url is None
+
+
+def test_export_cli_args_use_environment_defaults(
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    module_path = make_tmp_py_file("module.py")
+    monkeypatch.setenv(RENDERING_TIMEOUT_SECONDS_ENV_VAR, "12.5")
+    monkeypatch.setenv(JAVA_BIN_ENV_VAR, "java-from-env")
+    mocked_handle_export = mocker.patch(
+        "c4.cli.parser.handle_export", return_value=0
+    )
+
+    main(["export", str(module_path)])
+
+    args = mocked_handle_export.call_args.args[0]
+    assert args.timeout == 12.5
+    assert args.java_bin == "java-from-env"
+
+
+@pytest.mark.parametrize(
+    ("argv", "expected_headless"),
+    [
+        (["--mermaid-puppeteer-headless", "true"], True),
+        (["--mermaid-puppeteer-headless", "false"], False),
+    ],
+)
+def test_export_mermaid_puppeteer_headless_args(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+    argv: list[str],
+    expected_headless: bool,
+):
+    module_path = make_tmp_py_file("module.py")
+    mocked_handle_export = mocker.patch(
+        "c4.cli.parser.handle_export", return_value=0
+    )
+
+    main(["export", str(module_path), *argv])
+
+    args = mocked_handle_export.call_args.args[0]
+    assert args.mermaid_puppeteer_headless is expected_headless
+    assert args.mermaid_puppeteer_config is None
+
+
+def test_export_mermaid_puppeteer_config_arg(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+    tmp_path: Path,
+):
+    module_path = make_tmp_py_file("module.py")
+    config_path = tmp_path / "puppeteer.json"
+    config_path.write_text("{}", encoding="utf-8")
+    mocked_handle_export = mocker.patch(
+        "c4.cli.parser.handle_export", return_value=0
+    )
+
+    main([
+        "export",
+        str(module_path),
+        "--mermaid-puppeteer-config",
+        str(config_path),
+    ])
+
+    args = mocked_handle_export.call_args.args[0]
+    assert args.mermaid_puppeteer_config == config_path
+    assert args.mermaid_puppeteer_headless is None
+
+
+def test_export_mermaid_puppeteer_options_are_mutually_exclusive(
+    make_tmp_py_file: MakeTmpPyFile,
+    tmp_path: Path,
+):
+    module_path = make_tmp_py_file("module.py")
+    config_path = tmp_path / "puppeteer.json"
+    config_path.write_text("{}", encoding="utf-8")
+
+    with pytest.raises(SystemExit) as exc:
+        main([
+            "export",
+            str(module_path),
+            "--mermaid-puppeteer-headless",
+            "true",
+            "--mermaid-puppeteer-config",
+            str(config_path),
+        ])
+
+    assert exc.value.code == 2
 
 
 @pytest.mark.parametrize(

@@ -6,16 +6,18 @@ from c4 import (
     Container,
     ContainerDb,
     DynamicDiagram,
-    Index,
-    LastIndex,
     Person,
     Rel,
+    SystemBoundary,
+)
+from c4.contrib.plantuml import (
+    Index,
+    LastIndex,
     RelDown,
     RelLeft,
     RelRight,
     RelUp,
     SetIndex,
-    SystemBoundary,
 )
 from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
 
@@ -102,7 +104,7 @@ def test_render_dynamic_diagram(
             >> RelDown(
                 "Sends customer update events to",
                 technology="async",
-                index=f"{Index()}-1",
+                extensions={"plantuml": {"index": f"{Index()}-1"}},
             )
             >> message_bus
         )
@@ -111,7 +113,7 @@ def test_render_dynamic_diagram(
             >> RelUp(
                 "Confirm update to",
                 technology="async",
-                index=LastIndex() + "-2",
+                extensions={"plantuml": {"index": LastIndex() + "-2"}},
             )
             >> app
         )
@@ -121,13 +123,16 @@ def test_render_dynamic_diagram(
             >> RelLeft(
                 "Sends customer update events to",
                 technology="async",
-                index=f"{Index()}-1",
+                extensions={"plantuml": {"index": f"{Index()}-1"}},
             )
             >> reporting_service
         )
         (
             reporting_service
-            >> Rel("Stores data in", index=f"{Index()}-1")
+            >> Rel(
+                "Stores data in",
+                extensions={"plantuml": {"index": f"{Index()}-1"}},
+            )
             >> reporting_db
         )
 
@@ -136,13 +141,16 @@ def test_render_dynamic_diagram(
             >> RelRight(
                 "Sends customer update events to",
                 technology="async",
-                index=f"{SetIndex(5)}-2",
+                extensions={"plantuml": {"index": f"{SetIndex(5)}-2"}},
             )
             >> audit_service
         )
         (
             audit_service
-            >> Rel("Stores events in", index=f"{Index()}-2")
+            >> Rel(
+                "Stores events in",
+                extensions={"plantuml": {"index": f"{Index()}-2"}},
+            )
             >> audit_store
         )
 

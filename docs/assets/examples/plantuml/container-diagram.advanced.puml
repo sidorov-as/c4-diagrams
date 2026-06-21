@@ -1,0 +1,63 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Container.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!endif
+
+title Online Shop - Container Diagram
+
+SetPropertyHeader("Property", "Value")
+AddProperty("Channel", "Web / Mobile")
+Person(customer, "Customer", "Browses products and places orders.", $tags="")
+
+SetPropertyHeader("Property", "Value")
+AddProperty("Organization", "Support Vendor")
+Person_Ext(support_agent, "Support Agent", "Investigates customer issues from an external support tool.", $tags="")
+
+System_Ext(payment_provider, "Payment Provider", "Processes card payments and payment webhooks.", $tags="")
+
+Container_Ext(recommendation_api, "Recommendation API", $descr="Returns personalized product recommendations.", $tags="")
+
+ContainerDb_Ext(fraud_db, "Fraud Signals DB", "Vendor DB", "External datastore containing fraud intelligence.", $tags="")
+
+ContainerQueue_Ext(shipping_events, "Shipping Events Topic", "Kafka", "External topic used by logistics partner.", $tags="")
+
+Enterprise_Boundary(acme, "Acme Corp", $descr="Enterprise boundary for internal platforms.") {
+    System_Boundary(shop_boundary, "Online Shop Platform", $descr="Main system boundary for the commerce platform.") {
+        SetPropertyHeader("Property", "Value")
+        AddProperty("Runtime", "Node.js")
+        AddProperty("Team", "Storefront")
+        Container(web_app, "Web Application", "React + Next.js", "Serves the storefront and checkout UI.", $tags="")
+        SetPropertyHeader("Property", "Value")
+        AddProperty("Runtime", "Python 3.12")
+        AddProperty("Team", "Platform")
+        Container(backend_api, "Backend API", "Python / FastAPI", "Handles catalog, carts, checkout, and order APIs.", $tags="")
+        SetPropertyHeader("Property", "Value")
+        AddProperty("Engine", "PostgreSQL 16")
+        AddProperty("HA", "Primary / Replica")
+        ContainerDb(orders_db, "Orders Database", "PostgreSQL", "Stores orders, payments, and status transitions.", $tags="")
+        SetPropertyHeader("Property", "Value")
+        AddProperty("Retention", "7 days")
+        AddProperty("Format", "JSON")
+        ContainerQueue(order_events, "Order Events Queue", "Kafka", "Publishes asynchronous order lifecycle events.", $tags="")
+        Container_Boundary(checkout_boundary, "Checkout Subsystem", $descr="Groups checkout-related containers.") {
+            Container(checkout_api, "Checkout API", "Python / FastAPI", "Handles checkout and payment orchestration.", $tags="")
+            ContainerDb(checkout_db, "Checkout DB", "PostgreSQL", "Stores checkout sessions.", $tags="")
+            Rel(checkout_api, checkout_db, "Reads and writes", "SQL", $tags="")
+        }
+    }
+}
+
+Rel(customer, web_app, "Uses", "HTTPS", $tags="")
+Rel(web_app, backend_api, "Calls", "HTTPS/JSON", $tags="")
+Rel(backend_api, orders_db, "Reads and writes", "SQL", $tags="")
+Rel(backend_api, order_events, "Publishes order events", "Kafka", $tags="")
+Rel(backend_api, payment_provider, "Creates payment intents", "REST API", $tags="")
+Rel(backend_api, recommendation_api, "Fetches recommendations", "REST API", $tags="")
+Rel(backend_api, fraud_db, "Checks fraud signals", "JDBC", $tags="")
+Rel(shipping_events, backend_api, "Delivers shipping updates", "Kafka", $tags="")
+Rel(support_agent, backend_api, "Queries order state", "HTTPS", $tags="")
+
+@enduml

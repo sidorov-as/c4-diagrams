@@ -1,0 +1,24 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Deployment.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+!endif
+
+title Web App Deployment
+
+Person(user, "User", "Uses the web application.", $tags="")
+
+Deployment_Node(web_node, "Web Server", $descr="Hosts the frontend application.") {
+    Container(web_app, "Web App", "Next.js", "Customer-facing web application.", $tags="")
+}
+
+Deployment_Node(db_node, "Database Server", $descr="Hosts the application database.") {
+    ContainerDb(app_db, "App Database", "PostgreSQL", "Stores application data.", $tags="")
+}
+
+Rel(user, web_node, "Uses", "HTTPS", $tags="")
+Rel(web_node, db_node, "Reads and writes", "TLS / SQL", $tags="")
+
+@enduml

@@ -1,0 +1,18 @@
+C4Dynamic
+title Checkout Flow
+
+Person(customer, "Customer", "Places an order in the online store.")
+
+System(retail_platform, "Retail Platform", "Coordinates checkout and order processing.")
+
+System_Ext(payment_provider, "Payment Provider", "Authorizes card payments.")
+
+System_Ext(warehouse_system, "Warehouse System", "Reserves stock and starts fulfillment.")
+
+Rel(customer, retail_platform, "Submits checkout", "HTTPS")
+
+Rel(retail_platform, payment_provider, "Authorizes payment", "HTTPS")
+
+Rel(retail_platform, warehouse_system, "Reserves stock", "HTTPS")
+
+Rel(retail_platform, customer, "Confirms order", "HTTPS")

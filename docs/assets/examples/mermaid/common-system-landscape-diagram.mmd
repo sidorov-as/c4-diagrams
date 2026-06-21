@@ -1,0 +1,28 @@
+C4Context
+title Acme Retail - System Landscape
+
+Person(customer, "Customer", "Places orders through digital channels.")
+
+Person(support_agent, "Support Agent", "Supports customers after purchase.")
+
+System_Ext(payment_provider, "Payment Provider", "Processes card payments.")
+
+System_Ext(warehouse_system, "Warehouse System", "Reserves stock and coordinates fulfillment.")
+
+Enterprise_Boundary(acme_retail, "Acme Retail", "Internal systems owned by Acme Retail.") {
+    System(retail_platform, "Retail Platform", "Supports browsing, checkout, and order management.")
+    System(support_portal, "Support Portal", "Helps support teams investigate customer orders.")
+    System(reporting_platform, "Reporting Platform", "Provides operational and sales reporting.")
+}
+
+Rel(customer, retail_platform, "Places orders through", "HTTPS")
+
+Rel(support_agent, support_portal, "Uses", "HTTPS")
+
+Rel(support_portal, retail_platform, "Reads order data from", "HTTPS")
+
+Rel(retail_platform, payment_provider, "Requests payments from", "HTTPS")
+
+Rel(retail_platform, warehouse_system, "Sends fulfillment requests to", "HTTPS")
+
+Rel(retail_platform, reporting_platform, "Publishes order facts to", "Kafka")

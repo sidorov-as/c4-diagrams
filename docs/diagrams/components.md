@@ -1,103 +1,76 @@
-# Component diagram
+# Component Diagram
 
-Next you can zoom in and decompose a container to describe the [components](https://c4model.com/abstractions/component)
-that reside inside it;
-including their responsibilities and the technology/implementation details.
+A component diagram zooms into one container and shows the major components
+inside it. It is aimed at engineers who need to understand responsibilities,
+internal dependencies, and how a container connects back to neighboring
+containers and external systems.
 
-## Example
+## Supported DSL Classes
 
-The following example demonstrates how to define a **component diagram** using the Python DSL.
+Use [`ComponentDiagram`][c4.diagrams.component.ComponentDiagram] with:
+
+- [`Component`][c4.diagrams.component.Component],
+  [`ComponentDb`][c4.diagrams.component.ComponentDb],
+  [`ComponentQueue`][c4.diagrams.component.ComponentQueue], and external
+  variants
+- surrounding [`Container`][c4.diagrams.container.Container] and
+  [`ContainerDb`][c4.diagrams.container.ContainerDb] elements for dependencies
+- [`ContainerBoundary`][c4.diagrams.container.ContainerBoundary] for the
+  container being decomposed
+- portable [`Rel`][c4.diagrams.core.relationships.Rel]
+
+## Portable Example
 
 ```python
-from c4 import (
-    Component,
-    ComponentDiagram,
-    Container,
-    ContainerBoundary,
-    ContainerDb,
-    Rel,
-    SystemExt,
-)
-from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
+from c4 import Component, ComponentDiagram, Container, ContainerBoundary, Rel, SystemExt
 
-with ComponentDiagram(
-    title="Component diagram for Internet Banking System - API Application"
-) as diagram:
-    spa = Container(
-        "spa",
-        "Single Page Application",
-        "javascript and angular",
-        "Provides all the internet banking functionality to customers via their web browser.",
-    )
-    ma = Container(
-        "ma",
-        "Mobile App",
-        "Xamarin",
-        "Provides a limited subset ot the internet banking functionality to customers via their mobile mobile device.",
-    )
-    db = ContainerDb(
-        "db",
-        "Database",
-        "Relational Database Schema",
-        "Stores user registration information, hashed authentication credentials, access logs, etc.",
-    )
-    mbs = SystemExt(
-        "mbs",
-        "Mainframe Banking System",
-        "Stores all of the core banking information about customers, accounts, transactions, etc.",
-    )
 
-    with ContainerBoundary("api", "API Application"):
-        sign = Component(
-            "sign",
-            "Sign In Controller",
-            "MVC Rest Controller",
-            "Allows users to sign in to the internet banking system",
-        )
-        accounts = Component(
-            "accounts",
-            "Accounts Summary Controller",
-            "MVC Rest Controller",
-            "Provides customers with a summary of their bank accounts",
-        )
-        security = Component(
-            "security",
-            "Security Component",
-            "Spring Bean",
-            "Provides functionality related to singing in, changing passwords, etc.",
-        )
-        mbsfacade = Component(
-            "mbsfacade",
-            "Mainframe Banking System Facade",
-            "Spring Bean",
-            "A facade onto the mainframe banking system.",
-        )
+with ComponentDiagram(title="Backend API components") as diagram:
+    spa = Container("Single Page Application", "Browser UI.", "React")
+    payments = SystemExt("Payment Gateway", "Authorizes payments.")
 
-        sign >> Rel("Uses") >> security
-        accounts >> Rel("Uses") >> mbsfacade
-        security >> Rel("Read & write to", "JDBC") >> db
-        mbsfacade >> Rel("Uses", "XML/HTTPS") >> mbs
+    with ContainerBoundary("Backend API"):
+        checkout = Component("Checkout Controller", "Accepts checkout requests.")
+        payment_client = Component("Payment Client", "Calls the payment API.")
 
-    spa >> Rel("Uses", "JSON/HTTPS") >> sign
-    spa >> Rel("Uses", "JSON/HTTPS") >> accounts
+    spa >> Rel("Submits checkout", "JSON/HTTPS") >> checkout
+    checkout >> Rel("Uses") >> payment_client
+    payment_client >> Rel("Authorizes card", "REST API") >> payments
 
-    ma >> Rel("Uses", "JSON/HTTPS") >> sign
-    ma >> Rel("Uses", "JSON/HTTPS") >> accounts
-
-    render_options = PlantUMLRenderOptionsBuilder().layout_with_legend().build()
-
-diagram_code = diagram.as_plantuml(render_options=render_options)
+plantuml_source = diagram.as_plantuml()
+mermaid_source = diagram.as_mermaid()
 ```
+
+## PlantUML enhanced example
+
+???+ warning "Non-portable PlantUML example"
+
+    This snippet uses PlantUML extension data and renderer options. Render it
+    with the PlantUML rendering backend when keeping those hints.
+
+The generated PlantUML example demonstrates the same component model with
+PlantUML render options and source output.
+
+```python
+--8<-- "assets/examples/plantuml/component-diagram.py"
+```
+
+## Renderer Behavior
+
+PlantUML supports C4-PlantUML component rendering, tags, styles, legends, and
+layout hints. Mermaid renders the common component subset, but Mermaid C4 is
+less expressive and may require Mermaid-specific style offsets for readable
+labels.
+
+## Generated Source and Image
 
 <details>
 <summary>Generated PlantUML source</summary>
 
 ```puml
-{% include-markdown "../../tests/snapshots/plantuml/component_diagram.puml" %}
+--8<-- "assets/examples/plantuml/component-diagram.puml"
 ```
 
 </details>
 
-The PlantUML source can be rendered into the following diagram:
-
-![system context](../assets/diagrams/component_diagram.png)
+![Component diagram](../assets/examples/plantuml/component-diagram.png)

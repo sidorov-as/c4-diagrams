@@ -116,7 +116,25 @@ Unit tests:
 make test
 ```
 
-### 4. (Optional) Run tox
+### 4. Regenerate documentation artifacts
+
+The examples in the documentation are generated from JSON and Python files under
+`docs/assets/examples`. The checked-in artifacts next to each source file are
+the converted Python source, renderer source text, and PNG image.
+
+Regenerate checked-in example artifacts with:
+
+```bash
+make generate-docs-artifacts
+```
+
+Regenerate JSON schema docs and specs with:
+
+```bash
+make generate-diagram-specs
+```
+
+### 5. (Optional) Run tox
 
 ```bash
 tox
@@ -167,6 +185,9 @@ git commit -m "fix(renderer): handle empty boundary labels"
 git commit -m "docs(readme): add minimal usage example"
 git commit -m "refactor(core): simplify relationship rendering"
 ```
+
+We suggest using **[Commitizen](https://commitizen-tools.github.io/commitizen/)** to help
+format commit messages consistently.
 
 ---
 

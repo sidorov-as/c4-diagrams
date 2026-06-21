@@ -4,12 +4,13 @@ from c4 import (
     DeploymentDiagram,
     DeploymentNode,
     Rel,
+)
+from c4.contrib.mermaid import (
     RelRight,
     RelUp,
 )
 from c4.renderers import (
     MermaidRenderOptionsBuilder,
-    RenderOptions,
 )
 
 
@@ -78,8 +79,6 @@ mermaid_render_options = (
     .build()
 )
 
-render_options = RenderOptions(
+diagram.set_render_options(
     mermaid=mermaid_render_options,
 )
-
-diagram.render_options = render_options

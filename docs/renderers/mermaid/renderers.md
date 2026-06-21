@@ -4,7 +4,7 @@
 
     Mermaid’s C4 diagram support is currently **experimental**.
 
-    According to the official [Mermaid documentation](https://mermaid.js.org/syntax/c4.html):
+    According to the official [Mermaid documentation](https://mermaid.ai/open-source/syntax/c4.html):
 
     >C4 Diagram: This is an experimental diagram for now. The syntax and properties can change in future releases.
     >Proper documentation will be provided when the syntax is stable.
@@ -12,10 +12,15 @@
 
 The **Mermaid renderer** is responsible for converting a [`Diagram`][c4.diagrams.core.Diagram] object into Mermaid
 source code
-and exporting it into an image (PNG, SVG, etc.).
+and exporting it as an image (PNG, SVG, etc.).
 
 It integrates with the [`Diagram`][c4.diagrams.core.Diagram] and delegates image generation
-to a configurable backend.
+to a configurable execution backend.
+
+Mermaid-specific hints are rendering backend extensions, separate from the
+portable C4 core. See [Portable core and backend extensions](../../concepts/portable-core-and-extensions.md)
+for how `mermaid={...}` data is stored and how unsupported foreign extensions
+are validated.
 
 ## MermaidRenderer
 
@@ -42,12 +47,12 @@ print(diagram.render())
 **Responsibilities:**
 
 - Generate Mermaid source code
-- Delegate image generation to a configured backend
+- Delegate image generation to a configured execution backend
 - Support layout configuration
 
 ### Diagram Rendering Flow
 
-There are rwo rendering levels:
+There are two rendering levels:
 
 #### Rendering to Mermaid Source
 
@@ -97,10 +102,10 @@ Flow:
 ```
 MermaidRenderer.render_bytes()
     → generate Mermaid source
-    → delegate to backend.to_bytes()
+    → delegate to execution_backend.to_bytes()
 ```
 
-The backend performs the actual image generation.
+The execution backend performs the actual image generation.
 
 ### Using Diagram Convenience Methods
 
@@ -119,14 +124,15 @@ diagram.save_as_mermaid("diagram.mmd")
 These methods internally instantiate `MermaidRenderer`.
 
 
-## Mermaid Backends
+## Mermaid Execution Backend
 
-Backends are responsible for converting Mermaid source text into rendered images.
+The execution backend is responsible for converting Mermaid source text into
+rendered images.
 
 ### LocalMermaidBackend
 
 [`LocalMermaidBackend`][c4.renderers.mermaid.LocalMermaidBackend] generates diagrams
-using a **locally installed** [Mermaid cli](https://github.com/mermaid-js/mermaid-cli).
+using a **locally installed** [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli).
 
 **When to use:**
 
@@ -137,7 +143,7 @@ using a **locally installed** [Mermaid cli](https://github.com/mermaid-js/mermai
 
 **Configuration Sources:**
 
-The backend can be configured via:
+The execution backend can be configured via:
 
 - Constructor arguments
 - Environment variables

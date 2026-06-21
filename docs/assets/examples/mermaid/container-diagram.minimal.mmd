@@ -1,0 +1,16 @@
+C4Container
+title Web App
+
+Person(user, "User")
+
+System_Boundary(system, "Simple System") {
+    Container(web, "Web App", "React")
+    Container(api, "API", "Python")
+    ContainerDb(db, "Database", "PostgreSQL")
+}
+
+Rel(user, web, "Uses")
+
+Rel(web, api, "Calls")
+
+Rel(api, db, "Reads/Writes")

@@ -5,25 +5,32 @@ from c4 import (
     ContainerBoundary,
     ContainerDb,
     Rel,
-    RelBack,
     SystemExt,
+)
+from c4.contrib.mermaid import (
+    RelBack,
 )
 from c4.renderers import (
     MermaidRenderOptionsBuilder,
-    RenderOptions,
 )
 
 
 with ComponentDiagram(title='Component diagram for Internet Banking System - API Application') as diagram:
     spa = Container('Single Page Application', 'Provides all the internet banking functionality to customers via their web browser.', technology='javascript and angular', alias='spa')
+
     ma = Container('Mobile App', 'Provides a limited subset to the internet banking functionality to customers via their mobile device.', technology='Xamarin', alias='ma')
+
     db = ContainerDb('Database', 'Stores user registration information, hashed authentication credentials, access logs, etc.', technology='Relational Database Schema', alias='db')
+
     mbs = SystemExt('Mainframe Banking System', 'Stores all of the core banking information about customers, accounts, transactions, etc.', alias='mbs')
 
     with ContainerBoundary('API Application', alias='api'):
         sign = Component('Sign In Controller', 'Allows users to sign in to the internet banking system', technology='MVC Rest Controller', alias='sign')
+
         accounts = Component('Accounts Summary Controller', 'Provides customers with a summary of their bank accounts', technology='MVC Rest Controller', alias='accounts')
+
         security = Component('Security Component', 'Provides functionality related to singing in, changing passwords, etc.', technology='Spring Bean', alias='security')
+
         mbsfacade = Component('Mainframe Banking System Facade', 'A facade onto the mainframe banking system.', technology='Spring Bean', alias='mbsfacade')
 
         sign >> Rel('Uses') >> security
@@ -86,8 +93,6 @@ mermaid_render_options = (
     .build()
 )
 
-render_options = RenderOptions(
+diagram.set_render_options(
     mermaid=mermaid_render_options,
 )
-
-diagram.render_options = render_options

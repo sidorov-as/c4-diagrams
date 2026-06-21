@@ -92,23 +92,30 @@ _plantuml_bin_type = partial(_exporter_binary_type, backend="PlantUML")
 _mermaid_bin_type = partial(_exporter_binary_type, backend="Mermaid")
 
 
-def _plantuml_jar_type(value: str | Path) -> Path:
+def _existing_file_type(value: str | Path, label: str) -> Path:
     """
-    Validate a PlantUML JAR file path.
+    Validate an existing file path.
 
     Returns:
-        The resolved Path to the jar.
+        The provided path.
     """
     path = Path(value)
     if not path.exists():
         raise argparse.ArgumentTypeError(
-            f"PlantUML jar file does not exist: {str(value)!r}."
+            f"{label} file does not exist: {str(value)!r}."
         )
     if not path.is_file():
         raise argparse.ArgumentTypeError(
-            f"PlantUML jar path is not a file: {str(value)!r}."
+            f"{label} path is not a file: {str(value)!r}."
         )
     return path
+
+
+_plantuml_jar_type = partial(_existing_file_type, label="PlantUML jar")
+_mermaid_puppeteer_config_type = partial(
+    _existing_file_type,
+    label="Mermaid Puppeteer config",
+)
 
 
 def _output_file_path(value: str | Path) -> Path:
@@ -311,7 +318,7 @@ def _add_plantuml_export_flags(parser: argparse.ArgumentParser) -> None:
 
     group.add_argument(
         "--java-bin",
-        default=DEFAULT_JAVA_BIN,
+        default=_env_default([JAVA_BIN_ENV_VAR]) or DEFAULT_JAVA_BIN,
         help=(
             "Java executable to use when running PlantUML via JAR. "
             f"If not provided, the {JAVA_BIN_ENV_VAR} "
@@ -381,6 +388,22 @@ def _add_mermaid_export_flags(parser: argparse.ArgumentParser) -> None:
             f"{MERMAID_SCALE_FACTOR_ENV_VAR} environment variable."
         ),
     )
+    puppeteer_group = group.add_mutually_exclusive_group()
+    puppeteer_group.add_argument(
+        "--mermaid-puppeteer-headless",
+        type=str2bool,
+        default=None,
+        help=(
+            "Generate a temporary Mermaid Puppeteer config with the provided "
+            "headless value and pass it to Mermaid CLI."
+        ),
+    )
+    puppeteer_group.add_argument(
+        "--mermaid-puppeteer-config",
+        type=_mermaid_puppeteer_config_type,
+        default=None,
+        help="Path to a Puppeteer config passed to Mermaid CLI.",
+    )
 
 
 def _build_export_parser(
@@ -430,7 +453,10 @@ def _build_export_parser(
     export_parser.add_argument(
         "--timeout",
         type=float,
-        default=DEFAULT_RENDERING_TIMEOUT_SECONDS,
+        default=(
+            _env_default([RENDERING_TIMEOUT_SECONDS_ENV_VAR], cast=float)
+            or DEFAULT_RENDERING_TIMEOUT_SECONDS
+        ),
         help=(
             "Render timeout in seconds. "
             f"Can also be set via the {RENDERING_TIMEOUT_SECONDS_ENV_VAR} "
