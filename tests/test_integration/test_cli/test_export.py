@@ -5,6 +5,10 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import CLI, AssertMatchSnapshot, MakeTmpPyFile
+from tests.test_integration.test_cli.conftest import (
+    MakeCliDiagram,
+    MakeFakeWatchfiles,
+)
 
 pytestmark = [pytest.mark.usefixtures("clean_sys_modules")]
 
@@ -1201,3 +1205,57 @@ def test_export__use_new_c4_style(
         diagram_code=result.stdout,
         snapshot_dir=SNAPSHOT_DIR,
     )
+
+
+def test_export_watch_accepts_watch_flags_with_fake_watcher(
+    tmp_path: Path,
+    make_export_diagram: MakeCliDiagram,
+    make_fake_watchfiles: MakeFakeWatchfiles,
+    cli: CLI,
+    assert_match_snapshot: AssertMatchSnapshot,
+):
+    diagram_output = tmp_path / "diagram.txt"
+    watch_dir = tmp_path / "includes"
+    watch_dir.mkdir()
+    module_path = make_export_diagram()
+    make_fake_watchfiles()
+
+    result = cli([
+        "export",
+        str(module_path),
+        "-f",
+        "txt",
+        "-o",
+        str(diagram_output),
+        "--watch",
+        "--watch-delay",
+        "0.001",
+        "--watch-dir",
+        str(watch_dir),
+        "--watch-include",
+        "**/*.puml",
+        "--timeout",
+        "60",
+    ])
+
+    assert result.exit_code == 0
+    assert not result.stdout
+    assert not result.stderr
+    assert_match_snapshot(
+        snapshot_name="test_export_success.txt",
+        diagram_code=diagram_output.read_text(),
+        snapshot_dir=SNAPSHOT_DIR,
+    )
+
+
+def test_export_watch_without_output_reports_argparse_error(
+    make_simple_render_diagram: MakeCliDiagram,
+    cli: CLI,
+):
+    module_path = make_simple_render_diagram()
+
+    result = cli(["export", str(module_path), "--watch"])
+
+    assert result.exit_code == 2
+    assert not result.stdout
+    assert "c4: error: --watch requires --output.\n" in result.stderr

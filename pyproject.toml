@@ -1,6 +1,6 @@
 [project]
 name = "c4-diagrams"
-version = "0.6.0"
+version = "0.6.1"
 description = "A Python DSL for generating C4 diagrams"
 authors = [{ name = "Alexey Sidorov", email = "ereon.dev@gmail.com" }]
 readme = "README.md"
@@ -32,6 +32,9 @@ c4 = "c4.__main__:entrypoint"
 [project.optional-dependencies]
 converters = [
     "pydantic>=2.1.0",
+]
+watch = [
+    "watchfiles>=1.0.0",
 ]
 
 [dependency-groups]
@@ -175,7 +178,7 @@ omit = [
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.6.0"
+version = "0.7.0"
 tag_format = "$version"
 version_scheme = "semver"
 version_files = [

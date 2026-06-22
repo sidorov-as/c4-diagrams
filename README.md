@@ -49,10 +49,8 @@ Currently supported backends:
     - local rendering via [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli)
     - Mermaid’s C4 diagram support is currently [experimental](https://mermaid.ai/open-source/syntax/c4.html)
 
-The following backends are being explored but are not currently planned:
-
-- [**Structurizr**](https://structurizr.com/)
-- [**D2**](https://d2lang.com/)
+- [**Structurizr**](https://structurizr.com/) - WIP
+- [**D2**](https://d2lang.com/) - WIP
 
 ## Getting started
 
