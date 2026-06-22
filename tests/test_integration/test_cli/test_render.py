@@ -5,6 +5,10 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import CLI, AssertMatchSnapshot, MakeTmpPyFile
+from tests.test_integration.test_cli.conftest import (
+    MakeCliDiagram,
+    MakeFakeWatchfiles,
+)
 
 pytestmark = [pytest.mark.usefixtures("clean_sys_modules")]
 
@@ -884,3 +888,110 @@ def test_render__use_new_c4_style(
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
+
+
+def test_render_watch_accepts_watch_flags_with_fake_watcher(
+    tmp_path: Path,
+    make_simple_render_diagram: MakeCliDiagram,
+    make_fake_watchfiles: MakeFakeWatchfiles,
+    cli: CLI,
+    assert_match_snapshot: AssertMatchSnapshot,
+):
+    diagram_output = tmp_path / "diagram.puml"
+    watch_dir = tmp_path / "includes"
+    watch_dir.mkdir()
+    module_path = make_simple_render_diagram()
+    make_fake_watchfiles()
+
+    result = cli([
+        "render",
+        str(module_path),
+        "-o",
+        str(diagram_output),
+        "--watch",
+        "--watch-delay",
+        "0.001",
+        "--watch-dir",
+        str(watch_dir),
+        "--watch-include",
+        "**/*.puml",
+    ])
+
+    assert result.exit_code == 0
+    assert not result.stdout
+    assert not result.stderr
+    assert_match_snapshot(
+        snapshot_name="test_render_success.puml",
+        diagram_code=diagram_output.read_text(),
+        snapshot_dir=SNAPSHOT_DIR,
+    )
+
+
+def test_render_watch_reflects_imported_helper_file_changes(
+    tmp_path: Path,
+    make_tmp_py_file: MakeTmpPyFile,
+    cli: CLI,
+):
+    diagram_output = tmp_path / "diagram.puml"
+    watch_dir = tmp_path / "watch_helpers"
+    watch_dir.mkdir()
+    shared_path = watch_dir / "shared.py"
+    shared_path.write_text("TITLE = 'Before'\n", encoding="utf-8")
+    module_path = make_tmp_py_file(
+        "diagram.py",
+        textwrap.dedent(
+            """
+            from c4 import SystemContextDiagram
+            from watch_helpers.shared import TITLE
+
+            diagram = SystemContextDiagram(TITLE)
+            """
+        ),
+    )
+    make_tmp_py_file(
+        "watchfiles.py",
+        textwrap.dedent(
+            f"""
+            def watch(*paths):
+                changed_path = {str(shared_path)!r}
+                with open(changed_path, "w", encoding="utf-8") as shared:
+                    shared.write("TITLE = 'After'\\n")
+                yield [(object(), changed_path)]
+                raise KeyboardInterrupt
+            """
+        ),
+    )
+
+    result = cli([
+        "render",
+        str(module_path),
+        "-o",
+        str(diagram_output),
+        "--watch",
+        "--watch-delay",
+        "0.001",
+        "--watch-dir",
+        str(watch_dir),
+        "--watch-include",
+        "*.py",
+    ])
+
+    assert result.exit_code == 0
+    assert not result.stdout
+    assert not result.stderr
+    diagram_source = diagram_output.read_text(encoding="utf-8")
+    assert "After" in diagram_source
+    assert "Before" not in diagram_source
+
+
+def test_render_watch_without_output_reports_argparse_error(
+    make_simple_render_diagram: MakeCliDiagram,
+    cli: CLI,
+):
+    module_path = make_simple_render_diagram()
+
+    result = cli(["render", str(module_path), "--watch"])
+
+    assert result.exit_code == 2
+    assert not result.stdout
+    assert "c4: error: --watch requires --output.\n" in result.stderr

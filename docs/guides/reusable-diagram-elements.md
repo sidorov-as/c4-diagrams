@@ -43,6 +43,12 @@ SupportPortal = partial(
     description="Web application used to manage customer support cases.",
 )
 
+AuditedSupportPortal = with_properties(
+    SupportPortal,
+    ("Owner", "Customer Support"),
+    ("Audit", "Enabled"),
+)
+
 TicketingService = partial(
     System,
     label="Ticketing Service",
@@ -57,7 +63,7 @@ NotificationProvider = partial(
 ```
 
 `functools.partial` pre-fills the bulky constructor arguments, while
-[`with_properties`](../api_docs/core/#c4.diagrams.core.with_properties) can add
+[`with_properties`](../api_docs/core/#c4.diagrams.core.BaseDiagramElement.with_properties) can add
 property rows to every element created by that factory.
 
 ## Use shared elements in diagrams
@@ -70,16 +76,16 @@ context:
 from c4 import Rel, SystemContextDiagram
 
 from architecture.elements import (
+    AuditedSupportPortal,
     CustomerSupportAgent,
     NotificationProvider,
-    SupportPortal,
     TicketingService,
 )
 
 
 with SystemContextDiagram("Customer support context") as diagram:
     support_agent = CustomerSupportAgent()
-    support_portal = SupportPortal()
+    support_portal = AuditedSupportPortal()
     ticketing_service = TicketingService()
     notification_provider = NotificationProvider()
 

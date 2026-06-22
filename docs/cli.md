@@ -193,6 +193,50 @@ c4 export diagram.py --plantuml -f png \
   -o diagram.png
 ```
 
+## Watch Mode
+
+The `render` and `export` commands can re-run automatically when watched files
+change. Watch mode is an optional dependency:
+
+```shell
+pip install "c4-diagrams[watch]"
+```
+
+Watch mode writes on every rerun, so `--watch` requires `-o` / `--output`.
+
+Render PlantUML source whenever the diagram file changes:
+
+```shell
+c4 render diagram.py --plantuml -o diagram.puml --watch
+```
+
+Export an SVG whenever the diagram file changes:
+
+```shell
+c4 export diagram.py --mermaid -f svg -o diagram.svg --watch
+```
+
+Use `--watch-dir` for shared reusable diagram element directories. Without
+`--watch-include`, any changed file under that directory triggers a rerun:
+
+```shell
+c4 export diagram.py -f svg -o diagram.svg --watch --watch-dir shared_package
+```
+
+Use `--watch-include` to narrow which files under `--watch-dir` trigger a
+rerun:
+
+```shell
+c4 render diagram.py -o diagram.puml --watch \
+  --watch-dir shared_package \
+  --watch-include "*.py"
+```
+
+The current implementation watches the primary target file and any explicit
+`--watch-dir` paths. It does not infer or follow the Python import graph, so
+helper modules should be covered with `--watch-dir` and, optionally,
+`--watch-include`.
+
 !!! warning
 
     `c4 export` writes binary bytes to stdout when `-o` / `--output` is not
@@ -226,6 +270,8 @@ Render a diagram to text output (by default, PlantUML source).
 c4 render [-h] [-o OUTPUT] \
           [--renderer {plantuml,mermaid} | --plantuml | --mermaid] \
           [--plantuml-use-new-c4-style] \
+          [-w] [--watch-delay WATCH_DELAY] \
+          [--watch-dir WATCH_DIR] [--watch-include WATCH_INCLUDE] \
           target
 ```
 
@@ -244,6 +290,18 @@ c4 render [-h] [-o OUTPUT] \
 | `--mermaid`                                                | boolean                        | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>)   | False      |
 | <span style="white-space: nowrap;">`-o`, `--output`</span> | path                           | Redirect output to a file.                                                                              | stdout     |
 | `-h`, `--help`                                             | boolean                        | Show this help message and exit.                                                                        | False      |
+
+**Watch Options**:
+
+These options require the `watch` extra and apply only to `render` and
+`export`. `--watch` requires `-o` / `--output`.
+
+| Name                                                                  | Type    | Description                                                                                             | Default |
+|-----------------------------------------------------------------------|---------|---------------------------------------------------------------------------------------------------------|---------|
+| <span style="white-space: nowrap;">`-w`, `--watch`</span>             | boolean | Re-run the command when watched files change.                                                           | False   |
+| <span style="white-space: nowrap;">`--watch-delay`</span>             | float   | Delay in seconds before re-running after a relevant change.                                             | 0.25    |
+| <span style="white-space: nowrap;">`--watch-dir`</span>               | path    | Additional directory to watch for reusable diagram elements or helper files. Can be repeated.           | None    |
+| <span style="white-space: nowrap;">`--watch-include`</span>           | string  | Pattern for relevant changes under `--watch-dir`, matched with `Path.match`. Can be repeated.           | None    |
 
 **PlantUML Options**:
 
@@ -282,6 +340,8 @@ c4 export [-h] [-o OUTPUT] [-f {eps,latex,pdf,png,svg,txt,utxt}] \
           [--mermaid-scale-factor MERMAID_SCALE_FACTOR] \
           [--mermaid-puppeteer-headless MERMAID_PUPPETEER_HEADLESS | \
            --mermaid-puppeteer-config MERMAID_PUPPETEER_CONFIG] \
+          [-w] [--watch-delay WATCH_DELAY] \
+          [--watch-dir WATCH_DIR] [--watch-include WATCH_INCLUDE] \
           target
 ```
 
@@ -302,6 +362,18 @@ c4 export [-h] [-o OUTPUT] [-f {eps,latex,pdf,png,svg,txt,utxt}] \
 | `--mermaid`                                                | boolean                                                     | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>).                                                  | False      |
 | <span style="white-space: nowrap;">`-o`, `--output`</span> | path                                                        | Redirect output to a file.                                                                                                                              | `stdout`   |
 | `-h`, `--help`                                             | boolean                                                     | Show this help message and exit.                                                                                                                        | False      |
+
+**Watch Options**:
+
+These options require the `watch` extra and apply only to `render` and
+`export`. `--watch` requires `-o` / `--output`.
+
+| Name                                                                  | Type    | Description                                                                                             | Default |
+|-----------------------------------------------------------------------|---------|---------------------------------------------------------------------------------------------------------|---------|
+| <span style="white-space: nowrap;">`-w`, `--watch`</span>             | boolean | Re-run the command when watched files change.                                                           | False   |
+| <span style="white-space: nowrap;">`--watch-delay`</span>             | float   | Delay in seconds before re-running after a relevant change.                                             | 0.25    |
+| <span style="white-space: nowrap;">`--watch-dir`</span>               | path    | Additional directory to watch for reusable diagram elements or helper files. Can be repeated.           | None    |
+| <span style="white-space: nowrap;">`--watch-include`</span>           | string  | Pattern for relevant changes under `--watch-dir`, matched with `Path.match`. Can be repeated.           | None    |
 
 **PlantUML Options**:
 

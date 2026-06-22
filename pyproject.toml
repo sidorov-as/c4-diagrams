@@ -33,6 +33,9 @@ c4 = "c4.__main__:entrypoint"
 converters = [
     "pydantic>=2.1.0",
 ]
+watch = [
+    "watchfiles>=1.0.0",
+]
 
 [dependency-groups]
 dev = [

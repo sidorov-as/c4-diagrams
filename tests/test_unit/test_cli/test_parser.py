@@ -6,6 +6,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 from c4.cli import main
+from c4.cli.context import CommandContext
 from c4.cli.parser import (
     HelpFormatter,
     _env_default,
@@ -287,12 +288,19 @@ def test_render_default_cli_args(
     main(["render", str(module_path)])
 
     mocked_handle_render.assert_called_once()
-    args = mocked_handle_render.call_args.args[0]
+    context = mocked_handle_render.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    assert context.argv == ("render", str(module_path))
+    args = context.args
     assert isinstance(args, argparse.Namespace)
     assert args.target == str(module_path)
     assert args.renderer is None
     assert args.plantuml is False
     assert args.mermaid is False
+    assert args.watch is False
+    assert args.watch_delay == 0.25
+    assert args.watch_dir is None
+    assert args.watch_include is None
 
 
 def test_export_default_cli_args(
@@ -320,7 +328,10 @@ def test_export_default_cli_args(
     main(["export", str(module_path)])
 
     mocked_handle_render.assert_called_once()
-    args = mocked_handle_render.call_args.args[0]
+    context = mocked_handle_render.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    assert context.argv == ("export", str(module_path))
+    args = context.args
     assert isinstance(args, argparse.Namespace)
     assert args.target == str(module_path)
     assert args.renderer is None
@@ -336,6 +347,121 @@ def test_export_default_cli_args(
     assert args.mermaid_puppeteer_config is None
     assert args.java_bin == "java"
     assert args.plantuml_server_url is None
+    assert args.watch is False
+    assert args.watch_delay == 0.25
+    assert args.watch_dir is None
+    assert args.watch_include is None
+
+
+def _assert_watch_cli_args(
+    mocked_handler,
+    command: str,
+    module_path: Path,
+):
+    context = mocked_handler.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    assert context.argv == (
+        command,
+        str(module_path),
+        "--watch",
+        "--watch-delay",
+        "1.5",
+        "--watch-dir",
+        "src",
+        "--watch-dir",
+        "assets",
+        "--watch-include",
+        "*.py",
+        "--watch-include",
+        "**/*.json",
+    )
+    args = context.args
+    assert args.watch is True
+    assert args.watch_delay == 1.5
+    assert args.watch_dir == ["src", "assets"]
+    assert args.watch_include == ["*.py", "**/*.json"]
+
+
+def test_render_watch_cli_args(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    module_path = make_tmp_py_file("module.py")
+    mocked_handle_render = mocker.patch(
+        "c4.cli.parser.handle_render", return_value=0
+    )
+
+    main([
+        "render",
+        str(module_path),
+        "--watch",
+        "--watch-delay",
+        "1.5",
+        "--watch-dir",
+        "src",
+        "--watch-dir",
+        "assets",
+        "--watch-include",
+        "*.py",
+        "--watch-include",
+        "**/*.json",
+    ])
+
+    _assert_watch_cli_args(mocked_handle_render, "render", module_path)
+
+
+def test_export_watch_cli_args(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    module_path = make_tmp_py_file("module.py")
+    mocked_handle_export = mocker.patch(
+        "c4.cli.parser.handle_export", return_value=0
+    )
+
+    main([
+        "export",
+        str(module_path),
+        "--watch",
+        "--watch-delay",
+        "1.5",
+        "--watch-dir",
+        "src",
+        "--watch-dir",
+        "assets",
+        "--watch-include",
+        "*.py",
+        "--watch-include",
+        "**/*.json",
+    ])
+
+    _assert_watch_cli_args(mocked_handle_export, "export", module_path)
+
+
+def test_convert_does_not_accept_watch_cli_args_for_watch(
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    module_path = make_tmp_py_file("module.py")
+
+    with pytest.raises(SystemExit) as exc:
+        main(["convert", str(module_path), "--watch"])
+
+    assert exc.value.code == 2
+
+
+@pytest.mark.parametrize(
+    "watch_arg", ["--watch-delay", "--watch-dir", "--watch-include"]
+)
+def test_convert_does_not_accept_watch_cli_args_with_values(
+    make_tmp_py_file: MakeTmpPyFile,
+    watch_arg: str,
+):
+    module_path = make_tmp_py_file("module.py")
+
+    with pytest.raises(SystemExit) as exc:
+        main(["convert", str(module_path), watch_arg, "value"])
+
+    assert exc.value.code == 2
 
 
 def test_export_cli_args_use_environment_defaults(
@@ -352,7 +478,9 @@ def test_export_cli_args_use_environment_defaults(
 
     main(["export", str(module_path)])
 
-    args = mocked_handle_export.call_args.args[0]
+    context = mocked_handle_export.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    args = context.args
     assert args.timeout == 12.5
     assert args.java_bin == "java-from-env"
 
@@ -377,7 +505,9 @@ def test_export_mermaid_puppeteer_headless_args(
 
     main(["export", str(module_path), *argv])
 
-    args = mocked_handle_export.call_args.args[0]
+    context = mocked_handle_export.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    args = context.args
     assert args.mermaid_puppeteer_headless is expected_headless
     assert args.mermaid_puppeteer_config is None
 
@@ -401,7 +531,9 @@ def test_export_mermaid_puppeteer_config_arg(
         str(config_path),
     ])
 
-    args = mocked_handle_export.call_args.args[0]
+    context = mocked_handle_export.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    args = context.args
     assert args.mermaid_puppeteer_config == config_path
     assert args.mermaid_puppeteer_headless is None
 

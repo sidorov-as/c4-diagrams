@@ -10,6 +10,10 @@
           - add_property
           - with_properties
 
+::: c4.diagrams.core.with_properties
+    options:
+        show_root_heading: true
+
 ::: c4.diagrams.core.Element
     options:
         show_root_heading: true

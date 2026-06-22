@@ -26,6 +26,7 @@ from c4.cli.options import (
     _build_plantuml_exporter,
     _build_plantuml_render_cli_options,
     _build_plantuml_renderer,
+    _build_watch_options,
     _get_renderer_name,
     _validate_output_format,
     build_convert_cli_options,
@@ -36,6 +37,11 @@ from c4.cli.options import (
     resolve_convert_formats,
 )
 from c4.cli.parser import build_parser
+from c4.cli.watch import (
+    WatchOptions,
+    validate_watch_options,
+    validate_watch_output,
+)
 from c4.constants import (
     D2,
     DEFAULT_JAVA_BIN,
@@ -492,6 +498,25 @@ def test_build_render_cli_options__mermaid(
     assert result.renderer_options is None
 
 
+def test_build_render_cli_options__builds_watch_options_without_validation(
+    mocker: MockerFixture,
+):
+    mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=RendererEnum.PLANTUML,
+    )
+    args = argparse.Namespace(
+        target="module:diagram",
+        output=None,
+        watch=True,
+    )
+
+    result = build_render_cli_options(args)
+
+    assert result.output is None
+    assert result.watch == WatchOptions(enabled=True)
+
+
 def test_build_render_cli_options__json_backend_overrides_default_renderer(
     tmp_path: Path,
 ):
@@ -570,6 +595,132 @@ def test_build_plantuml_render_cli_options_c4_style(
     result = _build_plantuml_render_cli_options(args)
 
     assert result.use_new_c4_style == use_new_c4_style
+
+
+def test_build_watch_options_defaults():
+    args = argparse.Namespace()
+
+    result = _build_watch_options(args)
+
+    assert result == WatchOptions()
+
+
+def test_build_watch_options_maps_parsed_args():
+    args = argparse.Namespace(
+        watch=True,
+        watch_delay=1.5,
+        watch_dir=["src", "assets"],
+        watch_include=["*.py", "**/*.json"],
+    )
+
+    result = _build_watch_options(args)
+
+    assert result == WatchOptions(
+        enabled=True,
+        delay=1.5,
+        dirs=(Path("src"), Path("assets")),
+        include=("*.py", "**/*.json"),
+    )
+
+
+def test_build_watch_options_converts_missing_repeatable_args_to_empty_tuples():
+    args = argparse.Namespace(
+        watch=True,
+        watch_delay=0.5,
+        watch_dir=None,
+        watch_include=None,
+    )
+
+    result = _build_watch_options(args)
+
+    assert result == WatchOptions(
+        enabled=True,
+        delay=0.5,
+        dirs=(),
+        include=(),
+    )
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_validate_watch_output__allows_output(
+    enabled: bool,
+    tmp_path: Path,
+):
+    validate_watch_output(enabled, tmp_path / "diagram.puml")
+
+
+def test_validate_watch_output__allows_missing_output_when_watch_is_disabled():
+    validate_watch_output(False, None)
+
+
+def test_validate_watch_output__watch_requires_output():
+    with pytest.raises(CLIError, match=re.escape("--watch requires --output.")):
+        validate_watch_output(True, None)
+
+
+def test_validate_watch_options__disabled_options_are_ignored():
+    validate_watch_options(
+        WatchOptions(
+            enabled=False,
+            delay=0,
+            dirs=(Path("missing"),),
+            include=("*.py",),
+        )
+    )
+
+
+def test_validate_watch_options__accepts_valid_options(tmp_path: Path):
+    validate_watch_options(
+        WatchOptions(
+            enabled=True,
+            delay=0.1,
+            dirs=(tmp_path,),
+            include=("*.py",),
+        )
+    )
+
+
+def test_validate_watch_options__delay_must_be_positive():
+    with pytest.raises(
+        CLIError,
+        match=re.escape("--watch-delay must be greater than 0."),
+    ):
+        validate_watch_options(WatchOptions(enabled=True, delay=0))
+
+
+def test_validate_watch_options__watch_dirs_must_exist(tmp_path: Path):
+    missing_dir = tmp_path / "missing"
+
+    with pytest.raises(
+        CLIError,
+        match=re.escape(
+            f"--watch-dir {str(missing_dir)!r} must be an existing directory."
+        ),
+    ):
+        validate_watch_options(WatchOptions(enabled=True, dirs=(missing_dir,)))
+
+
+def test_validate_watch_options__watch_dirs_must_be_directories(
+    tmp_path: Path,
+):
+    file_path = tmp_path / "diagram.py"
+    file_path.write_text("", encoding="utf-8")
+
+    with pytest.raises(
+        CLIError,
+        match=re.escape(
+            f"--watch-dir {str(file_path)!r} must be an existing directory."
+        ),
+    ):
+        validate_watch_options(WatchOptions(enabled=True, dirs=(file_path,)))
+
+
+def test_validate_watch_options__include_requires_watch_dir():
+    with pytest.raises(
+        CLIError,
+        match=re.escape("--watch-include requires at least one --watch-dir."),
+    ):
+        validate_watch_options(WatchOptions(enabled=True, include=("*.py",)))
 
 
 def test_build_renderer_plantuml():
@@ -1134,6 +1285,27 @@ def test_build_export_cli_options__json_backend_validates_format_against_backend
     assert result.renderer == RendererEnum.MERMAID
     assert result.format == PDF
     assert isinstance(result.renderer_options, MermaidExportCLIOptions)
+
+
+def test_build_export_cli_options__builds_watch_options_without_validation(
+    mocker: MockerFixture,
+):
+    mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=MERMAID,
+    )
+    args = argparse.Namespace(
+        target="module:diagram",
+        format=PNG,
+        timeout=10.0,
+        output=None,
+        watch=True,
+    )
+
+    result = build_export_cli_options(args)
+
+    assert result.output is None
+    assert result.watch == WatchOptions(enabled=True)
 
 
 def test_build_export_cli_options__json_backend_mismatched_renderer(

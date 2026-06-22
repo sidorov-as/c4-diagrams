@@ -4,12 +4,13 @@ import argparse
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, BinaryIO, Literal, TextIO, cast
 
 from c4 import PNG
 from c4.cli.exceptions import CLIError, RendererBackendMismatchError
+from c4.cli.watch import WatchOptions
 from c4.constants import (
     D2,
     DEFAULT_JAVA_BIN,
@@ -85,10 +86,12 @@ class RenderCLIOptions(CLIOptions):
     Attributes:
         renderer_options: Renderer-specific render options (e.g. PlantUML).
         output: Optional output path. If omitted, writes to stdout.
+        watch: Watch mode options.
     """
 
     renderer_options: PlantUMLRenderCLIOptions | None = None
     output: Path | None = None
+    watch: WatchOptions = field(default_factory=WatchOptions)
 
     @contextmanager
     def open_output(self) -> Iterator[TextIO]:
@@ -207,12 +210,14 @@ class ExportCLIOptions(CLIOptions):
             by the renderer.
         output: Optional output path. If omitted, writes to stdout (bytes).
         timeout: Rendering timeout in seconds.
+        watch: Watch mode options.
     """
 
     renderer_options: PlantUMLExportCLIOptions | MermaidExportCLIOptions
     format: DiagramFormat = PNG
     output: Path | None = None
     timeout: float = DEFAULT_RENDERING_TIMEOUT_SECONDS
+    watch: WatchOptions = field(default_factory=WatchOptions)
 
     @contextmanager
     def open_output(self) -> Iterator[BinaryIO]:
@@ -394,6 +399,23 @@ def _build_plantuml_render_cli_options(
     )
 
 
+def _build_watch_options(args: argparse.Namespace) -> WatchOptions:
+    """
+    Build watch mode options from parsed CLI args.
+    """
+    watch_dirs = tuple(
+        Path(path) for path in (getattr(args, "watch_dir", None) or ())
+    )
+    watch_include = tuple(getattr(args, "watch_include", None) or ())
+
+    return WatchOptions(
+        enabled=getattr(args, "watch", False),
+        delay=getattr(args, "watch_delay", 0.25),
+        dirs=watch_dirs,
+        include=watch_include,
+    )
+
+
 def build_render_cli_options(
     args: argparse.Namespace,
 ) -> RenderCLIOptions:
@@ -422,6 +444,7 @@ def build_render_cli_options(
         target=cli_options.target,
         output=args.output,
         renderer_options=renderer_options,
+        watch=_build_watch_options(args),
     )
 
 
@@ -650,6 +673,7 @@ def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
         timeout=args.timeout,
         output=args.output,
         renderer_options=renderer_options,
+        watch=_build_watch_options(args),
     )
 
 

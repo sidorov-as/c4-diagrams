@@ -40,6 +40,24 @@ JSON diagrams through the CLI:
     uv add c4-diagrams[converters]
     ```
 
+#### Watch
+
+Install the `watch` extra when you use
+[CLI watch mode](cli.md#watch-mode) with `c4 render --watch` or
+`c4 export --watch`:
+
+=== "pip"
+
+    ```bash
+    pip install "c4-diagrams[watch]"
+    ```
+
+=== "uv"
+
+    ```bash
+    uv add "c4-diagrams[watch]"
+    ```
+
 ## System Dependencies
 
 Rendering source text does not require external system tools:

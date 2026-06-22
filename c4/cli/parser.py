@@ -234,6 +234,34 @@ def _add_plantuml_render_flags(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _add_watch_flags(parser: argparse.ArgumentParser) -> None:
+    """Add watch mode flags."""
+    group = parser.add_argument_group("Watch options")
+
+    group.add_argument(
+        "-w",
+        "--watch",
+        action="store_true",
+        help="Re-run the command when watched files change.",
+    )
+    group.add_argument(
+        "--watch-delay",
+        type=float,
+        default=0.25,
+        help="Delay in seconds before re-running after a relevant change.",
+    )
+    group.add_argument(
+        "--watch-dir",
+        action="append",
+        help="Additional directory to watch for included files.",
+    )
+    group.add_argument(
+        "--watch-include",
+        action="append",
+        help="Pattern for relevant changes under --watch-dir.",
+    )
+
+
 def _build_render_parser(
     subparser: _SubParsersAction,
 ) -> None:
@@ -263,6 +291,7 @@ def _build_render_parser(
 
     _add_renderer_flags(render_parser)
     _add_plantuml_render_flags(render_parser)
+    _add_watch_flags(render_parser)
 
     render_parser.set_defaults(func=handle_render)
 
@@ -467,6 +496,7 @@ def _build_export_parser(
     _add_renderer_flags(export_parser)
     _add_plantuml_export_flags(export_parser)
     _add_mermaid_export_flags(export_parser)
+    _add_watch_flags(export_parser)
 
     export_parser.set_defaults(func=handle_export)
 

@@ -8,6 +8,7 @@ from pytest_mock import MockerFixture
 
 from c4 import SVG
 from c4.cli import entrypoint, main
+from c4.cli.context import CommandContext
 from c4.cli.exceptions import CLIError
 from c4.cli.options import ExportCLIOptions, RenderCLIOptions
 from c4.diagrams.core import Diagram
@@ -101,7 +102,10 @@ def test_main_broken_pipe_error_returns_zero(
 
     assert result == 0
     mocked_handler.assert_called_once()
-    args = mocked_handler.call_args.args[0]
+    context = mocked_handler.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    assert context.argv == (command, "module:diagram")
+    args = context.args
     assert isinstance(args, argparse.Namespace)
     assert args.command == command
     assert args.target == "module:diagram"
@@ -135,7 +139,10 @@ def test_main_cli_error_returns_two(
 
     assert exc_info.value.code == 2
     mocked_handler.assert_called_once()
-    args = mocked_handler.call_args.args[0]
+    context = mocked_handler.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    assert context.argv == (command, "module:diagram")
+    args = context.args
     assert isinstance(args, argparse.Namespace)
     assert args.command == command
     assert args.target == "module:diagram"
@@ -167,7 +174,10 @@ def test_main_exception_returns_two(
     stderr = capsys.readouterr().err
     assert exit_code == 2
     mocked_handler.assert_called_once()
-    args = mocked_handler.call_args.args[0]
+    context = mocked_handler.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    assert context.argv == (command, "module:diagram")
+    args = context.args
     assert isinstance(args, argparse.Namespace)
     assert args.command == command
     assert args.target == "module:diagram"
