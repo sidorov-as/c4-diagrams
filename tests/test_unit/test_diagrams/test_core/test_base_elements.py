@@ -11,6 +11,7 @@ from c4.diagrams.core import (
     DiagramType,
     with_properties,
 )
+from c4.diagrams.core.components import _repr_extension_attrs
 
 
 def test_create_base_diagram_element_outside_the_diagram_context():
@@ -117,6 +118,15 @@ def test_diagram_element_properties_add_rows_adds_multiple_rows():
     ]
 
 
+def test_diagram_element_properties_add_rows_without_rows_is_noop():
+    properties = DiagramElementProperties()
+
+    result = properties.add_rows()
+
+    assert result is properties
+    assert properties.properties == []
+
+
 def test_diagram_element_properties_with_rows_sets_options():
     properties = DiagramElementProperties()
 
@@ -167,6 +177,19 @@ def test_base_diagram_element_with_properties_rejects_mixed_rows(
 
     with pytest.raises(ValueError, match=expected_error):
         base_element.with_properties(("Role", "Operator"), "Shift")
+
+
+def test_extension_attrs_skips_none_values_and_keeps_unknown_extensions():
+    result = _repr_extension_attrs({
+        "d2": None,
+        "plantuml": {"sprite": "server"},
+        "custom": {"owner": "platform"},
+    })
+
+    assert result == [
+        "plantuml={'sprite': 'server'}",
+        "extensions={'custom': {'owner': 'platform'}}",
+    ]
 
 
 def test_with_properties_adds_rows_to_element():

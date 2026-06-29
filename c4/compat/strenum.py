@@ -46,3 +46,6 @@ else:  # pragma: no cover
             Return the lower-cased version of the member name.
             """
             return name.lower()
+
+        __str__ = str.__str__
+        __format__ = str.__format__

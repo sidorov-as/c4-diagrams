@@ -1,0 +1,200 @@
+{
+  "backend": "d2",
+  "type": "DeploymentDiagram",
+  "title": "Online Shop - Production Deployment",
+  "elements": [
+    {
+      "type": "Person",
+      "alias": "customer",
+      "label": "Customer",
+      "description": "Uses the online shop through a browser.",
+      "properties": {
+        "properties": [
+          [
+            "Boundary",
+            "External"
+          ],
+          [
+            "Protocol",
+            "HTTPS"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "ContainerExt",
+      "alias": "payment_gateway",
+      "label": "Payment Gateway",
+      "description": "External service that processes card payments.",
+      "technology": "HTTPS API",
+      "properties": {
+        "properties": [
+          [
+            "Boundary",
+            "External"
+          ],
+          [
+            "Protocol",
+            "HTTPS API"
+          ]
+        ]
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "Node",
+      "alias": "aws_prod",
+      "label": "AWS Production Account",
+      "description": "Production cloud account for the online shop.",
+      "properties": {
+        "properties": [
+          [
+            "Environment",
+            "Production"
+          ],
+          [
+            "Region",
+            "eu-central-1"
+          ]
+        ]
+      },
+      "boundaries": [
+        {
+          "type": "Node",
+          "alias": "public_subnet",
+          "label": "Public Subnet",
+          "description": "Internet-facing network segment.",
+          "boundaries": [
+            {
+              "type": "DeploymentNode",
+              "alias": "alb",
+              "label": "Application Load Balancer",
+              "description": "Terminates TLS and routes requests to the web tier.",
+              "elements": [
+                {
+                  "type": "Container",
+                  "alias": "web_app",
+                  "label": "Web Application",
+                  "description": "Serves the storefront UI.",
+                  "technology": "Next.js"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Node",
+          "alias": "private_subnet",
+          "label": "Private Subnet",
+          "description": "Internal network segment for application and data services.",
+          "boundaries": [
+            {
+              "type": "DeploymentNode",
+              "alias": "app_cluster",
+              "label": "Kubernetes Cluster",
+              "description": "Runs backend services and asynchronous workers.",
+              "properties": {
+                "properties": [
+                  [
+                    "Platform",
+                    "EKS"
+                  ],
+                  [
+                    "Autoscaling",
+                    "Enabled"
+                  ]
+                ]
+              },
+              "elements": [
+                {
+                  "type": "Container",
+                  "alias": "backend_api",
+                  "label": "Backend API",
+                  "description": "Handles catalog, checkout, and order processing.",
+                  "technology": "Python / FastAPI"
+                },
+                {
+                  "type": "ContainerQueue",
+                  "alias": "order_events",
+                  "label": "Order Events",
+                  "description": "Internal asynchronous event stream.",
+                  "technology": "Kafka"
+                }
+              ]
+            },
+            {
+              "type": "DeploymentNode",
+              "alias": "db_service",
+              "label": "Managed PostgreSQL",
+              "description": "Managed relational database service.",
+              "properties": {
+                "properties": [
+                  [
+                    "Service",
+                    "RDS"
+                  ],
+                  [
+                    "Mode",
+                    "Multi-AZ"
+                  ]
+                ]
+              },
+              "elements": [
+                {
+                  "type": "ContainerDb",
+                  "alias": "orders_db",
+                  "label": "Orders Database",
+                  "description": "Stores orders, payments, and fulfillment data.",
+                  "technology": "PostgreSQL"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "web_app",
+      "label": "Uses",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "web_app",
+      "to": "backend_api",
+      "label": "Routes traffic to",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "orders_db",
+      "label": "Reads and writes",
+      "technology": "TLS / SQL"
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "payment_gateway",
+      "label": "Calls",
+      "technology": "HTTPS/JSON"
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "order_events",
+      "label": "Publishes events to",
+      "technology": "Kafka"
+    }
+  ],
+  "render_options": {
+    "layout": "dagre",
+    "include_properties": true,
+    "bidirectional_relationships": "single_edge"
+  }
+}

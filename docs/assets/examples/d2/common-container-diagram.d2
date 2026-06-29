@@ -1,0 +1,99 @@
+direction: right
+__title: ||md
+  # Retail Platform - Containers
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Browses products and places orders.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Software System]
+
+  Processes card payments.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+retail_platform: {
+  label: ||md
+    ## Retail Platform
+
+    [System]
+
+    Customer-facing commerce platform.
+  ||
+  shape: rectangle
+  web_app: ||md
+    ## Web Application
+
+    [Container: React]
+
+    Serves storefront and checkout screens.
+  || {
+    shape: rectangle
+  }
+  api: ||md
+    ## Backend API
+
+    [Container: Python / FastAPI]
+
+    Handles catalog, cart, checkout, and order APIs.
+  || {
+    shape: rectangle
+  }
+  database: ||md
+    ## Orders Database
+
+    [Container: PostgreSQL]
+
+    Stores orders, payments, and fulfillment status.
+  || {
+    shape: cylinder
+    class: ["c4_database"]
+  }
+  events: ||md
+    ## Order Events
+
+    [Container: Kafka]
+
+    Publishes order lifecycle events.
+  || {
+    shape: queue
+    class: ["c4_queue"]
+  }
+}
+customer -> retail_platform.web_app: "Uses\n[HTTPS]"
+retail_platform.web_app -> retail_platform.api: "Calls\n[HTTPS/JSON]"
+retail_platform.api -> retail_platform.database: "Reads and writes\n[SQL]"
+retail_platform.api -> retail_platform.events: "Publishes events to\n[Kafka]"
+retail_platform.api -> payment_provider: "Creates payment intents with\n[HTTPS]"

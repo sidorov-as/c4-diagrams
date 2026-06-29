@@ -1,0 +1,114 @@
+direction: right
+__title: ||md
+  # Retail Platform - Deployment
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Uses the online shop through a browser.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Software System]
+
+  External service that processes payments.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+production: {
+  label: ||md
+    ## Production Environment
+
+    [Boundary]
+
+    Cloud-hosted production runtime.
+  ||
+  shape: rectangle
+  edge: {
+    label: ||md
+      ## Edge
+
+      [Boundary]
+
+      Public entrypoint for web traffic.
+    ||
+    shape: rectangle
+    web_app: ||md
+      ## Web Application
+
+      [Container: Next.js]
+
+      Serves the storefront UI.
+    || {
+      shape: rectangle
+    }
+  }
+  runtime: {
+    label: ||md
+      ## Application Runtime
+
+      [Boundary]
+
+      Runs backend services.
+    ||
+    shape: rectangle
+    api: ||md
+      ## Backend API
+
+      [Container: Python / FastAPI]
+
+      Handles catalog, checkout, and orders.
+    || {
+      shape: rectangle
+    }
+  }
+  database_node: {
+    label: ||md
+      ## Managed Database
+
+      [Boundary]
+
+      Managed relational database service.
+    ||
+    shape: rectangle
+    database: ||md
+      ## Orders Database
+
+      [Container: PostgreSQL]
+
+      Stores orders and payment state.
+    || {
+      shape: cylinder
+      class: ["c4_database"]
+    }
+  }
+}
+customer -> production.edge.web_app: "Uses\n[HTTPS]"
+production.edge.web_app -> production.runtime.api: "Calls\n[HTTPS/JSON]"
+production.runtime.api -> production.database_node.database: "Reads and writes\n[SQL]"
+production.runtime.api -> payment_provider: "Requests payment authorization from\n[HTTPS]"

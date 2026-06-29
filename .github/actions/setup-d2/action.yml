@@ -1,0 +1,35 @@
+name: "Setup D2"
+description: "Install a pinned D2 CLI and expose it for tests"
+
+inputs:
+  d2-version:
+    description: "D2 version to install (e.g. v0.7.1)"
+    required: true
+    default: "v0.7.1"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install D2
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        VERSION="${{ inputs.d2-version }}"
+        BIN_DIR="$HOME/.local/bin"
+
+        echo "Installing D2 ${VERSION}..."
+        curl -fsSL https://d2lang.com/install.sh | sh -s -- \
+          --version "$VERSION" \
+          --method standalone \
+          --prefix "$HOME/.local"
+
+        export PATH="$BIN_DIR:$PATH"
+        echo "$BIN_DIR" >> "$GITHUB_PATH"
+        echo "D2_BIN=$BIN_DIR/d2" >> "$GITHUB_ENV"
+
+        command -v d2
+
+    - name: Show D2 version
+      shell: bash
+      run: d2 --version

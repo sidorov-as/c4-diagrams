@@ -18,7 +18,7 @@ from c4.renderers import (
 )
 
 
-with ComponentDiagram(title='Sysops Support System - Tuned Component View') as diagram:
+with ComponentDiagram(title='Customer Support System - Tuned Component View') as diagram:
     customer = Person(
         'Customer',
         'Reports equipment issues and tracks repair progress.',
@@ -26,7 +26,7 @@ with ComponentDiagram(title='Sysops Support System - Tuned Component View') as d
         alias='customer',
     )
     expert = Person(
-        'Sysops Expert',
+        'Support Expert',
         'Accepts assignments and records repair updates.',
         plantuml={'tags': ['User']},
         alias='expert',
@@ -48,7 +48,7 @@ with ComponentDiagram(title='Sysops Support System - Tuned Component View') as d
     )
 
     with ContainerBoundary(
-        'Sysops Support System',
+        'Customer Support System',
         'Components that handle support tickets and expert assignments.',
         plantuml={'tags': ['Boundary']},
         alias='sysops_system',
@@ -96,7 +96,7 @@ with ComponentDiagram(title='Sysops Support System - Tuned Component View') as d
             alias='ticket_processor',
         )
         sysops_database = ComponentDb(
-            'Sysops Database',
+            'Support Database',
             'Tickets, contacts, assignments, and repair history.',
             plantuml={'tags': ['Database']},
             technology='PostgreSQL',
@@ -138,7 +138,7 @@ plantuml_render_options = (
     PlantUMLRenderOptionsBuilder()
     .layout_top_down(with_legend=True)
     .show_legend(hide_stereotype=False, details='Normal')
-    .update_legend_title('Sysops Component Legend')
+    .update_legend_title('Customer Support Component Legend')
     .add_person_tag(
         tag_stereo='User',
         bg_color='#e8f5e9',

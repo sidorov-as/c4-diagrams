@@ -1,0 +1,35 @@
+direction: right
+__title: ||md
+  # Web App
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+}
+user: {
+  label: "User"
+  shape: c4-person
+  class: ["c4_person"]
+}
+system: {
+  label: "Simple System"
+  web: "Web App\n[React]"
+  api: "API\n[Python]"
+  db: {
+    label: "Database\n[PostgreSQL]"
+    shape: cylinder
+    class: ["c4_database"]
+  }
+}
+user -> system.web: "Uses"
+system.web -> system.api: "Calls"
+system.api -> system.db: "Reads/Writes"

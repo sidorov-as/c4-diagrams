@@ -13,6 +13,7 @@ from c4.cli.options import (
     DEFAULT_RENDERING_TIMEOUT_SECONDS,
     LOCAL_BACKEND,
     ConvertCLIOptions,
+    D2ExportCLIOptions,
     DiagramFormat,
     ExportCLIOptions,
     MermaidExportCLIOptions,
@@ -20,6 +21,8 @@ from c4.cli.options import (
     PlantUMLRenderCLIOptions,
     RenderCLIOptions,
     RendererEnum,
+    _build_d2_export_cli_options,
+    _build_d2_exporter,
     _build_mermaid_export_cli_options,
     _build_mermaid_exporter,
     _build_plantuml_export_cli_options,
@@ -44,6 +47,7 @@ from c4.cli.watch import (
 )
 from c4.constants import (
     D2,
+    DEFAULT_D2_BIN,
     DEFAULT_JAVA_BIN,
     DEFAULT_MERMAID_BIN,
     DEFAULT_MERMAID_SCALE_FACTOR,
@@ -64,7 +68,8 @@ from c4.constants import (
     STRUCTURIZR,
 )
 from c4.enums import JSON, PDF, PY, ConvertShortcut, DiagramConvertionFormat
-from c4.renderers import MermaidRenderer, PlantUMLRenderer
+from c4.renderers import D2Renderer, MermaidRenderer, PlantUMLRenderer
+from c4.renderers.d2 import LocalD2Backend
 from c4.renderers.mermaid import LocalMermaidBackend
 from c4.renderers.plantuml import LocalPlantUMLBackend, RemotePlantUMLBackend
 
@@ -260,9 +265,19 @@ def test_convert_cli_options_open_output__output_is_none(
             MERMAID,
         ),
         (
+            {"renderer": D2.value},
+            [],
+            D2,
+        ),
+        (
             {},
             [MERMAID.value],
             MERMAID,
+        ),
+        (
+            {},
+            [D2.value],
+            D2,
         ),
         (
             {"renderer": PLANTUML.value},
@@ -298,7 +313,9 @@ def test_convert_cli_options_open_output__output_is_none(
     ids=[
         "renderer_provided_plantuml",
         "renderer_provided_mermaid",
+        "renderer_provided_d2",
         "renderer_provided_mermaid_flag",
+        "renderer_provided_d2_flag",
         "renderer_priority_over_plantuml",
         "renderer_priority_over_mermaid",
         "renderer_priority_over_structurizr",
@@ -328,19 +345,9 @@ def test_get_renderer_name(
             STRUCTURIZR.value,
         ),
         (
-            {"renderer": D2.value},
-            [],
-            D2.value,
-        ),
-        (
             {},
             [STRUCTURIZR.value],
             STRUCTURIZR.value,
-        ),
-        (
-            {},
-            [D2.value],
-            D2.value,
         ),
         (
             {"renderer": "unknown"},
@@ -354,7 +361,7 @@ def test_get_renderer_name_unknown(
 ):
     args = argparse.Namespace(**cli_args, **dict.fromkeys(flags, True))
     expected_error = re.escape(
-        f"Unknown renderer {renderer!r}. Allowed: mermaid, plantuml."
+        f"Unknown renderer {renderer!r}. Allowed: d2, mermaid, plantuml."
     )
 
     with pytest.raises(CLIError, match=expected_error):
@@ -374,7 +381,7 @@ def test_validate_output_format_unknown_renderer(
 ):
     expected_error = (
         f"Renderer {str(renderer)!r} has no registered formats. "
-        f"Allowed renderers: mermaid, plantuml."
+        f"Allowed renderers: d2, mermaid, plantuml."
     )
 
     with pytest.raises(CLIError, match=expected_error):
@@ -432,6 +439,28 @@ def test_validate_output_format_enum_fmt_is_accepted():
     )
 
     assert result == DiagramFormat.PNG
+
+
+@pytest.mark.parametrize("fmt", [SVG, PNG, PDF])
+def test_validate_output_format_d2_allowed_format(fmt: DiagramFormat):
+    assert _validate_output_format(D2, fmt=fmt) is fmt
+
+
+@pytest.mark.parametrize(
+    "fmt",
+    [
+        "unknown",
+        *(fmt for fmt in DiagramFormat if fmt not in {SVG, PNG, PDF}),
+    ],
+)
+def test_validate_output_format_d2_wrong_format(fmt: DiagramFormat):
+    expected_error = (
+        f"--format {str(fmt)!r} is not supported by renderer 'd2'. "
+        "Allowed: pdf, png, svg."
+    )
+
+    with pytest.raises(CLIError, match=expected_error):
+        _validate_output_format(D2, fmt=fmt)
 
 
 @pytest.mark.parametrize("output", [None, Path("/path/to/output.puml")])
@@ -493,6 +522,27 @@ def test_build_render_cli_options__mermaid(
     result = build_render_cli_options(args)
 
     assert result.renderer == RendererEnum.MERMAID
+    assert result.target == "module:diagram"
+    assert result.output is output
+    assert result.renderer_options is None
+
+
+@pytest.mark.parametrize("output", [None, Path("/path/to/output.d2")])
+def test_build_render_cli_options__d2(
+    mocker: MockerFixture, output: Path | None
+):
+    mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=RendererEnum.D2,
+    )
+    args = argparse.Namespace(
+        target="module:diagram",
+        output=output,
+    )
+
+    result = build_render_cli_options(args)
+
+    assert result.renderer == RendererEnum.D2
     assert result.target == "module:diagram"
     assert result.output is output
     assert result.renderer_options is None
@@ -745,6 +795,18 @@ def test_build_renderer_mermaid():
     result = build_renderer(cli_options)
 
     assert isinstance(result, MermaidRenderer)
+
+
+def test_build_renderer_d2():
+    cli_options = RenderCLIOptions(
+        renderer=RendererEnum.D2,
+        target="x",
+        renderer_options=None,
+    )
+
+    result = build_renderer(cli_options)
+
+    assert isinstance(result, D2Renderer)
 
 
 @pytest.mark.parametrize(
@@ -1102,6 +1164,60 @@ def test_build_mermaid_exporter__puppeteer_headless(
     )
 
 
+def test_build_d2_exporter(
+    mocker: MockerFixture,
+):
+    mocker.patch("c4.cli.options.LocalD2Backend._resolve_backend")
+    backend_init = mocker.spy(LocalD2Backend, "__init__")
+    renderer_options = D2ExportCLIOptions(
+        d2_bin="d2",
+    )
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.D2,
+        target="x",
+        renderer_options=renderer_options,
+        format=DiagramFormat.SVG,
+        timeout=12.5,
+    )
+
+    result = _build_d2_exporter(cli_options)
+
+    assert isinstance(result, D2Renderer)
+    assert isinstance(result._d2_backend, LocalD2Backend)
+    backend_init.assert_called_once_with(
+        result._d2_backend,
+        timeout_seconds=12.5,
+        d2_bin="d2",
+    )
+
+
+def test_build_d2_exporter__layout(
+    mocker: MockerFixture,
+):
+    mocker.patch("c4.cli.options.LocalD2Backend._resolve_backend")
+    backend_init = mocker.spy(LocalD2Backend, "__init__")
+    renderer_options = D2ExportCLIOptions(
+        d2_bin="d2",
+        layout="elk",
+    )
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.D2,
+        target="x",
+        renderer_options=renderer_options,
+        format=DiagramFormat.SVG,
+        timeout=12.5,
+    )
+
+    result = _build_d2_exporter(cli_options)
+
+    backend_init.assert_called_once_with(
+        result._d2_backend,
+        timeout_seconds=12.5,
+        d2_bin="d2",
+        layout="elk",
+    )
+
+
 def test_build_mermaid_export_cli_options():
     args = argparse.Namespace()
 
@@ -1165,6 +1281,38 @@ def test_build_mermaid_export_cli_options__puppeteer_headless(
 
     assert result.puppeteer_config is None
     assert result.puppeteer_headless is headless
+
+
+def test_build_d2_export_cli_options():
+    args = argparse.Namespace()
+
+    result = _build_d2_export_cli_options(args)
+
+    assert result.d2_bin == DEFAULT_D2_BIN
+    assert result.layout is None
+
+
+def test_build_d2_export_cli_options__d2_bin():
+    args = argparse.Namespace(
+        d2_bin="custom-d2",
+    )
+
+    result = _build_d2_export_cli_options(args)
+
+    assert result.d2_bin == "custom-d2"
+    assert result.layout is None
+
+
+def test_build_d2_export_cli_options__layout():
+    args = argparse.Namespace(
+        d2_bin="custom-d2",
+        d2_layout="elk",
+    )
+
+    result = _build_d2_export_cli_options(args)
+
+    assert result.d2_bin == "custom-d2"
+    assert result.layout == "elk"
 
 
 @pytest.mark.parametrize(
@@ -1261,6 +1409,54 @@ def test_build_export_cli_options__mermaid__maps_args_and_validates_format(
     )
     assert result.format == mocked_validate_output_format.return_value
     mocked_build_mermaid_export_cli_options.assert_called_once_with(args)
+
+
+@pytest.mark.parametrize(
+    "cli_args",
+    [
+        {"timeout": 10, "output": Path("/path/to/diagram.svg")},
+        {"timeout": 10, "output": None},
+    ],
+)
+def test_build_export_cli_options__d2__maps_args_and_validates_format(
+    mocker: MockerFixture,
+    cli_args: dict[str, Any],
+):
+    mocked_get_renderer_name = mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=D2,
+    )
+    mocked_validate_output_format = mocker.patch(
+        "c4.cli.options._validate_output_format",
+        return_value=SVG,
+    )
+    render_options = D2ExportCLIOptions()
+    mocked_build_d2_export_cli_options = mocker.patch(
+        "c4.cli.options._build_d2_export_cli_options",
+        return_value=render_options,
+    )
+    expected_output = cli_args.get("output")
+    expected_timeout = cli_args.get("timeout")
+    args = argparse.Namespace(
+        target="module:diagram",
+        format=SVG,
+        **cli_args,
+    )
+
+    result = build_export_cli_options(args)
+
+    assert result.renderer == RendererEnum.D2
+    assert result.target == "module:diagram"
+    assert result.format == SVG
+    assert result.timeout == expected_timeout
+    assert result.output == expected_output
+    assert result.renderer_options is render_options
+    mocked_get_renderer_name.assert_called_once_with(args)
+    mocked_validate_output_format.assert_called_once_with(
+        result.renderer, fmt=SVG
+    )
+    assert result.format == mocked_validate_output_format.return_value
+    mocked_build_d2_export_cli_options.assert_called_once_with(args)
 
 
 def test_build_export_cli_options__json_backend_validates_format_against_backend(
@@ -1393,6 +1589,23 @@ def test_build_exporter_mermaid(
     result = build_exporter(cli_options)
 
     assert isinstance(result, MermaidRenderer)
+
+
+def test_build_exporter_d2(
+    mocker: MockerFixture,
+):
+    mocker.patch("c4.cli.options.LocalD2Backend._resolve_backend")
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.D2,
+        target="x",
+        renderer_options=D2ExportCLIOptions(),
+        format=DiagramFormat.SVG,
+        timeout=1.0,
+    )
+
+    result = build_exporter(cli_options)
+
+    assert isinstance(result, D2Renderer)
 
 
 @pytest.mark.parametrize(

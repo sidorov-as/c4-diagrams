@@ -17,8 +17,9 @@
 
 ## Optional Dependencies
 
-The base package includes the Python DSL, PlantUML/Mermaid source generation,
-and CLI entry point. Some features need optional Python dependencies.
+The base package includes the Python DSL, PlantUML/Mermaid/D2 source
+generation, and CLI entry point. Some features need optional Python
+dependencies.
 
 ### Python Extras
 
@@ -65,6 +66,7 @@ Rendering source text does not require external system tools:
 ```bash
 c4 render diagram.py --plantuml
 c4 render diagram.py --mermaid
+c4 render diagram.py --d2
 ```
 
 Exporting images or documents with `c4 export` does require backend-specific
@@ -212,6 +214,58 @@ For simple headless configuration, use:
 ```bash
 c4 export diagram.py --mermaid \
   --mermaid-puppeteer-headless true \
+  -f svg \
+  -o diagram.svg
+```
+
+### D2 Requirements
+
+Use D2 when you want D2 source or locally rendered D2 artifacts.
+The minimum required version is D2 `v0.7.1`.
+
+Rendering D2 source with `c4 render` does not require the D2 CLI:
+
+```bash
+c4 render diagram.py --d2 -o diagram.d2
+```
+
+To export diagrams using the **D2 renderer**, install a local
+[`d2`](https://d2lang.com/tour/install/) executable. D2 supports multiple
+installation methods; after installation, verify that the executable is
+available and new enough:
+
+```bash
+d2 version
+```
+
+#### Local D2 CLI
+
+=== "macOS (Homebrew)"
+
+    ```bash
+    brew install d2
+    ```
+
+=== "Install script"
+
+    ```bash
+    curl -fsSL https://d2lang.com/install.sh | sh -s --
+    ```
+
+Export with the local D2 backend:
+
+```bash
+c4 export diagram.py --d2 \
+  -f svg \
+  -o diagram.svg
+```
+
+If the executable is not named `d2` or is not in `PATH`, pass it explicitly or
+set `D2_BIN`:
+
+```bash
+c4 export diagram.py --d2 \
+  --d2-bin /opt/d2/bin/d2 \
   -f svg \
   -o diagram.svg
 ```

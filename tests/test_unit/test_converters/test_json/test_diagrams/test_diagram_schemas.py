@@ -404,7 +404,7 @@ def test_element_schemas_map_to_dsl_classes(
     payload: dict[str, Any],
     schema_class: type[Any],
     element_class: type[Any],
-) -> None:
+):
     data = {
         "type": diagram_type,
         "elements": [
@@ -444,7 +444,7 @@ def test_boundary_schemas_map_to_dsl_classes(
     payload: dict[str, Any],
     schema_class: type[Any],
     boundary_class: type[Any],
-) -> None:
+):
     diagram_type = (
         "DynamicDiagram"
         if payload["type"] == "Boundary"
@@ -483,7 +483,7 @@ def test_deployment_node_schemas_map_to_dsl_classes(
     node_type: str,
     schema_class: type[Any],
     node_class: type[Any],
-) -> None:
+):
     data = {
         "type": "DeploymentDiagram",
         "boundaries": [
@@ -536,7 +536,7 @@ def test_plantuml_deployment_node_schemas_map_to_dsl_classes(
     node_type: str,
     schema_class: type[Any],
     node_class: type[Any],
-) -> None:
+):
     data = {
         "type": "DeploymentDiagram",
         "backend": "plantuml",
@@ -580,7 +580,7 @@ def test_mermaid_deployment_node_schemas_map_to_dsl_classes(
     node_type: str,
     schema_class: type[Any],
     node_class: type[Any],
-) -> None:
+):
     data = {
         "type": "DeploymentDiagram",
         "backend": "mermaid",
@@ -613,7 +613,7 @@ def test_mermaid_deployment_node_schemas_map_to_dsl_classes(
     assert isinstance(node.elements[0], Container)
 
 
-def test_dynamic_diagram_schema_maps_relationships_and_diagram_class() -> None:
+def test_dynamic_diagram_schema_maps_relationships_and_diagram_class():
     data = {
         "type": "DynamicDiagram",
         "elements": [

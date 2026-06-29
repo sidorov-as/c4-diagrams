@@ -128,6 +128,15 @@ def build_system_context_diagram() -> SystemContextDiagram:
     return diagram
 
 
+def test_plantuml_renderer__render_backend_statement_default_returns_none():
+    with SystemContextDiagram():
+        system = System("System", alias="system")
+
+    renderer = PlantUMLSystemContextDiagramRenderer()
+
+    assert renderer._render_backend_statement(system) is None
+
+
 @pytest.mark.parametrize(
     ("diagram", "renderer_class"),
     [

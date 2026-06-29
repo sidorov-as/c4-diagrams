@@ -28,8 +28,8 @@ class BaseMermaidBackend(ABC):
     """
     Generate Mermaid diagrams from plain text.
 
-    A generator takes a Mermaid diagram text and produces image bytes
-    (or writes them to a file).
+    A generator takes a Mermaid diagram source text and produces
+    image bytes (or writes them to a file).
     """
 
     @abstractmethod
@@ -91,8 +91,6 @@ class BaseMermaidBackend(ABC):
                     "format is None and output_path has no extension."
                 )
             format = output_path.suffix.lstrip(".").lower()  # type: ignore[assignment]
-
-        output_path = Path(output_path)
 
         if output_path.exists() and not overwrite:
             raise FileExistsError(

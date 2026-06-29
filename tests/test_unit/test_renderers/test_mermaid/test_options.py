@@ -10,7 +10,7 @@ from c4.renderers.mermaid.options import (
 )
 
 
-def test_render_options_default() -> None:
+def test_render_options_default():
     options_builder = MermaidRenderOptionsBuilder()
     expected_render_options = MermaidRenderOptions(
         styles=[],
@@ -29,7 +29,7 @@ def options_builder() -> MermaidRenderOptionsBuilder:
 
 def test_render_options_update_element_style_adds_style(
     options_builder: MermaidRenderOptionsBuilder,
-) -> None:
+):
     result = options_builder.update_element_style("api")
 
     cfg = options_builder.build()
@@ -104,7 +104,7 @@ def test_render_options_update_element_style_sets_values(
     options_builder: MermaidRenderOptionsBuilder,
     kwargs: dict[str, str],
     expected_style: ElementStyle,
-) -> None:
+):
     result = options_builder.update_element_style(**kwargs)
 
     cfg = options_builder.build()
@@ -115,7 +115,7 @@ def test_render_options_update_element_style_sets_values(
 
 def test_render_options_update_element_style_accepts_element(
     options_builder: MermaidRenderOptionsBuilder,
-) -> None:
+):
     with SystemContextDiagram():
         system = System("System", alias="system")
 
@@ -139,7 +139,7 @@ def test_render_options_update_element_style_accepts_element(
 
 def test_render_options_update_rel_style_adds_style(
     options_builder: MermaidRenderOptionsBuilder,
-) -> None:
+):
     result = options_builder.update_rel_style("api", "db")
 
     cfg = options_builder.build()
@@ -255,7 +255,7 @@ def test_render_options_update_rel_style_sets_values(
     options_builder: MermaidRenderOptionsBuilder,
     kwargs: dict[str, str | int],
     expected_style: RelStyle,
-) -> None:
+):
     result = options_builder.update_rel_style(**kwargs)
 
     cfg = options_builder.build()
@@ -266,7 +266,7 @@ def test_render_options_update_rel_style_sets_values(
 
 def test_render_options_update_rel_style_accepts_elements(
     options_builder: MermaidRenderOptionsBuilder,
-) -> None:
+):
     with SystemContextDiagram():
         person = Person("Person", alias="person")
         system = System("System", alias="system")
@@ -329,7 +329,7 @@ def test_render_options_update_layout_config_sets_values(
     options_builder: MermaidRenderOptionsBuilder,
     kwargs: dict[str, int],
     expected_layout_config: UpdateLayoutConfig,
-) -> None:
+):
     result = options_builder.update_layout_config(**kwargs)
 
     cfg = options_builder.build()
@@ -340,7 +340,7 @@ def test_render_options_update_layout_config_sets_values(
 
 def test_render_options_builder_accumulates_styles_in_order(
     options_builder: MermaidRenderOptionsBuilder,
-) -> None:
+):
     (
         options_builder.update_element_style(
             "api", bg_color="#ffffff"
@@ -369,7 +369,7 @@ def test_render_options_builder_accumulates_styles_in_order(
 
 def test_render_options_update_layout_config_overrides(
     options_builder: MermaidRenderOptionsBuilder,
-) -> None:
+):
     (
         options_builder.update_layout_config(
             c4_shape_in_row=3

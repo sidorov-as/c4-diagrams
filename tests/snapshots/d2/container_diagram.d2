@@ -1,0 +1,58 @@
+direction: right
+__title: ||md
+  # Internet Banking Containers
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+customer: {
+  label: "Customer"
+  shape: c4-person
+  class: ["c4_person"]
+}
+email_system: {
+  label: "Email System"
+  class: ["c4_external"]
+}
+internet_banking: {
+  label: "Internet Banking"
+  spa: "Single-Page App\n[TypeScript]"
+  api: {
+    label: "API Application\n[Java]"
+    class: ["c4_external"]
+  }
+  database: {
+    label: "Database\n[PostgreSQL]"
+    shape: cylinder
+    class: ["c4_database"]
+  }
+  command_queue: {
+    label: "Command Queue\n[RabbitMQ]"
+    shape: queue
+    class: ["c4_queue"]
+  }
+}
+customer -> internet_banking.spa: "Uses\n[HTTPS]"
+internet_banking.spa -> internet_banking.api: "Calls\n[JSON/HTTPS]"
+internet_banking.api -> internet_banking.database: "Reads and writes"
+internet_banking.api -> internet_banking.command_queue: "Publishes commands"
+internet_banking.api -> email_system: "Sends email using"

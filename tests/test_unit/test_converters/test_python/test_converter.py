@@ -24,10 +24,18 @@ from c4.contrib.plantuml import (
     set_index,
 )
 from c4.converters.python.converter import PythonCodegen, diagram_to_python_code
+from c4.converters.python.renderers.d2 import D2RenderOptionsCodegen
 from c4.converters.python.renderers.plantuml import PlantUMLRenderOptionsCodegen
 from c4.diagrams.core import DiagramElementProperties
 from c4.enums import RendererEnum
-from c4.renderers import MermaidRenderOptions, RenderOptions
+from c4.renderers import (
+    D2Legend,
+    D2LegendElement,
+    D2LegendRel,
+    D2RenderOptions,
+    MermaidRenderOptions,
+    RenderOptions,
+)
 from c4.renderers.base import IndentedStringBuilder
 from c4.renderers.plantuml.options import PlantUMLRenderOptions
 
@@ -502,6 +510,27 @@ def test_python_codegen__render_imports__use_c4_macros_contrib_package():
     ]
 
 
+def test_python_codegen__contrib_import_package__uses_mermaid_package():
+    python_codegen = PythonCodegen()
+
+    class MermaidItem:
+        __module__ = "c4.contrib.mermaid.custom"
+
+    result = python_codegen._contrib_import_package(MermaidItem())  # type: ignore[arg-type]
+
+    assert result == "c4.contrib.mermaid"
+
+
+def test_python_codegen__set_diagram_render_options__skips_empty_options():
+    python_codegen = PythonCodegen()
+
+    python_codegen._set_diagram_render_options(RenderOptions())
+
+    assert "diagram.set_render_options(" not in "\n".join(
+        python_codegen._builder.lines
+    )
+
+
 def test_python_codegen__render_ordered_statement__layout(
     python_codegen: PythonCodegen,
     builder: IndentedStringBuilder,
@@ -545,6 +574,120 @@ def test_python_codegen__render_plantuml_render_options(
         mocker.ANY,  # PlantUMLRenderOptionsCodegen self
         render_options,
     )
+
+
+def test_python_codegen__render_d2_render_options(
+    python_codegen: PythonCodegen,
+    builder: IndentedStringBuilder,
+    mocker: MockerFixture,
+):
+    render_options = D2RenderOptions(
+        direction="down",
+        layout="elk",
+        theme=3,
+        title_near="bottom-center",
+        sequence_diagram=True,
+        auto_number_relationships=True,
+        include_type_label=False,
+        include_technology=False,
+        include_properties=True,
+        bidirectional_relationships="single_edge",
+        fully_qualified_relationships=False,
+    )
+    spied_render_options_codegen = mocker.spy(
+        D2RenderOptionsCodegen,
+        "generate",
+    )
+
+    python_codegen._render_d2_render_options(render_options)
+
+    assert builder.lines == [
+        textwrap.dedent(
+            """
+            d2_render_options = (
+                D2RenderOptionsBuilder()
+                .direction(
+                    'down',
+                )
+                .layout(
+                    'elk',
+                )
+                .theme(
+                    3,
+                )
+                .title_near(
+                    'bottom-center',
+                )
+                .sequence_diagram(
+                    True,
+                )
+                .auto_number_relationships(
+                    True,
+                )
+                .include_type_label(
+                    False,
+                )
+                .include_technology(
+                    False,
+                )
+                .include_properties(
+                    True,
+                )
+                .bidirectional_relationships(
+                    'single_edge',
+                )
+                .fully_qualified_relationships(
+                    False,
+                )
+                .build()
+            )
+            """
+        ).strip()
+    ]
+    spied_render_options_codegen.assert_called_once_with(
+        mocker.ANY,  # D2RenderOptionsCodegen self
+        render_options,
+    )
+
+
+def test_python_codegen__generate__d2_render_options_with_legend(
+    python_codegen: PythonCodegen,
+):
+    render_options = RenderOptions(
+        d2=D2RenderOptions(
+            legend=D2Legend(
+                label="Diagram Key",
+                items=[
+                    D2LegendElement(
+                        label="Service",
+                        alias="service",
+                        shape="rectangle",
+                    ),
+                    D2LegendRel(
+                        label="Calls",
+                        alias="calls",
+                        bidirectional=True,
+                    ),
+                ],
+            ),
+        )
+    )
+    with SystemContextDiagram(
+        "Context", render_options=render_options
+    ) as diagram:
+        System("System", alias="system")
+
+    result = python_codegen.generate(diagram)
+
+    assert "D2RenderOptionsBuilder" in result
+    assert "D2Legend," in result
+    assert "D2LegendElement," in result
+    assert "D2LegendRel," in result
+    assert ".legend(" in result
+    assert "D2Legend(" in result
+    assert "D2LegendElement(" in result
+    assert "D2LegendRel(" in result
+    assert "diagram.set_render_options(\n    d2=d2_render_options,\n)" in result
 
 
 def test_python_codegen__render_properties__skips_default_header_without_rows(
@@ -1035,6 +1178,66 @@ def test_diagram_to_python_code__render_options_mermaid(
 
         diagram.set_render_options(
             mermaid=mermaid_render_options,
+        )
+        """
+    ).strip()
+
+    result = diagram_to_python_code(diagram)
+
+    assert result == expected_result
+
+
+def test_diagram_to_python_code__render_options_d2(
+    python_codegen: PythonCodegen,
+):
+    render_options = RenderOptions(
+        d2=D2RenderOptions(
+            direction="down",
+            layout="elk",
+            include_properties=True,
+        )
+    )
+    with DynamicDiagram("D", render_options=render_options) as diagram:
+        user = Person("User", alias="user")
+        system = System("System", alias="system")
+        user >> Rel("Uses") >> system
+    expected_result = textwrap.dedent(
+        """
+        from c4 import (
+            DynamicDiagram,
+            Person,
+            Rel,
+            System,
+        )
+        from c4.renderers import (
+            D2RenderOptionsBuilder,
+        )
+
+
+        with DynamicDiagram(title='D') as diagram:
+            user = Person('User', alias='user')
+
+            system = System('System', alias='system')
+
+            user >> Rel('Uses') >> system
+
+
+        d2_render_options = (
+            D2RenderOptionsBuilder()
+            .direction(
+                'down',
+            )
+            .layout(
+                'elk',
+            )
+            .include_properties(
+                True,
+            )
+            .build()
+        )
+
+        diagram.set_render_options(
+            d2=d2_render_options,
         )
         """
     ).strip()

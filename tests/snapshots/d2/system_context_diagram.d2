@@ -1,0 +1,45 @@
+direction: right
+__title: ||md
+  # Internet Banking Context
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+customer: {
+  label: "Customer"
+  shape: c4-person
+  class: ["c4_person"]
+}
+banking: "Internet Banking"
+audit_store: {
+  label: "Audit Store"
+  shape: cylinder
+  class: ["c4_external"; "c4_database"]
+}
+domain_events: {
+  label: "Domain Events"
+  shape: queue
+  class: ["c4_queue"]
+}
+customer -> banking: "Uses\n[HTTPS]"
+banking -> audit_store: "Writes audit events\n[JSON]"
+banking -> domain_events: "Publishes"

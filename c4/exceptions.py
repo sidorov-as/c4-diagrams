@@ -36,3 +36,19 @@ class MermaidBackendConfigurationError(MermaidError):
 
 class MermaidLocalRenderingError(MermaidError):
     """Error raised when rendering via a local Mermaid backend fails."""
+
+
+class D2Error(C4Exception):
+    """Base exception class for all D2-related errors."""
+
+
+class D2RenderingError(D2Error):
+    """Error raised when rendering fails."""
+
+
+class D2BackendConfigurationError(D2Error):
+    """Error raised when a D2 backend is incorrectly configured."""
+
+
+class D2LocalRenderingError(D2Error):
+    """Error raised when rendering via a local D2 backend fails."""

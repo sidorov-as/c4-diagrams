@@ -1,0 +1,159 @@
+direction: right
+__title: ||md
+  # Online Shop - Production Deployment
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Uses the online shop through a browser.
+
+  | Property | Value |
+  | --- | --- |
+  | Boundary | External |
+  | Protocol | HTTPS |
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+payment_gateway: ||md
+  ## Payment Gateway
+
+  [Container: HTTPS API]
+
+  External service that processes card payments.
+
+  | Property | Value |
+  | --- | --- |
+  | Boundary | External |
+  | Protocol | HTTPS API |
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+aws_prod: {
+  label: ||md
+    ## AWS Production Account
+
+    [Boundary]
+
+    Production cloud account for the online shop.
+  ||
+  shape: rectangle
+  public_subnet: {
+    label: ||md
+      ## Public Subnet
+
+      [Boundary]
+
+      Internet-facing network segment.
+    ||
+    shape: rectangle
+    alb: {
+      label: ||md
+        ## Application Load Balancer
+
+        [Boundary]
+
+        Terminates TLS and routes requests to the web tier.
+      ||
+      shape: rectangle
+      web_app: ||md
+        ## Web Application
+
+        [Container: Next.js]
+
+        Serves the storefront UI.
+      || {
+        shape: rectangle
+      }
+    }
+  }
+  private_subnet: {
+    label: ||md
+      ## Private Subnet
+
+      [Boundary]
+
+      Internal network segment for application and data services.
+    ||
+    shape: rectangle
+    app_cluster: {
+      label: ||md
+        ## Kubernetes Cluster
+
+        [Boundary]
+
+        Runs backend services and asynchronous workers.
+      ||
+      shape: rectangle
+      backend_api: ||md
+        ## Backend API
+
+        [Container: Python / FastAPI]
+
+        Handles catalog, checkout, and order processing.
+      || {
+        shape: rectangle
+      }
+      order_events: ||md
+        ## Order Events
+
+        [Container: Kafka]
+
+        Internal asynchronous event stream.
+      || {
+        shape: queue
+        class: ["c4_queue"]
+      }
+    }
+    db_service: {
+      label: ||md
+        ## Managed PostgreSQL
+
+        [Boundary]
+
+        Managed relational database service.
+      ||
+      shape: rectangle
+      orders_db: ||md
+        ## Orders Database
+
+        [Container: PostgreSQL]
+
+        Stores orders, payments, and fulfillment data.
+      || {
+        shape: cylinder
+        class: ["c4_database"]
+      }
+    }
+  }
+}
+customer -> aws_prod.public_subnet.alb.web_app: "Uses\n[HTTPS]"
+aws_prod.public_subnet.alb.web_app -> aws_prod.private_subnet.app_cluster.backend_api: "Routes traffic to\n[HTTPS]"
+aws_prod.private_subnet.app_cluster.backend_api -> aws_prod.private_subnet.db_service.orders_db: "Reads and writes\n[TLS / SQL]"
+aws_prod.private_subnet.app_cluster.backend_api -> payment_gateway: "Calls\n[HTTPS/JSON]"
+aws_prod.private_subnet.app_cluster.backend_api -> aws_prod.private_subnet.app_cluster.order_events: "Publishes events to\n[Kafka]"

@@ -1,0 +1,154 @@
+direction: right
+__title: ||md
+  # Retail Platform - System Context
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Browses products, places orders, and tracks delivery.
+
+  | Property | Value |
+  | --- | --- |
+  | Channel | Web / Mobile |
+  | Auth | OIDC |
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+  tooltip: "Primary customer persona for the commerce platform."
+  style.stroke: "#7c3aed"
+  style.fill: "#f7f0ff"
+}
+support_agent: ||md
+  ## Support Agent
+
+  [Person]
+
+  Investigates order and payment issues from a vendor CRM.
+
+  | Property | Value |
+  | --- | --- |
+  | Organization | Support Vendor |
+  | SLA | Business hours |
+|| {
+  shape: c4-person
+  class: ["c4_person"; "c4_external"]
+  style.stroke: "#ea580c"
+  style.fill: "#fff7ed"
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Software System]
+
+  Authorizes payments and sends asynchronous payment webhooks.
+
+  | Property | Value |
+  | --- | --- |
+  | PCI scope | External |
+  | Webhook retry | 24 hours |
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+  style.stroke: "#059669"
+  style.fill: "#ecfdf5"
+}
+crm_platform: ||md
+  ## CRM Platform
+
+  [Software System]
+
+  External case management system used by support agents.
+
+  | Property | Value |
+  | --- | --- |
+  | Vendor | Zendesk |
+  | Data sync | Near real-time |
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+notification_gateway: ||md
+  ## Email & SMS Gateway
+
+  [Software System]
+
+  Delivers transactional notifications to customers.
+
+  | Property | Value |
+  | --- | --- |
+  | Provider | Multi-region |
+  | Fallback | SMS |
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+acme_enterprise: {
+  label: ||md
+    ## Acme Corp
+
+    [Enterprise]
+
+    Internal systems owned by Acme.
+  ||
+  shape: rectangle
+  style.stroke: "#4f46e5"
+  style.fill: "#eef2ff"
+  retail_platform: ||md
+    ## Retail Platform
+
+    [Software System]
+
+    Core platform for catalog, checkout, payments, and order management.
+
+    | Property | Value |
+    | --- | --- |
+    | Owner | Commerce Platform |
+    | Availability | 99.95% |
+  || {
+    shape: rectangle
+    style.stroke: "#2563eb"
+    style.fill: "#eff6ff"
+  }
+  analytics_platform: ||md
+    ## Analytics Platform
+
+    [Software System]
+
+    Consumes commerce events for reporting and personalization.
+
+    | Property | Value |
+    | --- | --- |
+    | Owner | Data Platform |
+    | Freshness | < 15 min |
+  || {
+    shape: rectangle
+    style.stroke: "#0f766e"
+    style.fill: "#f0fdfa"
+  }
+}
+customer -> acme_enterprise.retail_platform: {
+  label: "Browses catalog and places orders\n[HTTPS]"
+  style.stroke: "#2563eb"
+}
+acme_enterprise.retail_platform -> payment_provider: "Creates payment intents\n[REST/JSON]"
+payment_provider -> acme_enterprise.retail_platform: "Sends payment webhooks\n[HTTPS]"
+acme_enterprise.retail_platform -> notification_gateway: "Sends order notifications\n[SMTP / SMPP]"
+support_agent -> crm_platform: "Manages customer cases\n[Web UI]"
+crm_platform -> acme_enterprise.retail_platform: "Queries order status\n[OAuth2 / REST]"
+acme_enterprise.retail_platform -> acme_enterprise.analytics_platform: "Publishes commerce events\n[Kafka]"

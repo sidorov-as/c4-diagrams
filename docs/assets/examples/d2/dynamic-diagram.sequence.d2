@@ -1,0 +1,120 @@
+direction: right
+__title: ||md
+  # Checkout and Fulfillment Flow
+|| {
+  near: top-center
+}
+shape: sequence_diagram
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Places an order in the online store.
+
+  | Property | Value |
+  | --- | --- |
+  | Channel | Mobile |
+  | Auth | OIDC |
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+web_app: ||md
+  ## Web Application
+
+  [Container: Next.js]
+
+  Checkout UI.
+|| {
+  shape: rectangle
+}
+checkout_api: ||md
+  ## Checkout API
+
+  [Container: FastAPI]
+
+  Orchestrates checkout and payment.
+|| {
+  shape: rectangle
+}
+checkout_db: ||md
+  ## Checkout DB
+
+  [Container: PostgreSQL]
+
+  Stores checkout state.
+|| {
+  shape: cylinder
+  class: ["c4_database"]
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Software System]
+
+  Authorizes card payments.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+inventory_service: ||md
+  ## Inventory Service
+
+  [Software System]
+
+  Reserves inventory.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+order_events: ||md
+  ## Order Events
+
+  [Container: Kafka]
+
+  Order lifecycle event stream.
+|| {
+  shape: queue
+  class: ["c4_queue"]
+}
+warehouse_system: ||md
+  ## Warehouse System
+
+  [Software System]
+
+  Fulfills reserved orders.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+customer -> web_app: "1. Starts checkout\n[HTTPS]"
+web_app -> checkout_api: "2. POST /checkout\n[JSON/HTTPS]"
+checkout_api -> inventory_service: "3. Reserve items\n[mTLS / gRPC]"
+inventory_service -> checkout_api: "4. Reservation confirmed\n[gRPC]"
+checkout_api -> payment_provider: "5. Authorize payment\n[REST/JSON]"
+payment_provider -> checkout_api: "6. Authorization result\n[Webhook]"
+checkout_api -> checkout_db: "7. Persist payment state\n[SQL]"
+checkout_api -> order_events: "8. Publish OrderCreated\n[Kafka]"
+order_events -> warehouse_system: "9. Fulfillment request\n[AMQP bridge]"
+warehouse_system -> customer: "10. Ships order\n[Email / SMS]"

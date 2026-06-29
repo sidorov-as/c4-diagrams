@@ -13,6 +13,7 @@ from c4.cli.exceptions import CLIError, RendererBackendMismatchError
 from c4.cli.watch import WatchOptions
 from c4.constants import (
     D2,
+    DEFAULT_D2_BIN,
     DEFAULT_JAVA_BIN,
     DEFAULT_MERMAID_BIN,
     DEFAULT_MERMAID_SCALE_FACTOR,
@@ -36,7 +37,13 @@ from c4.enums import (
     DiagramFormat,
     RendererEnum,
 )
-from c4.renderers import BaseRenderer, MermaidRenderer, PlantUMLRenderer
+from c4.renderers import (
+    BaseRenderer,
+    D2Renderer,
+    MermaidRenderer,
+    PlantUMLRenderer,
+)
+from c4.renderers.d2 import LocalD2Backend
 from c4.renderers.mermaid import LocalMermaidBackend
 from c4.renderers.plantuml import (
     LocalPlantUMLBackend,
@@ -200,6 +207,34 @@ class MermaidExportCLIOptions:
 
 
 @dataclass
+class D2ExportCLIOptions:
+    """
+    D2-specific export options.
+
+    Attributes:
+        d2_bin: Local D2 executable path/command.
+        layout: D2 layout engine.
+    """
+
+    d2_bin: str = DEFAULT_D2_BIN
+    layout: str | None = None
+
+    @property
+    def local_backend_kwargs(self) -> dict[str, Any]:
+        """
+        Keyword arguments for LocalD2Backend.
+        """
+        kwargs: dict[str, Any] = {
+            "d2_bin": self.d2_bin,
+        }
+
+        if self.layout is not None:
+            kwargs["layout"] = self.layout
+
+        return kwargs
+
+
+@dataclass
 class ExportCLIOptions(CLIOptions):
     """
     CLI options for the `export` command.
@@ -213,7 +248,9 @@ class ExportCLIOptions(CLIOptions):
         watch: Watch mode options.
     """
 
-    renderer_options: PlantUMLExportCLIOptions | MermaidExportCLIOptions
+    renderer_options: (
+        PlantUMLExportCLIOptions | MermaidExportCLIOptions | D2ExportCLIOptions
+    )
     format: DiagramFormat = PNG
     output: Path | None = None
     timeout: float = DEFAULT_RENDERING_TIMEOUT_SECONDS
@@ -376,14 +413,16 @@ def _validate_output_format(
             f"Allowed renderers: {allowed_renderers}."
         )
 
-    if fmt not in allowed:
+    fmt_value = fmt.value if isinstance(fmt, DiagramFormat) else fmt
+    allowed_values = {format_.value for format_ in allowed}
+    if fmt_value not in allowed_values:
         allowed_list = ", ".join(sorted(allowed))
         raise CLIError(
-            f"--format {fmt!r} is not supported by "
+            f"--format {fmt_value!r} is not supported by "
             f"renderer {renderer.value!r}. Allowed: {allowed_list}."
         )
 
-    return DiagramFormat(fmt)
+    return DiagramFormat(fmt_value)
 
 
 def _build_plantuml_render_cli_options(
@@ -431,7 +470,7 @@ def build_render_cli_options(
 
     if renderer == RendererEnum.PLANTUML:
         renderer_options = _build_plantuml_render_cli_options(args)
-    elif renderer == RendererEnum.MERMAID:
+    elif renderer in {RendererEnum.MERMAID, RendererEnum.D2}:
         renderer_options = None
     else:
         raise CLIError(
@@ -480,6 +519,16 @@ def _build_mermaid_renderer() -> MermaidRenderer:
     return MermaidRenderer()
 
 
+def _build_d2_renderer() -> D2Renderer:
+    """
+    Build a D2 renderer.
+
+    Returns:
+        A D2Renderer instance.
+    """
+    return D2Renderer()
+
+
 def build_renderer(cli_options: RenderCLIOptions) -> BaseRenderer:
     """
     Build a renderer used by the `render` command.
@@ -493,6 +542,8 @@ def build_renderer(cli_options: RenderCLIOptions) -> BaseRenderer:
         return _build_plantuml_renderer(cli_options)
     elif renderer == MERMAID:
         return _build_mermaid_renderer()
+    elif renderer == D2:
+        return _build_d2_renderer()
 
     raise CLIError(f"Unsupported renderer: {renderer.value!r}")
 
@@ -552,6 +603,21 @@ def _build_mermaid_export_cli_options(
         scale_factor=scale_factor or DEFAULT_MERMAID_SCALE_FACTOR,
         puppeteer_config=puppeteer_config,
         puppeteer_headless=puppeteer_headless,
+    )
+
+
+def _build_d2_export_cli_options(
+    args: argparse.Namespace,
+) -> D2ExportCLIOptions:
+    """
+    Build D2 export options from parsed CLI args.
+    """
+    d2_bin = getattr(args, "d2_bin", None)
+    d2_layout = getattr(args, "d2_layout", None)
+
+    return D2ExportCLIOptions(
+        d2_bin=d2_bin or DEFAULT_D2_BIN,
+        layout=d2_layout,
     )
 
 
@@ -639,6 +705,21 @@ def _build_mermaid_exporter(
     return MermaidRenderer(backend=backend)
 
 
+def _build_d2_exporter(
+    cli_options: ExportCLIOptions,
+) -> D2Renderer:
+    """
+    Build a D2 renderer configured for exporting binary artifacts.
+    """
+    renderer_options = cast(D2ExportCLIOptions, cli_options.renderer_options)
+    backend = LocalD2Backend(
+        timeout_seconds=cli_options.timeout,
+        **renderer_options.local_backend_kwargs,
+    )
+
+    return D2Renderer(backend=backend)
+
+
 def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
     """
     Convert parsed CLI args to ExportCLIOptions.
@@ -654,12 +735,16 @@ def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
         target=args.target,
     )
 
-    renderer_options: PlantUMLExportCLIOptions | MermaidExportCLIOptions
+    renderer_options: (
+        PlantUMLExportCLIOptions | MermaidExportCLIOptions | D2ExportCLIOptions
+    )
 
     if renderer == PLANTUML:
         renderer_options = _build_plantuml_export_cli_options(args)
     elif renderer == MERMAID:
         renderer_options = _build_mermaid_export_cli_options(args)
+    elif renderer == D2:
+        renderer_options = _build_d2_export_cli_options(args)
     else:
         raise CLIError(
             f"Renderer {renderer.value!r} is not supported by "
@@ -693,6 +778,8 @@ def build_exporter(cli_options: ExportCLIOptions) -> BaseRenderer:
         return _build_plantuml_exporter(cli_options)
     elif renderer == MERMAID:
         return _build_mermaid_exporter(cli_options)
+    elif renderer == D2:
+        return _build_d2_exporter(cli_options)
 
     raise CLIError(f"Unsupported renderer: {renderer.value!r}")
 

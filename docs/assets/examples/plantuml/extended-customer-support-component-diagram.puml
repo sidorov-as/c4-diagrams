@@ -1,0 +1,141 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Component.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!endif
+
+AddPersonTag("User", $bgColor="#e8f5e9", $fontColor="#1b5e20", $borderColor="#66bb6a", $shadowing="false", $legendText="Operational user", $legendSprite="user")
+AddComponentTag("Frontend", $bgColor="#e3f2fd", $fontColor="#0d47a1", $borderColor="#42a5f5", $shadowing="true", $techn="UI", $legendText="User-facing frontend", $legendSprite="browser", $borderStyle=SolidLine(), $borderThickness="2")
+AddComponentTag("Gateway", $bgColor="#fce4ec", $fontColor="#880e4f", $borderColor="#ec407a", $shadowing="true", $techn="Gateway", $legendText="API gateway", $legendSprite="server", $borderStyle=BoldLine(), $borderThickness="2")
+AddComponentTag("Backend", $bgColor="#ede7f6", $fontColor="#311b92", $borderColor="#7e57c2", $shadowing="true", $techn="Service", $legendText="Backend service", $legendSprite="server", $borderStyle=SolidLine(), $borderThickness="2")
+AddComponentTag("Worker", $bgColor="#fff3e0", $fontColor="#e65100", $borderColor="#fb8c00", $shadowing="true", $techn="Job", $legendText="Background worker", $legendSprite="server", $borderStyle=SolidLine(), $borderThickness="2")
+AddComponentTag("Database", $bgColor="#fff8e1", $fontColor="#5d4037", $borderColor="#ffb300", $shadowing="false", $techn="Database", $legendText="Operational datastore", $legendSprite="database")
+AddComponentTag("Queue", $bgColor="#e0f2f1", $fontColor="#004d40", $borderColor="#26a69a", $shadowing="false", $techn="Queue", $legendText="Asynchronous event stream", $legendSprite="queue")
+AddExternalComponentTag("External", $bgColor="#f5f5f5", $fontColor="#424242", $borderColor="#9e9e9e", $shadowing="false", $techn="External", $legendText="External dependency", $legendSprite="cloud", $borderStyle=DashedLine())
+AddRelTag("Sync", $textColor="#1565c0", $lineColor="#1e88e5", $lineStyle=SolidLine(), $techn="HTTPS", $legendText="Synchronous request")
+AddRelTag("DataAccess", $textColor="#6d4c41", $lineColor="#8d6e63", $lineStyle=DashedLine(), $techn="SQL", $legendText="Database access")
+AddRelTag("Async", $textColor="#00695c", $lineColor="#00897b", $lineStyle=DottedLine(), $techn="Queue/Event", $legendText="Asynchronous event flow", $legendSprite="queue", $lineThickness="2")
+AddRelTag("ExternalCall", $textColor="#455a64", $lineColor="#78909c", $lineStyle=DashedLine(), $techn="External", $legendText="External integration")
+
+UpdateElementStyle("component", $shape=RoundedBoxShape(), $borderStyle=SolidLine())
+
+LAYOUT_TOP_DOWN()
+LAYOUT_WITH_LEGEND()
+UpdateLegendTitle("Customer Support Component Legend")
+
+title Customer Support System - Extended Component View
+
+Component(admin_api, "Admin API", "Container Service", "User management and reference-data management.", $tags="Backend")
+
+Component(admin_portal, "Admin Portal", "Single-page Application", "Manages system users and reference data.", $tags="Frontend")
+
+Person(administrator, "Administrator", "Internal user with administrative access.", $tags="User")
+
+Component(analytics_api, "Analytics API", "Container Service", "Ticket status reports, survey analysis and performance reports.", $tags="Backend")
+
+Component(api_gateway, "API Gateway", "Container Service", "Performs access control, security checks and request routing.", $tags="Gateway")
+
+Component_Ext(auth0, "Auth0", "OIDC/OAuth2", "External identity provider for authentication.", $tags="External")
+
+Component(billing_api, "Billing API", "Container Service", "Billing management and financial reports.", $tags="Backend")
+
+Component(billing_portal, "Billing Portal", "Single-page Application", "Supports billing processing.", $tags="Frontend")
+
+Person(customer, "Customer", "Owner of electronic equipment and support plan; reports issues.", $tags="User")
+
+Component(customer_api, "Customer API", "Container Service", "Handles registration, profiles, tickets, surveys and billing history.", $tags="Backend")
+
+ComponentQueue(customer_notifications_queue, "Customer Notifications", "Message Queue", "Asynchronous message channel for customer notifications.", $tags="Queue")
+
+Component(customer_portal, "Customer Portal", "Single-page Application", "Provides access to customer profile, billing, ticket creation and history.", $tags="Frontend")
+
+Component_Ext(email_system, "E-mail System", "SMTP", "Internal mail system used for e-mail delivery.", $tags="External")
+
+ComponentQueue(expert_notifications_queue, "Expert Notifications", "Message Queue", "Asynchronous message channel for expert notifications.", $tags="Queue")
+
+Person(helpdesk, "Helpdesk", "First line of support; provides direct phone support.", $tags="User")
+
+Component(helpdesk_portal, "Helpdesk Portal", "Single-page Application", "Provides access to tickets and status.", $tags="Frontend")
+
+ComponentQueue(invoice_queue, "Invoice", "Message Queue", "Asynchronous message channel for invoice processing.", $tags="Queue")
+
+Component(knowledge_base, "Knowledge Base", "Single-page Application", "Supports searching and updating knowledge-base articles.", $tags="Frontend")
+
+Person(manager, "Manager", "Monitors expert performance and customer satisfaction.", $tags="User")
+
+Component(mobile_app, "Mobile App", "iOS / Android App", "Provides access to assigned tickets and knowledge-base search.", $tags="Frontend")
+
+Component(notification_service, "Notification Service", "Container Service", "Sends SMS and e-mail messages based on notification preferences.", $tags="Backend")
+
+Component(payment_job, "Payment", "Container Job", "Runs monthly and performs payment operations.", $tags="Worker")
+
+Component_Ext(payment_provider, "Payment Service Provider", "HTTPS/API", "External online payment service.", $tags="External")
+
+Component_Ext(sms_provider, "SMS Service Provider", "SMS API", "Provides SMS text messaging.", $tags="External")
+
+Component(support_api, "Support API", "Container Service", "Ticket orchestration, search, assignment handling and knowledge-base updates.", $tags="Backend")
+
+Component(support_dashboard, "Support Dashboard", "Single-page Application", "Provides analytics and operational reports.", $tags="Frontend")
+
+ComponentDb(support_database, "Support Database", "Relational Database", "Stores tickets, users, customer contacts and knowledge-base content.", $tags="Database")
+
+Person(support_expert, "Support Expert", "Technology expert who fixes customer electronic devices.", $tags="User")
+
+ComponentQueue(ticket_assigned_queue, "Ticket Assigned", "Message Queue", "Asynchronous message channel for assigned tickets.", $tags="Queue")
+
+ComponentQueue(ticket_created_queue, "Ticket Created", "Message Queue", "Asynchronous message channel for created tickets.", $tags="Queue")
+
+ComponentQueue(ticket_progress_queue, "Ticket In-Progress/Closed", "Message Queue", "Asynchronous message channel for ticket progress and closure notifications.", $tags="Queue")
+
+Component(ticket_processor, "Ticket Processor", "Container Job", "Runs periodically, scans ticket statuses, and creates assignments.", $tags="Worker")
+
+Rel(admin_api, support_database, "Reads from and writes to", "SQL/TCP", $tags="DataAccess")
+Rel(admin_portal, api_gateway, "Makes API calls to", "REST/HTTPS", $tags="Sync")
+Rel(analytics_api, support_database, "Reads from and writes to", "SQL/TCP", $tags="DataAccess")
+Rel(api_gateway, customer_api, "Routes API calls to", "REST/HTTP", $tags="Sync")
+Rel(api_gateway, support_api, "Routes API calls to", "REST/HTTP", $tags="Sync")
+Rel(api_gateway, admin_api, "Routes API calls to", "REST/HTTP", $tags="Sync")
+Rel(api_gateway, billing_api, "Routes API calls to", "REST/HTTP", $tags="Sync")
+Rel(api_gateway, analytics_api, "Routes API calls to", "REST/HTTP", $tags="Sync")
+Rel(billing_api, support_database, "Reads from and writes to", "SQL/TCP", $tags="DataAccess")
+Rel(billing_portal, api_gateway, "Makes API calls to", "REST/HTTPS", $tags="Sync")
+Rel(customer_api, support_database, "Reads from and writes to", "SQL/TCP", $tags="DataAccess")
+Rel(customer_api, ticket_created_queue, "Sends ticket created event", "Queue / Event", $tags="Async")
+Rel(customer_portal, auth0, "Authenticates using", "OIDC/OAuth2", $tags="ExternalCall")
+Rel(customer_portal, api_gateway, "Makes API calls to", "REST/HTTPS", $tags="Sync")
+Rel(helpdesk_portal, api_gateway, "Makes API calls to", "REST/HTTPS", $tags="Sync")
+Rel(knowledge_base, api_gateway, "Makes API calls to", "REST/HTTPS", $tags="Sync")
+Rel(mobile_app, auth0, "Authenticates using", "OIDC/OAuth2", $tags="ExternalCall")
+Rel(mobile_app, api_gateway, "Makes API calls to", "REST/HTTPS", $tags="Sync")
+Rel(notification_service, support_database, "Reads from and writes to", "SQL/TCP", $tags="DataAccess")
+Rel(notification_service, email_system, "Sends e-mail using", "SMTP", $tags="ExternalCall")
+Rel(notification_service, sms_provider, "Sends SMS using", "SMS API", $tags="ExternalCall")
+Rel(payment_job, support_database, "Reads from and writes to", "SQL/TCP", $tags="DataAccess")
+Rel(payment_job, invoice_queue, "Sends invoice event", "Queue / Event", $tags="Async")
+Rel(payment_job, payment_provider, "Executes payments using", "HTTPS/API", $tags="ExternalCall")
+Rel(support_api, support_database, "Reads from and writes to", "SQL/TCP", $tags="DataAccess")
+Rel(support_api, expert_notifications_queue, "Sends expert notification event", "Queue / Event", $tags="Async")
+Rel(support_api, customer_notifications_queue, "Sends customer notification event", "Queue / Event", $tags="Async")
+Rel(support_api, ticket_progress_queue, "Sends progress/closed event", "Queue / Event", $tags="Async")
+Rel(support_dashboard, api_gateway, "Makes API calls to", "REST/HTTPS", $tags="Sync")
+Rel(ticket_processor, support_database, "Reads from and writes to", "SQL/TCP", $tags="DataAccess")
+Rel(ticket_processor, ticket_assigned_queue, "Sends ticket assignment event", "Queue / Event", $tags="Async")
+Rel(administrator, admin_portal, "Maintains users and reference data", "HTTPS", $tags="Sync")
+Rel(administrator, billing_portal, "Manages billing operations", "HTTPS", $tags="Sync")
+Rel(customer, customer_portal, "Uses", "HTTPS", $tags="Sync")
+Rel(customer, mobile_app, "Uses", "HTTPS", $tags="Sync")
+Rel(helpdesk, helpdesk_portal, "Creates/searches tickets", "HTTPS", $tags="Sync")
+Rel(manager, support_dashboard, "Tracks operations and generates reports", "HTTPS", $tags="Sync")
+Rel(support_expert, mobile_app, "Uses", "HTTPS", $tags="Sync")
+Rel(support_expert, knowledge_base, "Updates articles", "HTTPS", $tags="Sync")
+Rel(customer_notifications_queue, notification_service, "Consumed by", "Queue / Event", $tags="Async")
+Rel(expert_notifications_queue, notification_service, "Consumed by", "Queue / Event", $tags="Async")
+Rel(invoice_queue, api_gateway, "Calls billing APIs through", "REST/HTTP", $tags="Async")
+Rel(ticket_assigned_queue, support_api, "Consumed by", "Queue / Event", $tags="Async")
+Rel(ticket_created_queue, ticket_processor, "Consumed by", "Queue / Event", $tags="Async")
+Rel(ticket_progress_queue, customer_api, "Consumed by", "Queue / Event", $tags="Async")
+SHOW_LEGEND($hideStereotype="false", $details=Normal())
+
+@enduml

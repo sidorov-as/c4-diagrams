@@ -25,7 +25,7 @@ from c4.contrib.plantuml import (
 def test_index_str_without_prefix_or_suffix(
     obj: BaseIndex,
     expected: str,
-) -> None:
+):
     result = str(obj)
     assert result == expected
 
@@ -47,7 +47,7 @@ def test_index_str_without_prefix_or_suffix(
 def test_index_str_with_prefix_and_or_suffix(
     expr: BaseIndex,
     expected: str,
-) -> None:
+):
     result = str(expr)
     assert result == expected
 
@@ -70,7 +70,7 @@ def test_index_str_with_prefix_and_or_suffix(
 def test_index_str_with_arithmetic_operations(
     expr: BaseIndex,
     expected: str,
-) -> None:
+):
     result = str(expr)
     assert result == expected
 
@@ -78,7 +78,7 @@ def test_index_str_with_arithmetic_operations(
 @pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex, SetIndex])
 def test_index_add_rejects_empty_string(
     index_class: type[BaseIndex],
-) -> None:
+):
     idx = index_class() if index_class is not SetIndex else SetIndex(0)
     expected_error = re.escape(
         f"{index_class.__name__}.__add__() requires non-empty string"
@@ -103,7 +103,7 @@ def test_index_add_rejects_empty_string(
 def test_index_add_rejects_invalid_type(
     other: object,
     index_class: type[BaseIndex],
-) -> None:
+):
     idx = index_class() if index_class is not SetIndex else SetIndex(0)
     expected_error = re.escape(
         f"{index_class.__name__}.__add__() requires str or int, got {other!r}"
@@ -128,7 +128,7 @@ def test_index_add_rejects_invalid_type(
 def test_index_radd_rejects_non_empty_string_requirement(
     other: object,
     index_class: type[BaseIndex],
-) -> None:
+):
     idx = index_class() if index_class is not SetIndex else SetIndex(0)
     expected_error = re.escape(
         f"{index_class.__name__}.__add__() requires non-empty string"
@@ -154,7 +154,7 @@ def test_index_radd_rejects_non_empty_string_requirement(
 def test_index_sub_rejects_non_int(
     other: object,
     index_class: type[BaseIndex],
-) -> None:
+):
     idx = index_class() if index_class is not SetIndex else SetIndex(0)
     expected_error = re.escape(
         f"{index_class.__name__}.__sub__() requires int, got {other!r}"
@@ -167,7 +167,7 @@ def test_index_sub_rejects_non_int(
 @pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex])
 def test_index_add_rejects_setting_suffix_twice(
     index_class: type[BaseIndex],
-) -> None:
+):
     idx = index_class()
     idx = idx + "-1"
     expected_error = re.escape(
@@ -179,7 +179,7 @@ def test_index_add_rejects_setting_suffix_twice(
         idx + "-2"
 
 
-def test_set_index_add_rejects_setting_suffix_twice() -> None:
+def test_set_index_add_rejects_setting_suffix_twice():
     idx = SetIndex(0)
     idx = idx + "-1"
     expected_error = re.escape(
@@ -193,7 +193,7 @@ def test_set_index_add_rejects_setting_suffix_twice() -> None:
 @pytest.mark.parametrize("index_class", [BaseIndex, Index, LastIndex])
 def test_index_radd_rejects_setting_prefix_twice(
     index_class: type[BaseIndex],
-) -> None:
+):
     idx = index_class()
     idx = "1+" + idx
     expected_error = re.escape(
@@ -205,7 +205,7 @@ def test_index_radd_rejects_setting_prefix_twice(
         "2+" + idx
 
 
-def test_set_index_radd_rejects_setting_prefix_twice() -> None:
+def test_set_index_radd_rejects_setting_prefix_twice():
     idx = SetIndex(0)
     idx = "1+" + idx
     expected_error = re.escape(
@@ -229,7 +229,7 @@ def test_set_index_radd_rejects_setting_prefix_twice() -> None:
 def test_index_get_signature(
     index: BaseIndex,
     expected_signature: str,
-) -> None:
+):
     assert index.get_signature() == expected_signature
 
 

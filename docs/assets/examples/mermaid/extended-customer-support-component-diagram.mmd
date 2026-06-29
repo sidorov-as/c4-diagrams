@@ -1,0 +1,235 @@
+C4Component
+title Customer Support System - Extended Component View
+
+Component(admin_api, "Admin API", "Container Service", "User management and reference-data management.")
+
+Component(admin_portal, "Admin Portal", "Single-page Application", "Manages system users and reference data.")
+
+Person(administrator, "Administrator", "Internal user with administrative access.")
+
+Component(analytics_api, "Analytics API", "Container Service", "Ticket status reports, survey analysis and performance reports.")
+
+Component(api_gateway, "API Gateway", "Container Service", "Performs access control, security checks and request routing.")
+
+Component_Ext(auth0, "Auth0", "OIDC/OAuth2", "External identity provider for authentication.")
+
+Component(billing_api, "Billing API", "Container Service", "Billing management and financial reports.")
+
+Component(billing_portal, "Billing Portal", "Single-page Application", "Supports billing processing.")
+
+Person(customer, "Customer", "Owner of electronic equipment and support plan; reports issues.")
+
+Component(customer_api, "Customer API", "Container Service", "Handles registration, profiles, tickets, surveys and billing history.")
+
+ComponentQueue(customer_notifications_queue, "Customer Notifications", "Message Queue", "Asynchronous message channel for customer notifications.")
+
+Component(customer_portal, "Customer Portal", "Single-page Application", "Provides access to customer profile, billing, ticket creation and history.")
+
+Component_Ext(email_system, "E-mail System", "SMTP", "Internal mail system used for e-mail delivery.")
+
+ComponentQueue(expert_notifications_queue, "Expert Notifications", "Message Queue", "Asynchronous message channel for expert notifications.")
+
+Person(helpdesk, "Helpdesk", "First line of support; provides direct phone support.")
+
+Component(helpdesk_portal, "Helpdesk Portal", "Single-page Application", "Provides access to tickets and status.")
+
+ComponentQueue(invoice_queue, "Invoice", "Message Queue", "Asynchronous message channel for invoice processing.")
+
+Component(knowledge_base, "Knowledge Base", "Single-page Application", "Supports searching and updating knowledge-base articles.")
+
+Person(manager, "Manager", "Monitors expert performance and customer satisfaction.")
+
+Component(mobile_app, "Mobile App", "iOS / Android App", "Provides access to assigned tickets and knowledge-base search.")
+
+Component(notification_service, "Notification Service", "Container Service", "Sends SMS and e-mail messages based on notification preferences.")
+
+Component(payment_job, "Payment", "Container Job", "Runs monthly and performs payment operations.")
+
+Component_Ext(payment_provider, "Payment Service Provider", "HTTPS/API", "External online payment service.")
+
+Component_Ext(sms_provider, "SMS Service Provider", "SMS API", "Provides SMS text messaging.")
+
+Component(support_api, "Support API", "Container Service", "Ticket orchestration, search, assignment handling and knowledge-base updates.")
+
+Component(support_dashboard, "Support Dashboard", "Single-page Application", "Provides analytics and operational reports.")
+
+ComponentDb(support_database, "Support Database", "Relational Database", "Stores tickets, users, customer contacts and knowledge-base content.")
+
+Person(support_expert, "Support Expert", "Technology expert who fixes customer electronic devices.")
+
+ComponentQueue(ticket_assigned_queue, "Ticket Assigned", "Message Queue", "Asynchronous message channel for assigned tickets.")
+
+ComponentQueue(ticket_created_queue, "Ticket Created", "Message Queue", "Asynchronous message channel for created tickets.")
+
+ComponentQueue(ticket_progress_queue, "Ticket In-Progress/Closed", "Message Queue", "Asynchronous message channel for ticket progress and closure notifications.")
+
+Component(ticket_processor, "Ticket Processor", "Container Job", "Runs periodically, scans ticket statuses, and creates assignments.")
+
+Rel(admin_api, support_database, "Reads from and writes to", "SQL/TCP")
+
+Rel(admin_portal, api_gateway, "Makes API calls to", "REST/HTTPS")
+
+Rel(analytics_api, support_database, "Reads from and writes to", "SQL/TCP")
+
+Rel(api_gateway, customer_api, "Routes API calls to", "REST/HTTP")
+
+Rel(api_gateway, support_api, "Routes API calls to", "REST/HTTP")
+
+Rel(api_gateway, admin_api, "Routes API calls to", "REST/HTTP")
+
+Rel(api_gateway, billing_api, "Routes API calls to", "REST/HTTP")
+
+Rel(api_gateway, analytics_api, "Routes API calls to", "REST/HTTP")
+
+Rel(billing_api, support_database, "Reads from and writes to", "SQL/TCP")
+
+Rel(billing_portal, api_gateway, "Makes API calls to", "REST/HTTPS")
+
+Rel(customer_api, support_database, "Reads from and writes to", "SQL/TCP")
+
+Rel(customer_api, ticket_created_queue, "Sends ticket created event", "Queue / Event")
+
+Rel(customer_portal, auth0, "Authenticates using", "OIDC/OAuth2")
+
+Rel(customer_portal, api_gateway, "Makes API calls to", "REST/HTTPS")
+
+Rel(helpdesk_portal, api_gateway, "Makes API calls to", "REST/HTTPS")
+
+Rel(knowledge_base, api_gateway, "Makes API calls to", "REST/HTTPS")
+
+Rel(mobile_app, auth0, "Authenticates using", "OIDC/OAuth2")
+
+Rel(mobile_app, api_gateway, "Makes API calls to", "REST/HTTPS")
+
+Rel(notification_service, support_database, "Reads from and writes to", "SQL/TCP")
+
+Rel(notification_service, email_system, "Sends e-mail using", "SMTP")
+
+Rel(notification_service, sms_provider, "Sends SMS using", "SMS API")
+
+Rel(payment_job, support_database, "Reads from and writes to", "SQL/TCP")
+
+Rel(payment_job, invoice_queue, "Sends invoice event", "Queue / Event")
+
+Rel(payment_job, payment_provider, "Executes payments using", "HTTPS/API")
+
+Rel(support_api, support_database, "Reads from and writes to", "SQL/TCP")
+
+Rel(support_api, expert_notifications_queue, "Sends expert notification event", "Queue / Event")
+
+Rel(support_api, customer_notifications_queue, "Sends customer notification event", "Queue / Event")
+
+Rel(support_api, ticket_progress_queue, "Sends progress/closed event", "Queue / Event")
+
+Rel(support_dashboard, api_gateway, "Makes API calls to", "REST/HTTPS")
+
+Rel(ticket_processor, support_database, "Reads from and writes to", "SQL/TCP")
+
+Rel(ticket_processor, ticket_assigned_queue, "Sends ticket assignment event", "Queue / Event")
+
+Rel(administrator, admin_portal, "Maintains users and reference data", "HTTPS")
+
+Rel(administrator, billing_portal, "Manages billing operations", "HTTPS")
+
+Rel(customer, customer_portal, "Uses", "HTTPS")
+
+Rel(customer, mobile_app, "Uses", "HTTPS")
+
+Rel(helpdesk, helpdesk_portal, "Creates/searches tickets", "HTTPS")
+
+Rel(manager, support_dashboard, "Tracks operations and generates reports", "HTTPS")
+
+Rel(support_expert, mobile_app, "Uses", "HTTPS")
+
+Rel(support_expert, knowledge_base, "Updates articles", "HTTPS")
+
+Rel(customer_notifications_queue, notification_service, "Consumed by", "Queue / Event")
+
+Rel(expert_notifications_queue, notification_service, "Consumed by", "Queue / Event")
+
+Rel(invoice_queue, api_gateway, "Calls billing APIs through", "REST/HTTP")
+
+Rel(ticket_assigned_queue, support_api, "Consumed by", "Queue / Event")
+
+Rel(ticket_created_queue, ticket_processor, "Consumed by", "Queue / Event")
+
+Rel(ticket_progress_queue, customer_api, "Consumed by", "Queue / Event")
+
+UpdateElementStyle(administrator, $fontColor="#1b5e20", $bgColor="#e8f5e9", $borderColor="#66bb6a")
+UpdateElementStyle(customer, $fontColor="#1b5e20", $bgColor="#e8f5e9", $borderColor="#66bb6a")
+UpdateElementStyle(helpdesk, $fontColor="#1b5e20", $bgColor="#e8f5e9", $borderColor="#66bb6a")
+UpdateElementStyle(manager, $fontColor="#1b5e20", $bgColor="#e8f5e9", $borderColor="#66bb6a")
+UpdateElementStyle(support_expert, $fontColor="#1b5e20", $bgColor="#e8f5e9", $borderColor="#66bb6a")
+UpdateElementStyle(admin_portal, $fontColor="#0d47a1", $bgColor="#e3f2fd", $borderColor="#42a5f5")
+UpdateElementStyle(billing_portal, $fontColor="#0d47a1", $bgColor="#e3f2fd", $borderColor="#42a5f5")
+UpdateElementStyle(customer_portal, $fontColor="#0d47a1", $bgColor="#e3f2fd", $borderColor="#42a5f5")
+UpdateElementStyle(helpdesk_portal, $fontColor="#0d47a1", $bgColor="#e3f2fd", $borderColor="#42a5f5")
+UpdateElementStyle(knowledge_base, $fontColor="#0d47a1", $bgColor="#e3f2fd", $borderColor="#42a5f5")
+UpdateElementStyle(mobile_app, $fontColor="#0d47a1", $bgColor="#e3f2fd", $borderColor="#42a5f5")
+UpdateElementStyle(support_dashboard, $fontColor="#0d47a1", $bgColor="#e3f2fd", $borderColor="#42a5f5")
+UpdateElementStyle(admin_api, $fontColor="#311b92", $bgColor="#ede7f6", $borderColor="#7e57c2")
+UpdateElementStyle(analytics_api, $fontColor="#311b92", $bgColor="#ede7f6", $borderColor="#7e57c2")
+UpdateElementStyle(billing_api, $fontColor="#311b92", $bgColor="#ede7f6", $borderColor="#7e57c2")
+UpdateElementStyle(customer_api, $fontColor="#311b92", $bgColor="#ede7f6", $borderColor="#7e57c2")
+UpdateElementStyle(notification_service, $fontColor="#311b92", $bgColor="#ede7f6", $borderColor="#7e57c2")
+UpdateElementStyle(support_api, $fontColor="#311b92", $bgColor="#ede7f6", $borderColor="#7e57c2")
+UpdateElementStyle(auth0, $fontColor="#424242", $bgColor="#f5f5f5", $borderColor="#9e9e9e")
+UpdateElementStyle(email_system, $fontColor="#424242", $bgColor="#f5f5f5", $borderColor="#9e9e9e")
+UpdateElementStyle(payment_provider, $fontColor="#424242", $bgColor="#f5f5f5", $borderColor="#9e9e9e")
+UpdateElementStyle(sms_provider, $fontColor="#424242", $bgColor="#f5f5f5", $borderColor="#9e9e9e")
+UpdateElementStyle(customer_notifications_queue, $fontColor="#004d40", $bgColor="#e0f2f1", $borderColor="#26a69a")
+UpdateElementStyle(expert_notifications_queue, $fontColor="#004d40", $bgColor="#e0f2f1", $borderColor="#26a69a")
+UpdateElementStyle(invoice_queue, $fontColor="#004d40", $bgColor="#e0f2f1", $borderColor="#26a69a")
+UpdateElementStyle(ticket_assigned_queue, $fontColor="#004d40", $bgColor="#e0f2f1", $borderColor="#26a69a")
+UpdateElementStyle(ticket_created_queue, $fontColor="#004d40", $bgColor="#e0f2f1", $borderColor="#26a69a")
+UpdateElementStyle(ticket_progress_queue, $fontColor="#004d40", $bgColor="#e0f2f1", $borderColor="#26a69a")
+UpdateElementStyle(api_gateway, $fontColor="#880e4f", $bgColor="#fce4ec", $borderColor="#ec407a")
+UpdateElementStyle(payment_job, $fontColor="#e65100", $bgColor="#fff3e0", $borderColor="#fb8c00")
+UpdateElementStyle(ticket_processor, $fontColor="#e65100", $bgColor="#fff3e0", $borderColor="#fb8c00")
+UpdateElementStyle(support_database, $fontColor="#5d4037", $bgColor="#fff8e1", $borderColor="#ffb300")
+UpdateRelStyle(admin_api, support_database, $textColor="#6d4c41", $lineColor="#8d6e63", $offsetY="-35")
+UpdateRelStyle(analytics_api, support_database, $textColor="#6d4c41", $lineColor="#8d6e63", $offsetY="-35")
+UpdateRelStyle(billing_api, support_database, $textColor="#6d4c41", $lineColor="#8d6e63", $offsetY="-35")
+UpdateRelStyle(customer_api, support_database, $textColor="#6d4c41", $lineColor="#8d6e63", $offsetY="-35")
+UpdateRelStyle(notification_service, support_database, $textColor="#6d4c41", $lineColor="#8d6e63", $offsetY="-35")
+UpdateRelStyle(payment_job, support_database, $textColor="#6d4c41", $lineColor="#8d6e63", $offsetY="-35")
+UpdateRelStyle(support_api, support_database, $textColor="#6d4c41", $lineColor="#8d6e63", $offsetY="-35")
+UpdateRelStyle(ticket_processor, support_database, $textColor="#6d4c41", $lineColor="#8d6e63", $offsetY="-35")
+UpdateRelStyle(customer_api, ticket_created_queue, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(payment_job, invoice_queue, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(support_api, expert_notifications_queue, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(support_api, customer_notifications_queue, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(support_api, ticket_progress_queue, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(ticket_processor, ticket_assigned_queue, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(customer_notifications_queue, notification_service, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(expert_notifications_queue, notification_service, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(invoice_queue, api_gateway, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(ticket_assigned_queue, support_api, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(ticket_created_queue, ticket_processor, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(ticket_progress_queue, customer_api, $textColor="#00695c", $lineColor="#00897b", $offsetY="35")
+UpdateRelStyle(customer_portal, auth0, $textColor="#455a64", $lineColor="#78909c", $offsetY="-35")
+UpdateRelStyle(mobile_app, auth0, $textColor="#455a64", $lineColor="#78909c", $offsetY="-35")
+UpdateRelStyle(notification_service, email_system, $textColor="#455a64", $lineColor="#78909c", $offsetY="-35")
+UpdateRelStyle(notification_service, sms_provider, $textColor="#455a64", $lineColor="#78909c", $offsetY="-35")
+UpdateRelStyle(payment_job, payment_provider, $textColor="#455a64", $lineColor="#78909c", $offsetY="-35")
+UpdateRelStyle(admin_portal, api_gateway, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(api_gateway, customer_api, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(api_gateway, support_api, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(api_gateway, admin_api, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(api_gateway, billing_api, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(api_gateway, analytics_api, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(billing_portal, api_gateway, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(customer_portal, api_gateway, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(helpdesk_portal, api_gateway, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(knowledge_base, api_gateway, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(mobile_app, api_gateway, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(support_dashboard, api_gateway, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(administrator, admin_portal, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(administrator, billing_portal, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(customer, customer_portal, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(customer, mobile_app, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(helpdesk, helpdesk_portal, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(manager, support_dashboard, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(support_expert, mobile_app, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateRelStyle(support_expert, knowledge_base, $textColor="#1565c0", $lineColor="#1e88e5")
+UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")

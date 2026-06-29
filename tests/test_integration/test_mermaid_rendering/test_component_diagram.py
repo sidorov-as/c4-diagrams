@@ -20,7 +20,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 def test_render_component_diagram(
     assert_match_snapshot: AssertMatchSnapshot,
-) -> None:
+):
     with ComponentDiagram(
         title="Component diagram for Internet Banking System - API Application"
     ) as diagram:

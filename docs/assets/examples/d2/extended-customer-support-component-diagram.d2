@@ -1,0 +1,798 @@
+direction: down
+__title: ||md
+  # Customer Support System - Extended Component View
+|| {
+  near: top-center
+}
+vars: {
+  d2-legend: "Customer Support Component Legend" {
+    legend_1: {
+      label: "Operational user"
+      shape: person
+      style.fill: "#e8f5e9"
+      style.stroke: "#66bb6a"
+      style.font-color: "#1b5e20"
+      style.stroke-width: 2
+    }
+    legend_2: {
+      label: "User-facing frontend"
+      style.fill: "#e3f2fd"
+      style.stroke: "#42a5f5"
+      style.font-color: "#0d47a1"
+      style.stroke-width: 2
+    }
+    legend_3: {
+      label: "API gateway"
+      style.fill: "#fce4ec"
+      style.stroke: "#ec407a"
+      style.font-color: "#880e4f"
+      style.stroke-width: 2
+    }
+    legend_4: {
+      label: "Backend service"
+      style.fill: "#ede7f6"
+      style.stroke: "#7e57c2"
+      style.font-color: "#311b92"
+      style.stroke-width: 2
+    }
+    legend_5: {
+      label: "Background worker"
+      style.fill: "#fff3e0"
+      style.stroke: "#fb8c00"
+      style.font-color: "#e65100"
+      style.stroke-width: 2
+    }
+    legend_6: {
+      label: "Operational datastore"
+      shape: cylinder
+      style.fill: "#fff8e1"
+      style.stroke: "#ffb300"
+      style.font-color: "#5d4037"
+      style.stroke-width: 2
+    }
+    legend_7: {
+      label: "Asynchronous event stream"
+      shape: queue
+      style.fill: "#e0f2f1"
+      style.stroke: "#26a69a"
+      style.font-color: "#004d40"
+      style.stroke-width: 2
+    }
+    legend_8: {
+      label: "External dependency"
+      style.fill: "#f5f5f5"
+      style.stroke: "#9e9e9e"
+      style.font-color: "#424242"
+      style.stroke-width: 2
+      style.stroke-dash: 5
+    }
+    legend_9_source -> legend_9_target: {
+      label: "Synchronous request"
+      style.stroke: "#1e88e5"
+      style.font-color: "#1565c0"
+    }
+    legend_10_source -> legend_10_target: {
+      label: "Database access"
+      style.stroke: "#8d6e63"
+      style.font-color: "#6d4c41"
+    }
+    legend_11_source -> legend_11_target: {
+      label: "Asynchronous event"
+      style.stroke: "#00897b"
+      style.font-color: "#00695c"
+      style.stroke-dash: 3
+    }
+    legend_12_source -> legend_12_target: {
+      label: "External integration"
+      style.stroke: "#78909c"
+      style.font-color: "#455a64"
+      style.stroke-dash: 5
+    }
+    legend_9_source.style.opacity: 0
+    legend_9_target.style.opacity: 0
+    legend_10_source.style.opacity: 0
+    legend_10_target.style.opacity: 0
+    legend_11_source.style.opacity: 0
+    legend_11_target.style.opacity: 0
+    legend_12_source.style.opacity: 0
+    legend_12_target.style.opacity: 0
+  }
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+admin_api: ||md
+  ## Admin API
+
+  [Component: Container Service]
+
+  User management and reference-data management.
+|| {
+  shape: rectangle
+  style.fill: "#ede7f6"
+  style.stroke: "#7e57c2"
+  style.font-color: "#311b92"
+  style.stroke-width: 2
+}
+admin_portal: ||md
+  ## Admin Portal
+
+  [Component: Single-page Application]
+
+  Manages system users and reference data.
+|| {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+  style.stroke: "#42a5f5"
+  style.font-color: "#0d47a1"
+  style.stroke-width: 2
+}
+administrator: ||md
+  ## Administrator
+
+  [Person]
+
+  Internal user with administrative access.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+  style.fill: "#e8f5e9"
+  style.stroke: "#66bb6a"
+  style.font-color: "#1b5e20"
+  style.stroke-width: 2
+}
+analytics_api: ||md
+  ## Analytics API
+
+  [Component: Container Service]
+
+  Ticket status reports, survey analysis and performance reports.
+|| {
+  shape: rectangle
+  style.fill: "#ede7f6"
+  style.stroke: "#7e57c2"
+  style.font-color: "#311b92"
+  style.stroke-width: 2
+}
+api_gateway: ||md
+  ## API Gateway
+
+  [Component: Container Service]
+
+  Performs access control, security checks and request routing.
+|| {
+  shape: rectangle
+  style.fill: "#fce4ec"
+  style.stroke: "#ec407a"
+  style.font-color: "#880e4f"
+  style.stroke-width: 2
+}
+auth0: ||md
+  ## Auth0
+
+  [Component: OIDC/OAuth2]
+
+  External identity provider for authentication.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+  style.fill: "#f5f5f5"
+  style.stroke: "#9e9e9e"
+  style.font-color: "#424242"
+  style.stroke-width: 2
+  style.stroke-dash: 5
+}
+billing_api: ||md
+  ## Billing API
+
+  [Component: Container Service]
+
+  Billing management and financial reports.
+|| {
+  shape: rectangle
+  style.fill: "#ede7f6"
+  style.stroke: "#7e57c2"
+  style.font-color: "#311b92"
+  style.stroke-width: 2
+}
+billing_portal: ||md
+  ## Billing Portal
+
+  [Component: Single-page Application]
+
+  Supports billing processing.
+|| {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+  style.stroke: "#42a5f5"
+  style.font-color: "#0d47a1"
+  style.stroke-width: 2
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Owner of electronic equipment and support plan; reports issues.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+  style.fill: "#e8f5e9"
+  style.stroke: "#66bb6a"
+  style.font-color: "#1b5e20"
+  style.stroke-width: 2
+}
+customer_api: ||md
+  ## Customer API
+
+  [Component: Container Service]
+
+  Handles registration, profiles, tickets, surveys and billing history.
+|| {
+  shape: rectangle
+  style.fill: "#ede7f6"
+  style.stroke: "#7e57c2"
+  style.font-color: "#311b92"
+  style.stroke-width: 2
+}
+customer_notifications_queue: ||md
+  ## Customer Notifications
+
+  [Component: Message Queue]
+
+  Asynchronous message channel for customer notifications.
+|| {
+  shape: queue
+  class: ["c4_queue"]
+  style.fill: "#e0f2f1"
+  style.stroke: "#26a69a"
+  style.font-color: "#004d40"
+  style.stroke-width: 2
+}
+customer_portal: ||md
+  ## Customer Portal
+
+  [Component: Single-page Application]
+
+  Provides access to customer profile, billing, ticket creation and history.
+|| {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+  style.stroke: "#42a5f5"
+  style.font-color: "#0d47a1"
+  style.stroke-width: 2
+}
+email_system: ||md
+  ## E-mail System
+
+  [Component: SMTP]
+
+  Internal mail system used for e-mail delivery.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+  style.fill: "#f5f5f5"
+  style.stroke: "#9e9e9e"
+  style.font-color: "#424242"
+  style.stroke-width: 2
+  style.stroke-dash: 5
+}
+expert_notifications_queue: ||md
+  ## Expert Notifications
+
+  [Component: Message Queue]
+
+  Asynchronous message channel for expert notifications.
+|| {
+  shape: queue
+  class: ["c4_queue"]
+  style.fill: "#e0f2f1"
+  style.stroke: "#26a69a"
+  style.font-color: "#004d40"
+  style.stroke-width: 2
+}
+helpdesk: ||md
+  ## Helpdesk
+
+  [Person]
+
+  First line of support; provides direct phone support.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+  style.fill: "#e8f5e9"
+  style.stroke: "#66bb6a"
+  style.font-color: "#1b5e20"
+  style.stroke-width: 2
+}
+helpdesk_portal: ||md
+  ## Helpdesk Portal
+
+  [Component: Single-page Application]
+
+  Provides access to tickets and status.
+|| {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+  style.stroke: "#42a5f5"
+  style.font-color: "#0d47a1"
+  style.stroke-width: 2
+}
+invoice_queue: ||md
+  ## Invoice
+
+  [Component: Message Queue]
+
+  Asynchronous message channel for invoice processing.
+|| {
+  shape: queue
+  class: ["c4_queue"]
+  style.fill: "#e0f2f1"
+  style.stroke: "#26a69a"
+  style.font-color: "#004d40"
+  style.stroke-width: 2
+}
+knowledge_base: ||md
+  ## Knowledge Base
+
+  [Component: Single-page Application]
+
+  Supports searching and updating knowledge-base articles.
+|| {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+  style.stroke: "#42a5f5"
+  style.font-color: "#0d47a1"
+  style.stroke-width: 2
+}
+manager: ||md
+  ## Manager
+
+  [Person]
+
+  Monitors expert performance and customer satisfaction.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+  style.fill: "#e8f5e9"
+  style.stroke: "#66bb6a"
+  style.font-color: "#1b5e20"
+  style.stroke-width: 2
+}
+mobile_app: ||md
+  ## Mobile App
+
+  [Component: iOS / Android App]
+
+  Provides access to assigned tickets and knowledge-base search.
+|| {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+  style.stroke: "#42a5f5"
+  style.font-color: "#0d47a1"
+  style.stroke-width: 2
+}
+notification_service: ||md
+  ## Notification Service
+
+  [Component: Container Service]
+
+  Sends SMS and e-mail messages based on notification preferences.
+|| {
+  shape: rectangle
+  style.fill: "#ede7f6"
+  style.stroke: "#7e57c2"
+  style.font-color: "#311b92"
+  style.stroke-width: 2
+}
+payment_job: ||md
+  ## Payment
+
+  [Component: Container Job]
+
+  Runs monthly and performs payment operations.
+|| {
+  shape: rectangle
+  style.fill: "#fff3e0"
+  style.stroke: "#fb8c00"
+  style.font-color: "#e65100"
+  style.stroke-width: 2
+}
+payment_provider: ||md
+  ## Payment Service Provider
+
+  [Component: HTTPS/API]
+
+  External online payment service.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+  style.fill: "#f5f5f5"
+  style.stroke: "#9e9e9e"
+  style.font-color: "#424242"
+  style.stroke-width: 2
+  style.stroke-dash: 5
+}
+sms_provider: ||md
+  ## SMS Service Provider
+
+  [Component: SMS API]
+
+  Provides SMS text messaging.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+  style.fill: "#f5f5f5"
+  style.stroke: "#9e9e9e"
+  style.font-color: "#424242"
+  style.stroke-width: 2
+  style.stroke-dash: 5
+}
+support_api: ||md
+  ## Support API
+
+  [Component: Container Service]
+
+  Ticket orchestration, search, assignment handling and knowledge-base updates.
+|| {
+  shape: rectangle
+  style.fill: "#ede7f6"
+  style.stroke: "#7e57c2"
+  style.font-color: "#311b92"
+  style.stroke-width: 2
+}
+support_dashboard: ||md
+  ## Support Dashboard
+
+  [Component: Single-page Application]
+
+  Provides analytics and operational reports.
+|| {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+  style.stroke: "#42a5f5"
+  style.font-color: "#0d47a1"
+  style.stroke-width: 2
+}
+support_database: ||md
+  ## Support Database
+
+  [Component: Relational Database]
+
+  Stores tickets, users, customer contacts and knowledge-base content.
+|| {
+  shape: cylinder
+  class: ["c4_database"]
+  style.fill: "#fff8e1"
+  style.stroke: "#ffb300"
+  style.font-color: "#5d4037"
+  style.stroke-width: 2
+}
+support_expert: ||md
+  ## Support Expert
+
+  [Person]
+
+  Technology expert who fixes customer electronic devices.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+  style.fill: "#e8f5e9"
+  style.stroke: "#66bb6a"
+  style.font-color: "#1b5e20"
+  style.stroke-width: 2
+}
+ticket_assigned_queue: ||md
+  ## Ticket Assigned
+
+  [Component: Message Queue]
+
+  Asynchronous message channel for assigned tickets.
+|| {
+  shape: queue
+  class: ["c4_queue"]
+  style.fill: "#e0f2f1"
+  style.stroke: "#26a69a"
+  style.font-color: "#004d40"
+  style.stroke-width: 2
+}
+ticket_created_queue: ||md
+  ## Ticket Created
+
+  [Component: Message Queue]
+
+  Asynchronous message channel for created tickets.
+|| {
+  shape: queue
+  class: ["c4_queue"]
+  style.fill: "#e0f2f1"
+  style.stroke: "#26a69a"
+  style.font-color: "#004d40"
+  style.stroke-width: 2
+}
+ticket_progress_queue: ||md
+  ## Ticket In-Progress/Closed
+
+  [Component: Message Queue]
+
+  Asynchronous message channel for ticket progress and closure notifications.
+|| {
+  shape: queue
+  class: ["c4_queue"]
+  style.fill: "#e0f2f1"
+  style.stroke: "#26a69a"
+  style.font-color: "#004d40"
+  style.stroke-width: 2
+}
+ticket_processor: ||md
+  ## Ticket Processor
+
+  [Component: Container Job]
+
+  Runs periodically, scans ticket statuses, and creates assignments.
+|| {
+  shape: rectangle
+  style.fill: "#fff3e0"
+  style.stroke: "#fb8c00"
+  style.font-color: "#e65100"
+  style.stroke-width: 2
+}
+admin_api -> support_database: {
+  label: "Reads from and writes to\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+admin_portal -> api_gateway: {
+  label: "Makes API calls to\n[REST/HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+analytics_api -> support_database: {
+  label: "Reads from and writes to\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+api_gateway -> customer_api: {
+  label: "Routes API calls to\n[REST/HTTP]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+api_gateway -> support_api: {
+  label: "Routes API calls to\n[REST/HTTP]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+api_gateway -> admin_api: {
+  label: "Routes API calls to\n[REST/HTTP]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+api_gateway -> billing_api: {
+  label: "Routes API calls to\n[REST/HTTP]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+api_gateway -> analytics_api: {
+  label: "Routes API calls to\n[REST/HTTP]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+billing_api -> support_database: {
+  label: "Reads from and writes to\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+billing_portal -> api_gateway: {
+  label: "Makes API calls to\n[REST/HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+customer_api -> support_database: {
+  label: "Reads from and writes to\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+customer_api -> ticket_created_queue: {
+  label: "Sends ticket created event\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+customer_portal -> auth0: {
+  label: "Authenticates using\n[OIDC/OAuth2]"
+  style.stroke: "#78909c"
+  style.font-color: "#455a64"
+  style.stroke-dash: 5
+}
+customer_portal -> api_gateway: {
+  label: "Makes API calls to\n[REST/HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+helpdesk_portal -> api_gateway: {
+  label: "Makes API calls to\n[REST/HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+knowledge_base -> api_gateway: {
+  label: "Makes API calls to\n[REST/HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+mobile_app -> auth0: {
+  label: "Authenticates using\n[OIDC/OAuth2]"
+  style.stroke: "#78909c"
+  style.font-color: "#455a64"
+  style.stroke-dash: 5
+}
+mobile_app -> api_gateway: {
+  label: "Makes API calls to\n[REST/HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+notification_service -> support_database: {
+  label: "Reads from and writes to\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+notification_service -> email_system: {
+  label: "Sends e-mail using\n[SMTP]"
+  style.stroke: "#78909c"
+  style.font-color: "#455a64"
+  style.stroke-dash: 5
+}
+notification_service -> sms_provider: {
+  label: "Sends SMS using\n[SMS API]"
+  style.stroke: "#78909c"
+  style.font-color: "#455a64"
+  style.stroke-dash: 5
+}
+payment_job -> support_database: {
+  label: "Reads from and writes to\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+payment_job -> invoice_queue: {
+  label: "Sends invoice event\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+payment_job -> payment_provider: {
+  label: "Executes payments using\n[HTTPS/API]"
+  style.stroke: "#78909c"
+  style.font-color: "#455a64"
+  style.stroke-dash: 5
+}
+support_api -> support_database: {
+  label: "Reads from and writes to\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+support_api -> expert_notifications_queue: {
+  label: "Sends expert notification event\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+support_api -> customer_notifications_queue: {
+  label: "Sends customer notification event\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+support_api -> ticket_progress_queue: {
+  label: "Sends progress/closed event\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+support_dashboard -> api_gateway: {
+  label: "Makes API calls to\n[REST/HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+ticket_processor -> support_database: {
+  label: "Reads from and writes to\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+ticket_processor -> ticket_assigned_queue: {
+  label: "Sends ticket assignment event\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+administrator -> admin_portal: {
+  label: "Maintains users and reference data\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+administrator -> billing_portal: {
+  label: "Manages billing operations\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+customer -> customer_portal: {
+  label: "Uses\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+customer -> mobile_app: {
+  label: "Uses\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+helpdesk -> helpdesk_portal: {
+  label: "Creates/searches tickets\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+manager -> support_dashboard: {
+  label: "Tracks operations and generates reports\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+support_expert -> mobile_app: {
+  label: "Uses\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+support_expert -> knowledge_base: {
+  label: "Updates articles\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+customer_notifications_queue -> notification_service: {
+  label: "Consumed by\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+expert_notifications_queue -> notification_service: {
+  label: "Consumed by\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+invoice_queue -> api_gateway: {
+  label: "Calls billing APIs through\n[REST/HTTP]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+ticket_assigned_queue -> support_api: {
+  label: "Consumed by\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+ticket_created_queue -> ticket_processor: {
+  label: "Consumed by\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+ticket_progress_queue -> customer_api: {
+  label: "Consumed by\n[Queue / Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}

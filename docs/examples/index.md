@@ -28,6 +28,13 @@ same model is rendered by each backend's defaults.
       <figcaption>Mermaid system context diagram</figcaption>
     </figure>
 
+=== "D2"
+
+    <figure markdown="span">
+      ![D2 system context example](../assets/examples/d2/common-system-context-diagram.png)
+      <figcaption>D2 system context diagram</figcaption>
+    </figure>
+
 ### System landscape diagram
 
 ??? abstract "Python diagram"
@@ -48,6 +55,13 @@ same model is rendered by each backend's defaults.
     <figure markdown="span">
       ![Mermaid system landscape example](../assets/examples/mermaid/common-system-landscape-diagram.png)
       <figcaption>Mermaid system landscape diagram</figcaption>
+    </figure>
+
+=== "D2"
+
+    <figure markdown="span">
+      ![D2 system landscape example](../assets/examples/d2/common-system-landscape-diagram.png)
+      <figcaption>D2 system landscape diagram</figcaption>
     </figure>
 
 ### Container diagram
@@ -72,6 +86,13 @@ same model is rendered by each backend's defaults.
       <figcaption>Mermaid container diagram</figcaption>
     </figure>
 
+=== "D2"
+
+    <figure markdown="span">
+      ![D2 container example](../assets/examples/d2/common-container-diagram.png)
+      <figcaption>D2 container diagram</figcaption>
+    </figure>
+
 ### Component diagram
 
 ??? abstract "Python diagram"
@@ -92,6 +113,13 @@ same model is rendered by each backend's defaults.
     <figure markdown="span">
       ![Mermaid component example](../assets/examples/mermaid/common-component-diagram.png)
       <figcaption>Mermaid component diagram</figcaption>
+    </figure>
+
+=== "D2"
+
+    <figure markdown="span">
+      ![D2 component example](../assets/examples/d2/common-component-diagram.png)
+      <figcaption>D2 component diagram</figcaption>
     </figure>
 
 ### Dynamic diagram
@@ -116,6 +144,13 @@ same model is rendered by each backend's defaults.
       <figcaption>Mermaid dynamic diagram</figcaption>
     </figure>
 
+=== "D2"
+
+    <figure markdown="span">
+      ![D2 dynamic example](../assets/examples/d2/common-dynamic-diagram.png)
+      <figcaption>D2 dynamic diagram</figcaption>
+    </figure>
+
 ### Deployment diagram
 
 ??? abstract "Python diagram"
@@ -138,18 +173,28 @@ same model is rendered by each backend's defaults.
       <figcaption>Mermaid deployment diagram</figcaption>
     </figure>
 
+=== "D2"
+
+    <figure markdown="span">
+      ![D2 deployment example](../assets/examples/d2/common-deployment-diagram.png)
+      <figcaption>D2 deployment diagram</figcaption>
+    </figure>
+
 ## Same model, backend-tuned outputs
 
-This example keeps the same C4 elements and relationships, then applies
+These examples keep the same C4 elements and relationships, then apply
 backend-specific rendering options to make each output easier to read.
 
-### Sysops support system component view
+### Customer support system component view
+
+This compact view focuses on the main customer, expert, ticketing,
+notification, queue, and database flow.
 
 === "PlantUML"
 
     <figure markdown="span">
-      ![PlantUML tuned Sysops component example](../assets/examples/plantuml/tuned-sysops-component-diagram.png)
-      <figcaption>PlantUML tuned component diagram</figcaption>
+      ![PlantUML tuned customer support component example](../assets/examples/plantuml/tuned-sysops-component-diagram.png)
+      <figcaption>PlantUML tuned customer support component diagram</figcaption>
     </figure>
 
     ??? abstract "Python diagram"
@@ -167,8 +212,8 @@ backend-specific rendering options to make each output easier to read.
 === "Mermaid"
 
     <figure markdown="span">
-      ![Mermaid tuned Sysops component example](../assets/examples/mermaid/tuned-sysops-component-diagram.png)
-      <figcaption>Mermaid tuned component diagram</figcaption>
+      ![Mermaid tuned customer support component example](../assets/examples/mermaid/tuned-sysops-component-diagram.png)
+      <figcaption>Mermaid tuned customer support component diagram</figcaption>
     </figure>
 
     ??? abstract "Python diagram"
@@ -183,6 +228,90 @@ backend-specific rendering options to make each output easier to read.
         --8<-- "assets/examples/mermaid/tuned-sysops-component-diagram.mmd"
         ```
 
+=== "D2"
+
+    <figure markdown="span">
+      ![D2 tuned customer support component example](../assets/examples/d2/tuned-sysops-component-diagram.png)
+      <figcaption>D2 tuned customer support component diagram</figcaption>
+    </figure>
+
+    ??? abstract "Python diagram"
+
+        ```python
+        --8<-- "assets/examples/python/custom/d2/tuned-sysops-component-diagram.py"
+        ```
+
+    ??? abstract "Rendered D2 source"
+
+        ```d2
+        --8<-- "assets/examples/d2/tuned-sysops-component-diagram.d2"
+        ```
+
+### Customer support system extended component view
+
+This deeper view uses the same domain model with more operational surfaces:
+admin, billing, analytics, knowledge base, payment, notification, and queue
+flows.
+
+=== "PlantUML"
+
+    <figure markdown="span">
+      ![PlantUML extended customer support component example](../assets/examples/plantuml/extended-customer-support-component-diagram.png)
+      <figcaption>PlantUML extended customer support component diagram</figcaption>
+    </figure>
+
+    ??? abstract "Python diagram"
+
+        ```python
+        --8<-- "assets/examples/python/custom/plantuml/extended-customer-support-component-diagram.py"
+        ```
+
+    ??? abstract "Rendered PlantUML source"
+
+        ```puml
+        --8<-- "assets/examples/plantuml/extended-customer-support-component-diagram.puml"
+        ```
+
+=== "Mermaid"
+
+    <figure markdown="span">
+      ![Mermaid extended customer support component example](../assets/examples/mermaid/extended-customer-support-component-diagram.png)
+      <figcaption>Mermaid extended customer support component diagram</figcaption>
+    </figure>
+
+    ??? abstract "Python diagram"
+
+        ```python
+        --8<-- "assets/examples/python/custom/mermaid/extended-customer-support-component-diagram.py"
+        ```
+
+    ??? abstract "Rendered Mermaid source"
+
+        ```mmd
+        --8<-- "assets/examples/mermaid/extended-customer-support-component-diagram.mmd"
+        ```
+
+=== "D2"
+
+    <figure markdown="span">
+      ![D2 extended customer support component example](../assets/examples/d2/extended-customer-support-component-diagram.png)
+      <figcaption>D2 extended customer support component diagram</figcaption>
+    </figure>
+
+    ??? abstract "Python diagram"
+
+        ```python
+        --8<-- "assets/examples/python/custom/d2/extended-customer-support-component-diagram.py"
+        ```
+
+    ??? abstract "Rendered D2 source"
+
+        ```d2
+        --8<-- "assets/examples/d2/extended-customer-support-component-diagram.d2"
+        ```
+
 PlantUML is useful when you need rich C4 styling, legends, tags, and stronger
 layout nudges. Mermaid is useful when you want simple text output that embeds
 well in Markdown-centric tools, but its C4 support has fewer tuning controls.
+D2 is useful when you want readable text output plus local rendering with D2's
+layout engine, themes, links, tooltips, icons, classes, and structured legends.

@@ -9,6 +9,7 @@ from c4.cli import main
 from c4.cli.context import CommandContext
 from c4.cli.parser import (
     HelpFormatter,
+    _d2_bin_type,
     _env_default,
     _mermaid_bin_type,
     _mermaid_puppeteer_config_type,
@@ -17,7 +18,11 @@ from c4.cli.parser import (
     _plantuml_jar_type,
     str2bool,
 )
-from c4.constants import JAVA_BIN_ENV_VAR, RENDERING_TIMEOUT_SECONDS_ENV_VAR
+from c4.constants import (
+    D2_BIN_ENV_VAR,
+    JAVA_BIN_ENV_VAR,
+    RENDERING_TIMEOUT_SECONDS_ENV_VAR,
+)
 from tests.conftest import MakeTmpPyFile
 
 
@@ -113,6 +118,24 @@ def test_mermaid_bin_type_raises_when_not_found(mocker: MockerFixture):
 
     with pytest.raises(argparse.ArgumentTypeError, match=expected_error):
         _mermaid_bin_type("mmdc")
+
+
+def test_d2_binary_type_returns_value_when_found(mocker: MockerFixture):
+    mocker.patch("shutil.which", return_value="/usr/bin/d2")
+
+    result = _d2_bin_type("d2")
+
+    assert result == "d2"
+
+
+def test_d2_bin_type_raises_when_not_found(mocker: MockerFixture):
+    mocker.patch("shutil.which", return_value=None)
+    expected_error = (
+        "D2 binary 'd2' was not found in PATH or is not executable."
+    )
+
+    with pytest.raises(argparse.ArgumentTypeError, match=expected_error):
+        _d2_bin_type("d2")
 
 
 def test_mermaid_puppeteer_config_type_returns_path_for_existing_file(
@@ -345,6 +368,7 @@ def test_export_default_cli_args(
     assert args.mermaid_scale_factor is None
     assert args.mermaid_puppeteer_headless is None
     assert args.mermaid_puppeteer_config is None
+    assert args.d2_layout is None
     assert args.java_bin == "java"
     assert args.plantuml_server_url is None
     assert args.watch is False
@@ -472,6 +496,8 @@ def test_export_cli_args_use_environment_defaults(
     module_path = make_tmp_py_file("module.py")
     monkeypatch.setenv(RENDERING_TIMEOUT_SECONDS_ENV_VAR, "12.5")
     monkeypatch.setenv(JAVA_BIN_ENV_VAR, "java-from-env")
+    monkeypatch.setenv(D2_BIN_ENV_VAR, "d2-from-env")
+    mocker.patch("c4.cli.parser.shutil.which", return_value="/usr/bin/d2")
     mocked_handle_export = mocker.patch(
         "c4.cli.parser.handle_export", return_value=0
     )
@@ -483,6 +509,7 @@ def test_export_cli_args_use_environment_defaults(
     args = context.args
     assert args.timeout == 12.5
     assert args.java_bin == "java-from-env"
+    assert args.d2_bin == "d2-from-env"
 
 
 @pytest.mark.parametrize(
@@ -555,6 +582,36 @@ def test_export_mermaid_puppeteer_options_are_mutually_exclusive(
             "--mermaid-puppeteer-config",
             str(config_path),
         ])
+
+    assert exc.value.code == 2
+
+
+@pytest.mark.parametrize("layout", ["dagre", "elk"])
+def test_export_d2_layout_arg(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+    layout: str,
+):
+    module_path = make_tmp_py_file("module.py")
+    mocked_handle_export = mocker.patch(
+        "c4.cli.parser.handle_export", return_value=0
+    )
+
+    main(["export", str(module_path), "--d2-layout", layout])
+
+    context = mocked_handle_export.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    args = context.args
+    assert args.d2_layout == layout
+
+
+def test_export_d2_layout_rejects_unknown_engine(
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    module_path = make_tmp_py_file("module.py")
+
+    with pytest.raises(SystemExit) as exc:
+        main(["export", str(module_path), "--d2-layout", "tala"])
 
     assert exc.value.code == 2
 

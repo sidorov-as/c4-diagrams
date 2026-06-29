@@ -1,0 +1,128 @@
+direction: right
+__title: ||md
+  # Order Processing API - Component Diagram
+|| {
+  near: top-center
+}
+classes: {
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+order_controller: ||md
+  ## Order Controller
+
+  [Component: FastAPI]
+
+  HTTP entrypoint for order submission and status queries.
+
+  | Property | Value |
+  | --- | --- |
+  | Owner | Checkout Team |
+  | Runtime | FastAPI |
+|| {
+  shape: rectangle
+}
+order_app_service: ||md
+  ## Order Application Service
+
+  [Component: Python]
+
+  Coordinates validation, payment, and order creation.
+
+  | Property | Value |
+  | --- | --- |
+  | Owner | Checkout Team |
+  | Runtime | Python |
+|| {
+  shape: rectangle
+}
+inventory_checker: ||md
+  ## Inventory Checker
+
+  [Component: Python]
+
+  Verifies stock availability before an order is confirmed.
+
+  | Property | Value |
+  | --- | --- |
+  | Owner | Checkout Team |
+  | Runtime | Python |
+|| {
+  shape: rectangle
+}
+payment_adapter: ||md
+  ## Payment Adapter
+
+  [Component: Python]
+
+  Wraps external payment provider calls.
+
+  | Property | Value |
+  | --- | --- |
+  | Owner | Checkout Team |
+  | Runtime | Python |
+|| {
+  shape: rectangle
+}
+order_db: ||md
+  ## Order Database
+
+  [Component: PostgreSQL]
+
+  Stores orders, line items, and order status history.
+
+  | Property | Value |
+  | --- | --- |
+  | Owner | Checkout Team |
+  | Runtime | PostgreSQL |
+|| {
+  shape: cylinder
+  class: ["c4_database"]
+}
+payment_gateway_api: ||md
+  ## Payment Gateway API
+
+  [Component: REST API]
+
+  External provider API for payment authorization and capture.
+
+  | Property | Value |
+  | --- | --- |
+  | Owner | Checkout Team |
+  | Runtime | REST API |
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+order_events_bus: ||md
+  ## Order Events Bus
+
+  [Component: Kafka]
+
+  Publishes order-created and order-paid events.
+
+  | Property | Value |
+  | --- | --- |
+  | Owner | Checkout Team |
+  | Runtime | Kafka |
+|| {
+  shape: queue
+  class: ["c4_queue"]
+}
+order_controller -> order_app_service: "Invokes\n[Python call]"
+order_app_service -> inventory_checker: "Checks stock via\n[Python call]"
+order_app_service -> payment_adapter: "Requests payment through\n[Python call]"
+payment_adapter -> payment_gateway_api: "Authorizes payment via\n[HTTPS/JSON]"
+order_app_service -> order_db: "Reads and writes\n[SQL]"
+order_app_service -> order_events_bus: "Publishes events to\n[Kafka]"

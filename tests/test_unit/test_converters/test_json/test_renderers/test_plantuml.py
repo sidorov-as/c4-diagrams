@@ -15,7 +15,10 @@ from c4.contrib.plantuml.converters.json.render_options import (
     ShowLegendSchema,
     ShowPersonSpriteSchema,
 )
-from c4.contrib.plantuml.converters.json.schemas import PlantUMLNodeSchema
+from c4.contrib.plantuml.converters.json.schemas import (
+    PlantUMLElementFields,
+    PlantUMLNodeSchema,
+)
 from c4.contrib.plantuml.extensions import (
     BoundaryExtensions,
     ComponentExtensions,
@@ -71,6 +74,34 @@ def test_plantuml_node_schema__moves_fields_to_extensions():
         "sprite": "server",
         "tags": ["runtime"],
         "type": "Runtime Node",
+    }
+
+
+def test_plantuml_element_fields__merges_fields_and_removes_consumed_extension():
+    class BaseElementFields:
+        def _to_diagram_element_kwargs(self):
+            return {
+                "sprite": "new-sprite",
+                "type_": "Custom Type",
+                "plantuml": {"link": "https://example.com/runtime"},
+                "extensions": {
+                    "plantuml": {"sprite": "old-sprite", "tags": ["old"]},
+                    "mermaid": {"type": "enterprise"},
+                },
+            }
+
+    class ElementFields(PlantUMLElementFields, BaseElementFields): ...
+
+    result = ElementFields()._to_diagram_element_kwargs()
+
+    assert result == {
+        "plantuml": {
+            "sprite": "new-sprite",
+            "tags": ["old"],
+            "link": "https://example.com/runtime",
+            "type": "Custom Type",
+        },
+        "extensions": {"mermaid": {"type": "enterprise"}},
     }
 
 

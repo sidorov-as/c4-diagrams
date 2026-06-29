@@ -7,6 +7,15 @@ from inspect import cleandoc
 from pathlib import Path
 from typing import Any, Iterable
 
+from c4.contrib.d2.converters.json.render_options import D2RenderOptionsSchema
+from c4.contrib.d2.converters.json.schemas import (
+    D2ComponentDiagramSchema,
+    D2ContainerDiagramSchema,
+    D2DeploymentDiagramSchema,
+    D2DynamicDiagramSchema,
+    D2SystemContextDiagramSchema,
+    D2SystemLandscapeDiagramSchema,
+)
 from c4.contrib.mermaid.converters.json.schemas import (
     MermaidComponentDiagramSchema,
     MermaidContainerDiagramSchema,
@@ -51,6 +60,7 @@ EXAMPLES_DIR = Path(__file__).parent.parent / "assets" / "examples"
 JSON_EXAMPLES_DIR = EXAMPLES_DIR / "json"
 
 RENDERED_SOURCE_SUFFIXES = {
+    "d2": ("d2", "D2"),
     "plantuml": ("puml", "PlantUML"),
     "mermaid": ("mmd", "Mermaid"),
 }
@@ -76,6 +86,18 @@ BACKEND_SCHEMAS = (
             CoreComponentDiagramSchema,
             CoreDeploymentDiagramSchema,
             CoreDynamicDiagramSchema,
+        ),
+    ),
+    BackendSchemas(
+        slug="d2",
+        title="D2",
+        schemas=(
+            D2SystemContextDiagramSchema,
+            D2SystemLandscapeDiagramSchema,
+            D2ContainerDiagramSchema,
+            D2ComponentDiagramSchema,
+            D2DeploymentDiagramSchema,
+            D2DynamicDiagramSchema,
         ),
     ),
     BackendSchemas(
@@ -171,6 +193,11 @@ DEFINITIONS_ORDER = [
     "ShowPersonSprit",
     "RenderOptionsSchema",
     "MermaidRenderOptionsSchema",
+    "D2RenderOptionsSchema",
+    "D2StyleSchema",
+    "D2LegendSchema",
+    "D2LegendElementSchema",
+    "D2LegendRelSchema",
 ]
 
 
@@ -490,6 +517,9 @@ class DiagramSpecDocsGenerator:
         self.mermaid_render_options_defs: Json = self._get_defs(
             self._get_diagram_spec(MermaidRenderOptionsSchema)
         )
+        self.d2_render_options_defs: Json = self._get_defs(
+            self._get_diagram_spec(D2RenderOptionsSchema)
+        )
 
         self.def_type_map = self._get_def_type_map(
             diagram_schema, self.defs
@@ -574,10 +604,16 @@ class DiagramSpecDocsGenerator:
             *self.mermaid_render_options_defs.keys(),
         ]
 
+        d2_render_options_defs = [
+            "D2RenderOptionsSchema",
+            *self.d2_render_options_defs.keys(),
+        ]
+
         render_options_defs = [
             "RenderOptionsSchema",
             *plantuml_render_options_defs,
             *mermaid_render_options_defs,
+            *d2_render_options_defs,
         ]
 
         lines.extend(["## Definitions", "", ""])
@@ -596,6 +632,13 @@ class DiagramSpecDocsGenerator:
             self._render_definitions_section(
                 title="Mermaid Render Options",
                 include=mermaid_render_options_defs,
+            )
+        )
+
+        lines.extend(
+            self._render_definitions_section(
+                title="D2 Render Options",
+                include=d2_render_options_defs,
             )
         )
 

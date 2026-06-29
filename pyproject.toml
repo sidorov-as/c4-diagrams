@@ -49,7 +49,7 @@ dev = [
     "ruff>=0.14.10",
     "commitizen>=4.11.0",
     "polyfactory>=3.3.0",
-    "zensical>=0.0.29",
+    "zensical>=0.0.46",
     "mkdocstrings[python]>=1.0.1",
     "mkdocs-autorefs>=1.4.3",
 ]
@@ -84,6 +84,17 @@ warn_return_any = true
 warn_unused_ignores = true
 show_error_codes = true
 plugins = ['pydantic.mypy']
+exclude = [
+    ".*venv",
+    ".tox",
+    "docs/*",
+    "site/*",
+    "tests/test_unit/test_renderers/test_d2/test_options.py",
+]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = ["no-untyped-def", "arg-type"]
 
 [[tool.mypy.overrides]]
 module = "c4.compat.strenum"
@@ -146,13 +157,18 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "E501"]
+"tests/*" = [
+    "S101",
+    "E501",
+    "ANN201",
+]
 "c4/cli/parser.py" = ["A001", "A002"]
 "c4/renderers/base.py" = ["A001", "A002"]
 "c4/renderers/plantuml/renderer.py" = ["A001", "A002"]
 "c4/renderers/mermaid/renderer.py" = ["A001", "A002"]
 "c4/renderers/plantuml/backends.py" = ["A001", "A002"]
 "c4/renderers/mermaid/backends.py" = ["A001", "A002"]
+"c4/renderers/d2/backends.py" = ["A001", "A002"]
 "c4/compat/strenum.py" = ["E501", "UP031", "SIM102",]
 "tests/fixtures/converters/json.py" = ["RUF012"]
 

@@ -13,14 +13,14 @@ from c4.renderers import (
 )
 
 
-with ComponentDiagram(title='Sysops Support System - Tuned Component View') as diagram:
+with ComponentDiagram(title='Customer Support System - Tuned Component View') as diagram:
     customer = Person(
         'Customer',
         'Reports equipment issues and tracks repair progress.',
         alias='customer',
     )
     expert = Person(
-        'Sysops Expert',
+        'Support Expert',
         'Accepts assignments and records repair updates.',
         alias='expert',
     )
@@ -39,7 +39,7 @@ with ComponentDiagram(title='Sysops Support System - Tuned Component View') as d
     )
 
     with ContainerBoundary(
-        'Sysops Support System',
+        'Customer Support System',
         'Components that handle support tickets and expert assignments.',
         mermaid={'type': 'system boundary'},
         alias='sysops_system',
@@ -81,7 +81,7 @@ with ComponentDiagram(title='Sysops Support System - Tuned Component View') as d
             alias='notification_service',
         )
         sysops_database = ComponentDb(
-            'Sysops Database',
+            'Support Database',
             'Tickets, contacts, assignments, and repair history.',
             technology='PostgreSQL',
             alias='sysops_database',

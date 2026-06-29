@@ -24,26 +24,26 @@ UpdateElementStyle("component", $shape=RoundedBoxShape(), $borderStyle=SolidLine
 
 LAYOUT_TOP_DOWN()
 LAYOUT_WITH_LEGEND()
-UpdateLegendTitle("Sysops Component Legend")
+UpdateLegendTitle("Customer Support Component Legend")
 
-title Sysops Support System - Tuned Component View
+title Customer Support System - Tuned Component View
 
 Person(customer, "Customer", "Reports equipment issues and tracks repair progress.", $tags="User")
 
-Person(expert, "Sysops Expert", "Accepts assignments and records repair updates.", $tags="User")
+Person(expert, "Support Expert", "Accepts assignments and records repair updates.", $tags="User")
 
 Component_Ext(auth0, "Auth0", "OIDC/OAuth2", "External identity provider.", $tags="External")
 
 Component_Ext(email_system, "E-mail System", "SMTP", "Delivers customer and expert notifications.", $tags="External")
 
-Container_Boundary(sysops_system, "Sysops Support System", $tags="Boundary", $descr="Components that handle support tickets and expert assignments.") {
+Container_Boundary(sysops_system, "Customer Support System", $tags="Boundary", $descr="Components that handle support tickets and expert assignments.") {
     Component(customer_portal, "Customer Portal", "SPA", "Ticket creation and status tracking.", $tags="Frontend")
     Component(mobile_app, "Expert Mobile App", "iOS / Android", "Assignment queue and field repair updates.", $tags="Frontend")
     Component(api_gateway, "API Gateway", "Container Service", "Access control and request routing.", $tags="Gateway")
     Component(ticket_api, "Ticket API", "Container Service", "Ticket orchestration, search, and assignment updates.", $tags="Backend")
     Component(notification_service, "Notification Service", "Container Service", "Sends customer and expert notifications.", $tags="Backend")
     Component(ticket_processor, "Ticket Processor", "Container Job", "Creates expert assignments for new tickets.", $tags="Worker")
-    ComponentDb(sysops_database, "Sysops Database", "PostgreSQL", "Tickets, contacts, assignments, and repair history.", $tags="Database")
+    ComponentDb(sysops_database, "Support Database", "PostgreSQL", "Tickets, contacts, assignments, and repair history.", $tags="Database")
     ComponentQueue(ticket_created_queue, "Ticket Created", "Message Queue", "Event stream for new support tickets.", $tags="Queue")
 }
 

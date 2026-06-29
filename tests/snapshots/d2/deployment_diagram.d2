@@ -1,0 +1,33 @@
+direction: right
+__title: ||md
+  # Live Deployment
+|| {
+  near: top-center
+}
+classes: {
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+}
+customer_device: {
+  label: "Customer Device"
+  mobile_app: "Mobile App\n[Swift]"
+}
+cloud: {
+  label: "Cloud"
+  cluster: {
+    label: "Kubernetes Cluster"
+    api: "API Application\n[Java]"
+  }
+  database_server: {
+    label: "Database Server"
+    database: {
+      label: "Database\n[PostgreSQL]"
+      shape: cylinder
+      class: ["c4_database"]
+    }
+  }
+}
+customer_device.mobile_app -> cloud.cluster.api: "Makes API calls\n[HTTPS]"
+cloud.cluster.api -> cloud.database_server.database: "Reads from and writes to\n[JDBC]"

@@ -1,0 +1,239 @@
+{
+  "backend": "d2",
+  "type": "SystemContextDiagram",
+  "title": "Retail Platform - System Context",
+  "elements": [
+    {
+      "type": "Person",
+      "label": "Customer",
+      "alias": "customer",
+      "description": "Browses products, places orders, and tracks delivery.",
+      "properties": {
+        "properties": [
+          [
+            "Channel",
+            "Web / Mobile"
+          ],
+          [
+            "Auth",
+            "OIDC"
+          ]
+        ]
+      },
+      "style": {
+        "fill": "#f7f0ff",
+        "stroke": "#7c3aed"
+      },
+      "tooltip": "Primary customer persona for the commerce platform."
+    },
+    {
+      "type": "PersonExt",
+      "label": "Support Agent",
+      "alias": "support_agent",
+      "description": "Investigates order and payment issues from a vendor CRM.",
+      "properties": {
+        "properties": [
+          [
+            "Organization",
+            "Support Vendor"
+          ],
+          [
+            "SLA",
+            "Business hours"
+          ]
+        ]
+      },
+      "style": {
+        "fill": "#fff7ed",
+        "stroke": "#ea580c"
+      }
+    },
+    {
+      "type": "SystemExt",
+      "label": "Payment Provider",
+      "alias": "payment_provider",
+      "description": "Authorizes payments and sends asynchronous payment webhooks.",
+      "properties": {
+        "properties": [
+          [
+            "PCI scope",
+            "External"
+          ],
+          [
+            "Webhook retry",
+            "24 hours"
+          ]
+        ]
+      },
+      "style": {
+        "fill": "#ecfdf5",
+        "stroke": "#059669"
+      }
+    },
+    {
+      "type": "SystemExt",
+      "label": "CRM Platform",
+      "alias": "crm_platform",
+      "description": "External case management system used by support agents.",
+      "properties": {
+        "properties": [
+          [
+            "Vendor",
+            "Zendesk"
+          ],
+          [
+            "Data sync",
+            "Near real-time"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "SystemExt",
+      "label": "Email & SMS Gateway",
+      "alias": "notification_gateway",
+      "description": "Delivers transactional notifications to customers.",
+      "properties": {
+        "properties": [
+          [
+            "Provider",
+            "Multi-region"
+          ],
+          [
+            "Fallback",
+            "SMS"
+          ]
+        ]
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "EnterpriseBoundary",
+      "label": "Acme Corp",
+      "alias": "acme_enterprise",
+      "description": "Internal systems owned by Acme.",
+      "properties": {
+        "properties": [
+          [
+            "Business unit",
+            "Digital Commerce"
+          ],
+          [
+            "Data region",
+            "EU"
+          ]
+        ]
+      },
+      "style": {
+        "fill": "#eef2ff",
+        "stroke": "#4f46e5"
+      },
+      "elements": [
+        {
+          "type": "System",
+          "label": "Retail Platform",
+          "alias": "retail_platform",
+          "description": "Core platform for catalog, checkout, payments, and order management.",
+          "properties": {
+            "properties": [
+              [
+                "Owner",
+                "Commerce Platform"
+              ],
+              [
+                "Availability",
+                "99.95%"
+              ]
+            ]
+          },
+          "style": {
+            "fill": "#eff6ff",
+            "stroke": "#2563eb"
+          }
+        },
+        {
+          "type": "System",
+          "label": "Analytics Platform",
+          "alias": "analytics_platform",
+          "description": "Consumes commerce events for reporting and personalization.",
+          "properties": {
+            "properties": [
+              [
+                "Owner",
+                "Data Platform"
+              ],
+              [
+                "Freshness",
+                "< 15 min"
+              ]
+            ]
+          },
+          "style": {
+            "fill": "#f0fdfa",
+            "stroke": "#0f766e"
+          }
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "retail_platform",
+      "label": "Browses catalog and places orders",
+      "technology": "HTTPS",
+      "style": {
+        "stroke": "#2563eb"
+      }
+    },
+    {
+      "type": "REL",
+      "from": "retail_platform",
+      "to": "payment_provider",
+      "label": "Creates payment intents",
+      "technology": "REST/JSON"
+    },
+    {
+      "type": "REL",
+      "from": "payment_provider",
+      "to": "retail_platform",
+      "label": "Sends payment webhooks",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "retail_platform",
+      "to": "notification_gateway",
+      "label": "Sends order notifications",
+      "technology": "SMTP / SMPP"
+    },
+    {
+      "type": "REL",
+      "from": "support_agent",
+      "to": "crm_platform",
+      "label": "Manages customer cases",
+      "technology": "Web UI"
+    },
+    {
+      "type": "REL",
+      "from": "crm_platform",
+      "to": "retail_platform",
+      "label": "Queries order status",
+      "technology": "OAuth2 / REST"
+    },
+    {
+      "type": "REL",
+      "from": "retail_platform",
+      "to": "analytics_platform",
+      "label": "Publishes commerce events",
+      "technology": "Kafka"
+    }
+  ],
+  "render_options": {
+    "layout": "dagre",
+    "include_properties": true,
+    "bidirectional_relationships": "single_edge"
+  }
+}

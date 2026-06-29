@@ -71,6 +71,27 @@ def test_alias_generator__generate__uses_custom_fallback_for_invalid_base(
     assert result == "system_boundary"
 
 
+def test_alias_generator__generate__uses_default_for_invalid_custom_fallback(
+    alias_generator: AliasGenerator,
+):
+    result = alias_generator.generate(
+        label="Привет",
+        fallback_prefix="123",
+    )
+
+    assert result == "element"
+
+
+def test_alias_generator__generate__normalizes_stored_fallback_before_final_use(
+    alias_generator: AliasGenerator,
+):
+    alias_generator._fallback_prefix = "123"
+
+    result = alias_generator.generate(label="Привет")
+
+    assert result == "element"
+
+
 def test_alias_generator__generate__increments_custom_fallback(
     alias_generator: AliasGenerator,
 ):

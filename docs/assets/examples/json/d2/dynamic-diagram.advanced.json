@@ -1,0 +1,75 @@
+{
+  "backend": "d2",
+  "type": "DynamicDiagram",
+  "title": "Order Fulfillment Flow",
+  "elements": [
+    {
+      "type": "Person",
+      "label": "Customer",
+      "alias": "customer",
+      "description": "Places orders in the online store."
+    },
+    {
+      "type": "System",
+      "label": "Online Store",
+      "alias": "online_store",
+      "description": "Customer-facing commerce platform."
+    },
+    {
+      "type": "SystemExt",
+      "label": "Payment Gateway",
+      "alias": "payment_gateway",
+      "description": "External provider that authorizes card payments."
+    },
+    {
+      "type": "SystemExt",
+      "label": "Warehouse System",
+      "alias": "warehouse_system",
+      "description": "External warehouse platform that reserves and ships items."
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "online_store",
+      "label": "Places order",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "online_store",
+      "to": "payment_gateway",
+      "label": "Authorizes payment",
+      "technology": "REST API"
+    },
+    {
+      "type": "REL",
+      "from": "payment_gateway",
+      "to": "online_store",
+      "label": "Returns authorization result",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "online_store",
+      "to": "warehouse_system",
+      "label": "Sends fulfillment request",
+      "technology": "AMQP"
+    },
+    {
+      "type": "REL",
+      "from": "warehouse_system",
+      "to": "online_store",
+      "label": "Confirms reservation",
+      "technology": "AMQP"
+    }
+  ],
+  "render_options": {
+    "layout": "dagre",
+    "include_properties": true,
+    "bidirectional_relationships": "single_edge",
+    "sequence_diagram": true,
+    "auto_number_relationships": true
+  }
+}

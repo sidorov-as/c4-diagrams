@@ -39,7 +39,7 @@ def test_mermaid_render_options_renderer__render_footer__renders_element_styles_
     styles: list[ElementStyle],
     rendered_values: list[str],
     expected: str,
-) -> None:
+):
     options = MermaidRenderOptions(styles=styles)
     renderer = MermaidRenderOptionsRenderer(render_options=options)
     macros = [
@@ -86,7 +86,7 @@ def test_mermaid_render_options_renderer__render_footer__renders_rel_styles_in_o
     styles: list[RelStyle],
     rendered_values: list[str],
     expected: str,
-) -> None:
+):
     options = MermaidRenderOptions(styles=styles)
     renderer = MermaidRenderOptionsRenderer(render_options=options)
     macros = [
@@ -108,7 +108,7 @@ def test_mermaid_render_options_renderer__render_footer__renders_rel_styles_in_o
     assert all(macro.render.call_count == 1 for macro in macros)
 
 
-def test_mermaid_render_options_renderer__render_footer__empty() -> None:
+def test_mermaid_render_options_renderer__render_footer__empty():
     renderer = MermaidRenderOptionsRenderer()
 
     result = renderer.render_footer()
@@ -116,7 +116,7 @@ def test_mermaid_render_options_renderer__render_footer__empty() -> None:
     assert result == ""
 
 
-def test_mermaid_render_options_renderer__render_footer__complex() -> None:
+def test_mermaid_render_options_renderer__render_footer__complex():
     element_style = ElementStyle(
         element="api",
         bg_color="#ffffff",
@@ -151,7 +151,7 @@ def test_mermaid_render_options_renderer__render_footer__complex() -> None:
     assert result.strip() == expected_result.strip()
 
 
-def test_mermaid_render_options_renderer__render_footer__styles() -> None:
+def test_mermaid_render_options_renderer__render_footer__styles():
     element_style = ElementStyle(
         element="api",
         bg_color="#ffffff",
@@ -180,7 +180,7 @@ def test_mermaid_render_options_renderer__render_footer__styles() -> None:
     assert result.strip() == expected_result.strip()
 
 
-def test_mermaid_render_options_renderer__render_footer__layout() -> None:
+def test_mermaid_render_options_renderer__render_footer__layout():
     layout_config = UpdateLayoutConfig(
         c4_shape_in_row=3,
         c4_boundary_in_row=2,
@@ -201,9 +201,7 @@ def test_mermaid_render_options_renderer__render_footer__layout() -> None:
     assert result.strip() == expected_result.strip()
 
 
-def test_mermaid_render_options_renderer__render_footer__unsupported_style() -> (
-    None
-):
+def test_mermaid_render_options_renderer__render_footer__unsupported_style():
     class UnsupportedStyle(BaseStyle):
         pass
 

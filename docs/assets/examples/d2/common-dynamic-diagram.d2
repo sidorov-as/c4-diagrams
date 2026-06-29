@@ -1,0 +1,61 @@
+direction: right
+__title: ||md
+  # Checkout Flow
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Places an order in the online store.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+retail_platform: ||md
+  ## Retail Platform
+
+  [Software System]
+
+  Coordinates checkout and order processing.
+|| {
+  shape: rectangle
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Software System]
+
+  Authorizes card payments.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+warehouse_system: ||md
+  ## Warehouse System
+
+  [Software System]
+
+  Reserves stock and starts fulfillment.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+customer -> retail_platform: "Submits checkout\n[HTTPS]"
+retail_platform -> payment_provider: "Authorizes payment\n[HTTPS]"
+retail_platform -> warehouse_system: "Reserves stock\n[HTTPS]"
+retail_platform -> customer: "Confirms order\n[HTTPS]"

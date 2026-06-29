@@ -15,21 +15,19 @@ surface than the PlantUML rendering backend.
 
 ## Capability table
 
-| Capability | Status |
-|------------|--------|
-| System context diagrams | Supported as `C4Context` |
-| System landscape diagrams | Rendered as `C4Context` |
-| Container diagrams | Supported as `C4Container` |
-| Component diagrams | Supported as `C4Component` |
-| Dynamic diagrams | Supported as `C4Dynamic`, subject to Mermaid syntax limits |
-| Deployment diagrams | Supported as `C4Deployment`, subject to Mermaid syntax limits |
-| Deployment `NodeLeft` and `NodeRight` variants | Supported through `c4.contrib.mermaid` |
-| Boundary extension data | Supported with `mermaid={...}` |
-| Element and relationship style options | Supported through `MermaidRenderOptionsBuilder` |
-| Layout row configuration | Supported through `UpdateLayoutConfig` options |
-| PlantUML directional relationships | Not supported |
-| PlantUML layout helpers and dynamic indexes | Not supported |
-| Image rendering | Local Mermaid CLI only |
+| Capability                                     | Status                                                        |
+|------------------------------------------------|---------------------------------------------------------------|
+| System context diagrams                        | Supported as `C4Context`                                      |
+| System landscape diagrams                      | Rendered as `C4Context`                                       |
+| Container diagrams                             | Supported as `C4Container`                                    |
+| Component diagrams                             | Supported as `C4Component`                                    |
+| Dynamic diagrams                               | Supported as `C4Dynamic`, subject to Mermaid syntax limits    |
+| Deployment diagrams                            | Supported as `C4Deployment`, subject to Mermaid syntax limits |
+| Deployment `NodeLeft` and `NodeRight` variants | Supported through `c4.contrib.mermaid`                        |
+| Boundary extension data                        | Supported with `mermaid={...}`                                |
+| Element and relationship style options         | Supported through `MermaidRenderOptionsBuilder`               |
+| Layout row configuration                       | Supported through `UpdateLayoutConfig` options                |
+| Image rendering                                | Local Mermaid CLI only                                        |
 
 ## Pages
 

@@ -1,0 +1,44 @@
+direction: right
+__title: ||md
+  # API Components
+|| {
+  near: top-center
+}
+classes: {
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+spa: "Single-Page App\n[TypeScript]"
+api_application: {
+  label: "API Application"
+  sign_in_controller: "Sign In Controller\n[Spring MVC]"
+  auth_service: {
+    label: "Authentication Service\n[Spring Bean]"
+    class: ["c4_external"]
+  }
+  user_repository: {
+    label: "User Repository\n[JPA]"
+    shape: cylinder
+    class: ["c4_database"]
+  }
+  login_events: {
+    label: "Login Events\n[Kafka]"
+    shape: queue
+    class: ["c4_queue"]
+  }
+}
+spa -> api_application.sign_in_controller: "Submits credentials\n[JSON/HTTPS]"
+api_application.sign_in_controller -> api_application.auth_service: "Authenticates with"
+api_application.auth_service -> api_application.user_repository: "Loads user"
+api_application.auth_service -> api_application.login_events: "Publishes"

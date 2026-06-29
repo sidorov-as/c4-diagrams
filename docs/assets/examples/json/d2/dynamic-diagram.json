@@ -1,0 +1,149 @@
+{
+  "backend": "d2",
+  "type": "DynamicDiagram",
+  "title": "Checkout and Fulfillment Flow",
+  "elements": [
+    {
+      "type": "Person",
+      "label": "Customer",
+      "alias": "customer",
+      "description": "Places an order in the online store.",
+      "properties": {
+        "properties": [
+          [
+            "Channel",
+            "Mobile"
+          ],
+          [
+            "Auth",
+            "OIDC"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Container",
+      "label": "Web Application",
+      "alias": "web_app",
+      "description": "Checkout UI.",
+      "technology": "Next.js"
+    },
+    {
+      "type": "Container",
+      "label": "Checkout API",
+      "alias": "checkout_api",
+      "description": "Orchestrates checkout and payment.",
+      "technology": "FastAPI"
+    },
+    {
+      "type": "ContainerDb",
+      "label": "Checkout DB",
+      "alias": "checkout_db",
+      "description": "Stores checkout state.",
+      "technology": "PostgreSQL"
+    },
+    {
+      "type": "SystemExt",
+      "label": "Payment Provider",
+      "alias": "payment_provider",
+      "description": "Authorizes card payments."
+    },
+    {
+      "type": "SystemExt",
+      "label": "Inventory Service",
+      "alias": "inventory_service",
+      "description": "Reserves inventory."
+    },
+    {
+      "type": "ContainerQueue",
+      "label": "Order Events",
+      "alias": "order_events",
+      "description": "Order lifecycle event stream.",
+      "technology": "Kafka"
+    },
+    {
+      "type": "SystemExt",
+      "label": "Warehouse System",
+      "alias": "warehouse_system",
+      "description": "Fulfills reserved orders."
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "web_app",
+      "label": "Starts checkout",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "web_app",
+      "to": "checkout_api",
+      "label": "POST /checkout",
+      "technology": "JSON/HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_api",
+      "to": "inventory_service",
+      "label": "Reserve items",
+      "technology": "mTLS / gRPC"
+    },
+    {
+      "type": "REL",
+      "from": "inventory_service",
+      "to": "checkout_api",
+      "label": "Reservation confirmed",
+      "technology": "gRPC"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_api",
+      "to": "payment_provider",
+      "label": "Authorize payment",
+      "technology": "REST/JSON"
+    },
+    {
+      "type": "REL",
+      "from": "payment_provider",
+      "to": "checkout_api",
+      "label": "Authorization result",
+      "technology": "Webhook"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_api",
+      "to": "checkout_db",
+      "label": "Persist payment state",
+      "technology": "SQL"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_api",
+      "to": "order_events",
+      "label": "Publish OrderCreated",
+      "technology": "Kafka"
+    },
+    {
+      "type": "REL",
+      "from": "order_events",
+      "to": "warehouse_system",
+      "label": "Fulfillment request",
+      "technology": "AMQP bridge"
+    },
+    {
+      "type": "REL",
+      "from": "warehouse_system",
+      "to": "customer",
+      "label": "Ships order",
+      "technology": "Email / SMS"
+    }
+  ],
+  "render_options": {
+    "layout": "dagre",
+    "include_properties": true,
+    "bidirectional_relationships": "single_edge",
+    "auto_number_relationships": true
+  }
+}

@@ -1,0 +1,31 @@
+direction: right
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+}
+customer: {
+  label: "Customer"
+  shape: c4-person
+  class: ["c4_person"]
+}
+online_banking: {
+  label: "Online Banking"
+  web_app: "Web App"
+  api: "API"
+}
+customer -> online_banking.web_app: "Uses\n[HTTPS]"
+customer -> online_banking.web_app: "Opens"
+online_banking.web_app -> online_banking.api: ||md
+  **Calls**
+
+  Sends authenticated requests.
+
+  | Property | Value |
+  | --- | --- |
+  | Auth | OAuth2 |
+||
+online_banking.api -> online_banking.web_app: "Syncs\n[Events]"
+online_banking.web_app -> online_banking.api: "Syncs\n[Events]"

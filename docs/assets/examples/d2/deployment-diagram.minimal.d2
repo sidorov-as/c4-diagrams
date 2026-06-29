@@ -1,0 +1,68 @@
+direction: right
+__title: ||md
+  # Web App Deployment
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+}
+user: ||md
+  ## User
+
+  [Person]
+
+  Uses the web application.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+web_node: {
+  label: ||md
+    ## Web Server
+
+    [Boundary]
+
+    Hosts the frontend application.
+  ||
+  shape: rectangle
+  web_app: ||md
+    ## Web App
+
+    [Container: Next.js]
+
+    Customer-facing web application.
+  || {
+    shape: rectangle
+  }
+}
+db_node: {
+  label: ||md
+    ## Database Server
+
+    [Boundary]
+
+    Hosts the application database.
+  ||
+  shape: rectangle
+  app_db: ||md
+    ## App Database
+
+    [Container: PostgreSQL]
+
+    Stores application data.
+  || {
+    shape: cylinder
+    class: ["c4_database"]
+  }
+}
+user -> web_node.web_app: "Uses\n[HTTPS]"
+web_node.web_app -> db_node.app_db: "Reads and writes\n[TLS / SQL]"

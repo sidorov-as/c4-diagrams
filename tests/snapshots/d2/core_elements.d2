@@ -1,0 +1,106 @@
+direction: right
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+person: {
+  label: "Customer"
+  shape: c4-person
+  class: ["c4_person"]
+}
+person_ext: {
+  label: "External Customer"
+  shape: c4-person
+  class: ["c4_person"; "c4_external"]
+}
+system: "Banking System"
+system_ext: {
+  label: "External System"
+  class: ["c4_external"]
+}
+system_db: {
+  label: "System Database"
+  shape: cylinder
+  class: ["c4_database"]
+}
+system_db_ext: {
+  label: "External System Database"
+  shape: cylinder
+  class: ["c4_external"; "c4_database"]
+}
+system_queue: {
+  label: "System Queue"
+  shape: queue
+  class: ["c4_queue"]
+}
+system_queue_ext: {
+  label: "External System Queue"
+  shape: queue
+  class: ["c4_external"; "c4_queue"]
+}
+container: "API\n[Python]"
+container_ext: {
+  label: "External API\n[Go]"
+  class: ["c4_external"]
+}
+container_db: {
+  label: "Container Database\n[PostgreSQL]"
+  shape: cylinder
+  class: ["c4_database"]
+}
+container_db_ext: {
+  label: "External Container Database\n[Oracle]"
+  shape: cylinder
+  class: ["c4_external"; "c4_database"]
+}
+container_queue: {
+  label: "Container Queue\n[Kafka]"
+  shape: queue
+  class: ["c4_queue"]
+}
+container_queue_ext: {
+  label: "External Container Queue\n[SQS]"
+  shape: queue
+  class: ["c4_external"; "c4_queue"]
+}
+component: "Controller\n[Django]"
+component_ext: {
+  label: "External Component\n[SDK]"
+  class: ["c4_external"]
+}
+component_db: {
+  label: "Component Database\n[SQLite]"
+  shape: cylinder
+  class: ["c4_database"]
+}
+component_db_ext: {
+  label: "External Component Database\n[Redis]"
+  shape: cylinder
+  class: ["c4_external"; "c4_database"]
+}
+component_queue: {
+  label: "Component Queue\n[RabbitMQ]"
+  shape: queue
+  class: ["c4_queue"]
+}
+component_queue_ext: {
+  label: "External Component Queue\n[NATS]"
+  shape: queue
+  class: ["c4_external"; "c4_queue"]
+}
