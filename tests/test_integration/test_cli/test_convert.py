@@ -345,8 +345,7 @@ def test_convert__duplicated_aliases(
     diagram_output = tmp_path / "diagram.py"
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        "c4: error: Duplicated alias 'person': "
-        "Person(alias='person', label='Person 1').\n"
+        "c4: error: Alias 'person' already exists.\n"
     )
 
     result = cli([

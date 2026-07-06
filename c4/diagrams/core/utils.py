@@ -20,6 +20,10 @@ _INVALID_ALIAS_CHAR_RE = re.compile(r"[^a-zA-Z0-9_]+")
 _REPEATED_UNDERSCORE_RE = re.compile(r"_+")
 
 
+def _has_non_ascii_letters(label: str) -> bool:
+    return any(char.isalpha() and not char.isascii() for char in label)
+
+
 def is_valid_alias(alias: str) -> bool:
     """Return whether an alias can be safely used by all renderers."""
     return bool(_ALIAS_RE.fullmatch(alias))
@@ -112,7 +116,8 @@ class AliasGenerator:
          is registered.
 
     2. If `alias` is not provided:
-       - The label is normalized:
+       - If the label contains non-ASCII letters, the fallback prefix is used.
+       - Otherwise, the label is normalized:
          * lowercased
          * spaces replaced with "_"
          * hyphens replaced with "_"
@@ -204,7 +209,13 @@ class AliasGenerator:
             self._used.add(alias)
             return alias
 
-        base = self._normalize(label)
+        if _has_non_ascii_letters(label):
+            base = self._normalize_fallback_prefix(
+                fallback_prefix or self._fallback_prefix
+            )
+        else:
+            base = self._normalize(label)
+
         if not is_valid_alias(base):
             base = self._normalize_fallback_prefix(
                 fallback_prefix or self._fallback_prefix
@@ -218,7 +229,7 @@ class AliasGenerator:
             self._counters[base] = 1
             return base
 
-        counter = self._counters[base]
+        counter = self._counters[base] or 1
         while True:
             candidate = f"{base}_{counter}"
             counter += 1
