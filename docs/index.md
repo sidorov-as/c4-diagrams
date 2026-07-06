@@ -40,7 +40,7 @@ Currently supported backends:
     - local rendering via [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli)
     - Mermaid’s C4 diagram support is currently [experimental](https://mermaid.ai/open-source/syntax/c4.html)
 
-- [**D2**](renderers/d2/index.md)
+- [**D2**](https://d2lang.com/)
 
     - local rendering via [D2 CLI](https://d2lang.com/tour/install/)
 
