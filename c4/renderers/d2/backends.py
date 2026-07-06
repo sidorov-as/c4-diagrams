@@ -97,9 +97,9 @@ class BaseD2Backend(ABC):
                 f"Output file already exists: {output_path!s}"
             )
 
-        content = self.to_bytes(  # type: ignore[arg-type]
+        content = self.to_bytes(
             diagram,
-            format=format,
+            format=format,  # type: ignore[arg-type]
             render_options=render_options,
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -248,7 +248,7 @@ class LocalD2Backend(BaseD2Backend):
         render_options: D2RenderOptions | None = None,
     ) -> list[str]:
         cmd = [
-            self._d2_bin,  # type: ignore[list-item]
+            self._d2_bin,
             str(input_path),
             str(output_path),
             *self._d2_args,
@@ -261,4 +261,4 @@ class LocalD2Backend(BaseD2Backend):
         if layout is not None:
             cmd.append(f"--layout={layout}")
 
-        return cmd
+        return cmd  # type: ignore[return-value]

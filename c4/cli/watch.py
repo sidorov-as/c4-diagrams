@@ -187,10 +187,10 @@ def _import_watch() -> WatchCallable:
     Import the optional watchfiles watcher.
     """
     try:
-        from watchfiles import watch
+        from watchfiles import watch  # type: ignore[import-not-found]
     except ImportError:
         raise CLIError("Install c4-diagrams[watch] to use --watch.") from None
-    return watch
+    return watch  # type: ignore[no-any-return]
 
 
 def build_watch_child_argv(argv: Iterable[str]) -> list[str]:
