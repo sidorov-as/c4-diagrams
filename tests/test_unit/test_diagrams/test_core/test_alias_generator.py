@@ -71,6 +71,51 @@ def test_alias_generator__generate__uses_custom_fallback_for_invalid_base(
     assert result == "system_boundary"
 
 
+def test_alias_generator__generate__uses_fallback_for_non_ascii_label_with_ascii_token(
+    alias_generator: AliasGenerator,
+):
+    result = alias_generator.generate(
+        label="Какое-то описание для requests_hub",
+        fallback_prefix="System",
+    )
+
+    assert result == "system"
+
+
+def test_alias_generator__generate__increments_fallback_for_non_ascii_labels(
+    alias_generator: AliasGenerator,
+):
+    first = alias_generator.generate(
+        label="Какое-то описание",
+        fallback_prefix="System",
+    )
+    second = alias_generator.generate(
+        label="Другое описание",
+        fallback_prefix="System",
+    )
+
+    assert first == "system"
+    assert second == "system_1"
+
+
+@pytest.mark.parametrize(
+    ("label", "expected"),
+    [
+        ("My Label", "my_label"),
+        ("My-Label", "my_label"),
+        ("Hello, world!", "hello_world"),
+    ],
+)
+def test_alias_generator__generate__keeps_ascii_label_aliases(
+    alias_generator: AliasGenerator,
+    label: str,
+    expected: str,
+):
+    result = alias_generator.generate(label=label)
+
+    assert result == expected
+
+
 def test_alias_generator__generate__uses_default_for_invalid_custom_fallback(
     alias_generator: AliasGenerator,
 ):

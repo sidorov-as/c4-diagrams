@@ -626,12 +626,11 @@ def test_json_to_diagram_converter__convert__duplicated_alias():
         ],
     }
     converter = JSONToDiagramConverter(data)
-    expected_error = re.escape(
-        "Duplicated alias 'customer': "
-        "Person(alias='customer', label='Customer 1')."
-    )
 
-    with pytest.raises(ConversionError, match=expected_error):
+    with pytest.raises(
+        ConversionError,
+        match=r"Alias 'customer' already exists\.",
+    ):
         converter.convert()
 
 

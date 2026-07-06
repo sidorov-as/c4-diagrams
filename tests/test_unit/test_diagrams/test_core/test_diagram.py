@@ -117,26 +117,25 @@ def test_diagram_ordered_elements():
 def test_diagram_check_alias_duplicated():
     with Diagram() as diagram:
         user = Element(alias="p1", label="person")
-        expected_error = re.escape(
-            "Duplicated alias 'p1': Element(alias='p1', label='person')."
-        )
 
-        with pytest.raises(ValueError, match=expected_error):
+        with pytest.raises(
+            ValueError,
+            match=r"Alias 'p1' already exists\.",
+        ):
             Element(alias="p1", label="any other label")
 
     assert diagram.elements == [user]
 
 
 def test_diagram_check_alias_duplicated_generated():
-    expected_error = re.escape(
-        "Duplicated alias 'person_1': Element(alias='person_1', label='person')."
-    )
-
     with Diagram() as diagram:
         user = Element(label="person")
         user2 = Element(label="person")  # alias - person_1
 
-        with pytest.raises(ValueError, match=expected_error):
+        with pytest.raises(
+            ValueError,
+            match=r"Alias 'person_1' already exists\.",
+        ):
             Element(alias="person_1", label="any other label")
 
     assert diagram.elements == [user, user2]

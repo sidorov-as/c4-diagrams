@@ -577,9 +577,12 @@ class Element(BaseDiagramElement, abc.ABC):
     def _check_alias(self, alias: Maybe[str], label: str) -> str:
         """Return the provided alias or generate one from the label."""
         if alias is MISSING:
-            alias = self._generate_alias(label)
+            return self._generate_alias(label)
 
-        return cast(str, alias)
+        return current_diagram().generate_alias(
+            label=label,
+            alias=cast(str, alias),
+        )
 
     @override
     def _contribute_to_diagram(self) -> None:

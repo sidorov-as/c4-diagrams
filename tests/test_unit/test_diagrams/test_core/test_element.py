@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 
-from c4 import Component, ComponentDiagram
+from c4 import Component, ComponentDiagram, System, SystemContextDiagram
 from c4.diagrams.core import Diagram, Element, ElementWithTechnology
 
 
@@ -77,6 +77,45 @@ def test_element_generate_alias_uses_element_type_as_fallback(
         element = element_class(label="Пример")
 
     assert element.alias == expected_alias
+
+
+@pytest.mark.parametrize("element_class", [Element, ElementWithTechnology])
+def test_element_generate_alias_skips_existing_explicit_alias(
+    element_class: type[Element],
+):
+    with Diagram():
+        explicit = element_class(alias="requests_hub", label="Requests-Hub")
+        generated = element_class(label="requests_hub")
+
+    assert explicit.alias == "requests_hub"
+    assert generated.alias == "requests_hub_1"
+
+
+def test_element_generate_alias_skips_explicit_fallback_alias():
+    with Diagram():
+        explicit = Element(alias="element", label="Requests-Hub")
+        generated = Element(label="Какое-то описание для requests_hub")
+
+    assert explicit.alias == "element"
+    assert generated.alias == "element_1"
+
+
+def test_element_explicit_alias_raises_when_generated_alias_already_exists():
+    with Diagram():
+        Element(label="requests_hub")
+
+        with pytest.raises(
+            ValueError,
+            match=r"Alias 'requests_hub' already exists\.",
+        ):
+            Element(alias="requests_hub", label="Requests-Hub")
+
+
+def test_system_generate_alias_uses_class_fallback_for_non_ascii_label_with_ascii_token():
+    with SystemContextDiagram():
+        generated = System("Какое-то описание для requests_hub")
+
+    assert generated.alias == "system"
 
 
 @pytest.mark.parametrize("element_class", [Element, ElementWithTechnology])
