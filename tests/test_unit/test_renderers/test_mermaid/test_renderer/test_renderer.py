@@ -87,7 +87,7 @@ def build_system_context_diagram() -> SystemContextDiagram:
 def test_diagram_type_to_mermaid_definition_map(
     diagram,
     expected_definition: str,
-) -> None:
+):
     assert (
         DIAGRAM_TYPE_TO_MERMAID_DEFINITION_MAP[type(diagram)]
         == expected_definition
@@ -127,7 +127,7 @@ def test_mermaid_renderer__render():
     assert result.strip() == expected_result.strip()
 
 
-def test_mermaid_renderer__render__without_title() -> None:
+def test_mermaid_renderer__render__without_title():
     with SystemContextDiagram() as diagram:
         user = Person("User", alias="user")
         system = System("System", alias="system")
@@ -152,7 +152,7 @@ def test_mermaid_renderer__render__without_title() -> None:
     assert result.strip() == expected_result.strip()
 
 
-def test_mermaid_renderer__rejects_relationship_to_boundary() -> None:
+def test_mermaid_renderer__rejects_relationship_to_boundary():
     with SystemContextDiagram() as diagram:
         customer = Person("Customer", alias="customer")
         with SystemBoundary("Platform", alias="platform") as platform:
@@ -171,7 +171,7 @@ def test_mermaid_renderer__rejects_relationship_to_boundary() -> None:
         renderer.render(diagram)
 
 
-def test_mermaid_renderer__allows_relationship_to_nested_element() -> None:
+def test_mermaid_renderer__allows_relationship_to_nested_element():
     with SystemContextDiagram() as diagram:
         customer = Person("Customer", alias="customer")
         with SystemBoundary("Platform", alias="platform"):
@@ -184,7 +184,7 @@ def test_mermaid_renderer__allows_relationship_to_nested_element() -> None:
     assert 'Rel(customer, web_app, "Uses")' in result
 
 
-def test_mermaid_renderer__rejects_foreign_extensions() -> None:
+def test_mermaid_renderer__rejects_foreign_extensions():
     with SystemContextDiagram() as diagram:
         System(
             "System",
@@ -202,7 +202,7 @@ def test_mermaid_renderer__rejects_foreign_extensions() -> None:
         renderer.render(diagram)
 
 
-def test_mermaid_renderer__ignores_foreign_extensions_by_default() -> None:
+def test_mermaid_renderer__ignores_foreign_extensions_by_default():
     with SystemContextDiagram() as diagram:
         System(
             "System",
@@ -215,7 +215,7 @@ def test_mermaid_renderer__ignores_foreign_extensions_by_default() -> None:
     renderer.render(diagram)
 
 
-def test_mermaid_renderer__can_ignore_foreign_extensions() -> None:
+def test_mermaid_renderer__can_ignore_foreign_extensions():
     with SystemContextDiagram() as diagram:
         System(
             "System",

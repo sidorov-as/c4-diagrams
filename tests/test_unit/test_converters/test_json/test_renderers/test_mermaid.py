@@ -1,3 +1,5 @@
+from pydantic import TypeAdapter
+
 from c4 import Person, SystemContextDiagram
 from c4.contrib.mermaid import RelBack
 from c4.contrib.mermaid.converters.json.render_options import (
@@ -10,6 +12,7 @@ from c4.contrib.mermaid.converters.json.schemas import (
     MermaidBoundaryFields,
     MermaidBoundarySchema,
     MermaidRelationshipSchema,
+    MermaidRelationshipType,
 )
 from c4.diagrams.core import RelationshipType
 from c4.renderers import MermaidRenderOptions
@@ -18,6 +21,26 @@ from c4.renderers.mermaid.options import (
     RelStyle,
     UpdateLayoutConfig,
 )
+
+
+def test_mermaid_relationship_type__json_schema_uses_portable_title():
+    schema = TypeAdapter(MermaidRelationshipType).json_schema()
+
+    assert schema["title"] == "RelationshipType"
+
+
+def test_mermaid_relationship_type__get_descriptions():
+    descriptions = MermaidRelationshipType.get_descriptions()
+    core_descriptions = RelationshipType.get_descriptions()
+
+    assert (
+        descriptions[MermaidRelationshipType.REL]
+        == core_descriptions[RelationshipType.REL]
+    )
+    assert (
+        descriptions[MermaidRelationshipType.REL_BACK]
+        == (core_descriptions[RelationshipType.REL_BACK])
+    )
 
 
 def test_mermaid_render_options_schema__to_render_options():

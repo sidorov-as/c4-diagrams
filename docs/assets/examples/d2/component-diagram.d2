@@ -1,0 +1,187 @@
+direction: right
+__title: ||md
+  # Checkout API - Component Diagram
+|| {
+  near: top-center
+}
+classes: {
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+web_app: ||md
+  ## Web Application
+
+  [Container: Next.js]
+
+  Storefront and checkout UI.
+
+  | Property | Value |
+  | --- | --- |
+  | Runtime | Node.js |
+  | Team | Storefront |
+|| {
+  shape: rectangle
+}
+order_events: ||md
+  ## Order Events
+
+  [Container: Kafka]
+
+  Asynchronous stream for order lifecycle events.
+
+  | Property | Value |
+  | --- | --- |
+  | Retention | 7 days |
+  | Partitions | 24 |
+|| {
+  shape: queue
+  class: ["c4_queue"]
+}
+checkout_db: ||md
+  ## Checkout Database
+
+  [Container: PostgreSQL]
+
+  Stores checkout sessions, idempotency keys, and payment state.
+
+  | Property | Value |
+  | --- | --- |
+  | HA | Multi-AZ |
+  | Backups | PITR |
+|| {
+  shape: cylinder
+  class: ["c4_database"]
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Component]
+
+  External card authorization and capture API.
+
+  | Property | Value |
+  | --- | --- |
+  | Timeout budget | 2s |
+  | Webhook signature | HMAC |
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+inventory_service: ||md
+  ## Inventory Service
+
+  [Component]
+
+  Reserves stock before payment capture.
+
+  | Property | Value |
+  | --- | --- |
+  | Consistency | Strong |
+  | Owner | Supply Chain |
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+checkout_api_boundary: {
+  label: ||md
+    ## Checkout API
+
+    [Container]
+
+    Components that orchestrate checkout and payment.
+  ||
+  shape: rectangle
+  direction: right
+  checkout_controller: ||md
+    ## Checkout Controller
+
+    [Component: FastAPI]
+
+    HTTP entrypoint for checkout commands.
+
+    | Property | Value |
+    | --- | --- |
+    | Endpoint | /checkout |
+    | Auth | JWT |
+  || {
+    shape: rectangle
+    style.stroke: "#2563eb"
+    style.fill: "#eff6ff"
+  }
+  checkout_orchestrator: ||md
+    ## Checkout Orchestrator
+
+    [Component: Python]
+
+    Coordinates validation, inventory reservation, payment, and persistence.
+
+    | Property | Value |
+    | --- | --- |
+    | Pattern | Application service |
+    | Retries | Bounded |
+  || {
+    shape: rectangle
+  }
+  inventory_client: ||md
+    ## Inventory Client
+
+    [Component: gRPC client]
+
+    Calls the inventory service and maps reservation failures.
+
+    | Property | Value |
+    | --- | --- |
+    | Timeout | 750ms |
+    | Circuit breaker | Enabled |
+  || {
+    shape: rectangle
+  }
+  payment_adapter: ||md
+    ## Payment Adapter
+
+    [Component: Python]
+
+    Wraps payment provider calls and webhook verification.
+
+    | Property | Value |
+    | --- | --- |
+    | Idempotency | Required |
+    | Capture mode | Manual |
+  || {
+    shape: rectangle
+  }
+  order_publisher: ||md
+    ## Order Publisher
+
+    [Component: Kafka producer]
+
+    Publishes order-created and payment-authorized events.
+
+    | Property | Value |
+    | --- | --- |
+    | Schema | JSON Schema |
+    | Acks | all |
+  || {
+    shape: rectangle
+  }
+}
+web_app -> checkout_api_boundary.checkout_controller: "Submits checkout\n[HTTPS/JSON]"
+checkout_api_boundary.checkout_controller -> checkout_api_boundary.checkout_orchestrator: "Delegates command\n[Python call]"
+checkout_api_boundary.checkout_orchestrator -> checkout_api_boundary.inventory_client: "Reserves stock\n[gRPC]"
+checkout_api_boundary.inventory_client -> inventory_service: "Reserve items\n[mTLS / gRPC]"
+checkout_api_boundary.checkout_orchestrator -> checkout_api_boundary.payment_adapter: "Authorizes payment\n[Python call]"
+checkout_api_boundary.payment_adapter -> payment_provider: "Creates payment intent\n[REST/JSON]"
+checkout_api_boundary.checkout_orchestrator -> checkout_db: "Persists checkout state\n[SQL]"
+checkout_api_boundary.checkout_orchestrator -> checkout_api_boundary.order_publisher: "Emits domain events\n[Python call]"
+checkout_api_boundary.order_publisher -> order_events: "Publishes events\n[Kafka]"

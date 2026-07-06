@@ -1,0 +1,45 @@
+_D2_STYLE_KEYS = frozenset({
+    "opacity",
+    "stroke",
+    "fill",
+    "fill_pattern",
+    "stroke_width",
+    "stroke_dash",
+    "border_radius",
+    "shadow",
+    "three_d",
+    "multiple",
+    "double_border",
+    "font",
+    "font_size",
+    "font_color",
+    "animated",
+    "bold",
+    "italic",
+    "underline",
+    "text_transform",
+})
+_D2_STYLE_STRING_KEYS = frozenset({
+    "stroke",
+    "fill",
+    "fill_pattern",
+    "font",
+    "font_color",
+    "text_transform",
+})
+_D2_STYLE_INTEGER_KEYS = frozenset({
+    "stroke_width",
+    "stroke_dash",
+    "border_radius",
+    "font_size",
+})
+_D2_STYLE_BOOLEAN_KEYS = frozenset({
+    "shadow",
+    "three_d",
+    "multiple",
+    "double_border",
+    "animated",
+    "bold",
+    "italic",
+    "underline",
+})

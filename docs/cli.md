@@ -164,6 +164,12 @@ Render Mermaid source:
 c4 render diagram.py --mermaid -o diagram.mmd
 ```
 
+Render D2 source:
+
+```shell
+c4 render diagram.py --d2 -o diagram.d2
+```
+
 Select a named diagram in a Python file:
 
 ```shell
@@ -174,6 +180,12 @@ Export SVG with Mermaid:
 
 ```shell
 c4 export diagram.py --mermaid -f svg -o diagram.svg
+```
+
+Export SVG with D2 using ELK layout:
+
+```shell
+c4 export diagram.py --d2 --d2-layout elk -f svg -o diagram.svg
 ```
 
 Export SVG with a remote PlantUML server:
@@ -256,6 +268,7 @@ CLI flags take precedence over environment variables.
 | <span style="white-space: nowrap;">`PLANTUML_SKINPARAM_DPI`</span>    | <span style="white-space: nowrap;">`c4 export --plantuml`</span> | Injects <span style="white-space: nowrap;">`skinparam dpi`</span> for PlantUML rendering.                | None                                              |
 | <span style="white-space: nowrap;">`MERMAID_BIN`</span>               | <span style="white-space: nowrap;">`c4 export --mermaid`</span>  | Local Mermaid CLI executable.                                                                            | `mmdc`                                            |
 | <span style="white-space: nowrap;">`MERMAID_SCALE_FACTOR`</span>      | <span style="white-space: nowrap;">`c4 export --mermaid`</span>  | Mermaid CLI Puppeteer scale factor.                                                                      | `1`                                               |
+| <span style="white-space: nowrap;">`D2_BIN`</span>                    | <span style="white-space: nowrap;">`c4 export --d2`</span>       | Local D2 executable.                                                                                     | `d2`                                              |
 | <span style="white-space: nowrap;">`RENDERING_TIMEOUT_SECONDS`</span> | <span style="white-space: nowrap;">`c4 export`</span>            | Render timeout in seconds.                                                                               | `30.0`                                            |
 
 ## CLI Reference
@@ -268,7 +281,7 @@ Render a diagram to text output (by default, PlantUML source).
 
 ```shell
 c4 render [-h] [-o OUTPUT] \
-          [--renderer {plantuml,mermaid} | --plantuml | --mermaid] \
+          [--renderer {plantuml,mermaid,d2} | --plantuml | --mermaid | --d2] \
           [--plantuml-use-new-c4-style] \
           [-w] [--watch-delay WATCH_DELAY] \
           [--watch-dir WATCH_DIR] [--watch-include WATCH_INCLUDE] \
@@ -283,13 +296,14 @@ c4 render [-h] [-o OUTPUT] \
 
 **Options**:
 
-| Name                                                       | Type                           | Description                                                                                             | Default    |
-|------------------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------------|------------|
-| `--renderer`                                               | choice (`plantuml`, `mermaid`) | Renderer to use (overrides the diagram's default renderer).                                             | `plantuml` |
-| `--plantuml`                                               | boolean                        | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>) | False      |
-| `--mermaid`                                                | boolean                        | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>)   | False      |
-| <span style="white-space: nowrap;">`-o`, `--output`</span> | path                           | Redirect output to a file.                                                                              | stdout     |
-| `-h`, `--help`                                             | boolean                        | Show this help message and exit.                                                                        | False      |
+| Name                                                       | Type                                 | Description                                                                                             | Default    |
+|------------------------------------------------------------|--------------------------------------|---------------------------------------------------------------------------------------------------------|------------|
+| `--renderer`                                               | choice (`plantuml`, `mermaid`, `d2`) | Renderer to use (overrides the diagram's default renderer).                                             | `plantuml` |
+| `--plantuml`                                               | boolean                              | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>) | False      |
+| `--mermaid`                                                | boolean                              | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>)   | False      |
+| `--d2`                                                     | boolean                              | Use D2 renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer d2`</span>)             | False      |
+| <span style="white-space: nowrap;">`-o`, `--output`</span> | path                                 | Redirect output to a file.                                                                              | stdout     |
+| `-h`, `--help`                                             | boolean                              | Show this help message and exit.                                                                        | False      |
 
 **Watch Options**:
 
@@ -328,7 +342,7 @@ The available formats depend on the selected `renderer`.
 ```shell
 c4 export [-h] [-o OUTPUT] [-f {eps,latex,pdf,png,svg,txt,utxt}] \
           [--timeout TIMEOUT] \
-          [--renderer {plantuml,mermaid} | --plantuml | --mermaid] \
+          [--renderer {plantuml,mermaid,d2} | --plantuml | --mermaid | --d2] \
           [--plantuml-backend {local,remote}] \
           [--plantuml-server-url PLANTUML_SERVER_URL] \
           [--plantuml-bin PLANTUML_BIN | --plantuml-jar PLANTUML_JAR] \
@@ -340,6 +354,7 @@ c4 export [-h] [-o OUTPUT] [-f {eps,latex,pdf,png,svg,txt,utxt}] \
           [--mermaid-scale-factor MERMAID_SCALE_FACTOR] \
           [--mermaid-puppeteer-headless MERMAID_PUPPETEER_HEADLESS | \
            --mermaid-puppeteer-config MERMAID_PUPPETEER_CONFIG] \
+          [--d2-bin D2_BIN] [--d2-layout {dagre,elk}] \
           [-w] [--watch-delay WATCH_DELAY] \
           [--watch-dir WATCH_DIR] [--watch-include WATCH_INCLUDE] \
           target
@@ -355,11 +370,12 @@ c4 export [-h] [-o OUTPUT] [-f {eps,latex,pdf,png,svg,txt,utxt}] \
 
 | Name                                                       | Type                                                        | Description                                                                                                                                             | Default    |
 |------------------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| <span style="white-space: nowrap;">`-f`, `--format`</span> | choice (`eps`, `latex`, `pdf`, `png`, `svg`, `txt`, `utxt`) | Output format (render-specific).<br/>Supported formats:<br/>`mermaid`: `pdf`, `png`, `svg`<br/>`plantuml`: `eps`, `latex`, `png`, `svg`, `txt`, `utxt`. | `png`      |
+| <span style="white-space: nowrap;">`-f`, `--format`</span> | choice (`eps`, `latex`, `pdf`, `png`, `svg`, `txt`, `utxt`) | Output format (render-specific).<br/>Supported formats:<br/>`d2`: `pdf`, `png`, `svg`<br/>`mermaid`: `pdf`, `png`, `svg`<br/>`plantuml`: `eps`, `latex`, `png`, `svg`, `txt`, `utxt`. | `png`      |
 | `--timeout`                                                | float                                                       | Render timeout in seconds.<br/>Can also be set via the `RENDERING_TIMEOUT_SECONDS` environment variable.                                                | 30.0       |
-| `--renderer`                                               | choice (`plantuml`, `mermaid`)                              | Renderer to use (overrides the diagram's default renderer).                                                                                             | `plantuml` |
+| `--renderer`                                               | choice (`plantuml`, `mermaid`, `d2`)                         | Renderer to use (overrides the diagram's default renderer).                                                                                             | `plantuml` |
 | `--plantuml`                                               | boolean                                                     | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>).                                                | False      |
 | `--mermaid`                                                | boolean                                                     | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>).                                                  | False      |
+| `--d2`                                                     | boolean                                                     | Use D2 renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer d2`</span>).                                                            | False      |
 | <span style="white-space: nowrap;">`-o`, `--output`</span> | path                                                        | Redirect output to a file.                                                                                                                              | `stdout`   |
 | `-h`, `--help`                                             | boolean                                                     | Show this help message and exit.                                                                                                                        | False      |
 
@@ -400,6 +416,15 @@ These options apply when using the **mermaid** renderer.
 | <span style="white-space: nowrap;">`--mermaid-scale-factor`</span>       | integer                  | Set Mermaid scale value to control Puppeteer scale factor.<br/>Can also be set via the `MERMAID_SCALE_FACTOR` environment variable.                            | 1       |
 | <span style="white-space: nowrap;">`--mermaid-puppeteer-headless`</span> | boolean                  | Generate a temporary Puppeteer config with the provided `headless` value and pass it to Mermaid CLI.<br/>Mutually exclusive with `--mermaid-puppeteer-config`. | None    |
 | <span style="white-space: nowrap;">`--mermaid-puppeteer-config`</span>   | path                     | Path to a Puppeteer config passed to Mermaid CLI.<br/>Mutually exclusive with `--mermaid-puppeteer-headless`.                                                  | None    |
+
+**D2 Options**:
+
+These options apply when using the **d2** renderer.
+
+| Name                                                   | Type                     | Description                                                                                       | Default |
+|--------------------------------------------------------|--------------------------|---------------------------------------------------------------------------------------------------|---------|
+| <span style="white-space: nowrap;">`--d2-bin`</span>   | string (path or command) | D2 executable (command name or full path).<br/>If not provided, the `D2_BIN` environment variable will be used. | `d2`    |
+| <span style="white-space: nowrap;">`--d2-layout`</span> | choice (`dagre`, `elk`)  | D2 layout engine for exported artifacts. When omitted, `D2RenderOptions.layout` is used and defaults to `dagre`. When provided, this flag overrides diagram or renderer render options. | None    |
 
 ### c4 convert
 

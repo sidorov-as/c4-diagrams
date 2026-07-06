@@ -78,7 +78,7 @@ def test_render_options_layout_methods_set_layout_and_legend(
     method_name: str,
     expected_layout: DiagramLayout,
     with_legend: bool,
-) -> None:
+):
     method = getattr(options_builder, method_name)
 
     result = method(with_legend=with_legend)
@@ -100,7 +100,7 @@ def test_render_options_layout_with_legend_sets_flag(
     options_builder: PlantUMLRenderOptionsBuilder,
     call_chain: tuple[str, ...],
     expected: bool,
-) -> None:
+):
     for name in call_chain:
         getattr(options_builder, name)()
 
@@ -119,7 +119,7 @@ def test_render_options_layout_as_sketch_sets_flag(
     options_builder: PlantUMLRenderOptionsBuilder,
     call_chain: tuple[str, ...],
     expected: bool,
-) -> None:
+):
     for name in call_chain:
         getattr(options_builder, name)()
 
@@ -138,7 +138,7 @@ def test_render_options_without_property_header_sets_flag(
     options_builder: PlantUMLRenderOptionsBuilder,
     call_chain: tuple[str, ...],
     expected: bool,
-) -> None:
+):
     for name in call_chain:
         getattr(options_builder, name)()
 
@@ -157,7 +157,7 @@ def test_render_options_hide_stereotype_sets_flag(
     options_builder: PlantUMLRenderOptionsBuilder,
     call_chain: tuple[str, ...],
     expected: bool,
-) -> None:
+):
     for name in call_chain:
         getattr(options_builder, name)()
 
@@ -176,7 +176,7 @@ def test_render_options_hide_person_sprite_sets_flag(
     options_builder: PlantUMLRenderOptionsBuilder,
     call_chain: tuple[str, ...],
     expected: bool,
-) -> None:
+):
     for name in call_chain:
         getattr(options_builder, name)()
 
@@ -194,7 +194,7 @@ def test_render_options_hide_person_sprite_sets_flag(
 def test_render_options_show_person_portrait_sets_flag(
     call_chain: tuple[str, ...],
     expected: bool,
-) -> None:
+):
     options_builder = PlantUMLRenderOptionsBuilder()
 
     for name in call_chain:
@@ -215,7 +215,7 @@ def test_render_options_show_person_outline_sets_flag(
     options_builder: PlantUMLRenderOptionsBuilder,
     call_chain: tuple[str, ...],
     expected: bool,
-) -> None:
+):
     for name in call_chain:
         getattr(options_builder, name)()
 
@@ -233,7 +233,7 @@ def test_render_options_show_person_outline_sets_flag(
 def test_render_options_update_legend_title_sets_value(
     options_builder: PlantUMLRenderOptionsBuilder,
     new_title: str,
-) -> None:
+):
     result = options_builder.update_legend_title(new_title)
 
     cfg = options_builder.build()
@@ -275,7 +275,7 @@ def test_render_options_set_sketch_style(
     options_builder: PlantUMLRenderOptionsBuilder,
     args: dict[str, Any],
     expected_kwargs: dict[str, Any],
-) -> None:
+):
     expected_sketch_style = {
         "bg_color": None,
         "font_color": None,
@@ -311,7 +311,7 @@ def test_render_options_show_legend(
     options_builder: PlantUMLRenderOptionsBuilder,
     args: dict[str, Any],
     expected_kwargs: dict[str, Any],
-) -> None:
+):
     expected_show_legend = {
         "details": None,
         "hide_stereotype": None,
@@ -344,7 +344,7 @@ def test_render_options_show_floating_legend(
     options_builder: PlantUMLRenderOptionsBuilder,
     args: dict[str, Any],
     expected_kwargs: dict[str, Any],
-) -> None:
+):
     expected_show_floating_legend = {
         "alias": None,
         "details": None,
@@ -372,7 +372,7 @@ def test_render_options_show_person_sprite(
     options_builder: PlantUMLRenderOptionsBuilder,
     alias: str | None,
     expected_kwargs: dict[str, Any],
-) -> None:
+):
     expected_show_person_sprite = {
         "alias": None,
         **expected_kwargs,
@@ -595,7 +595,7 @@ def test_render_options_add_tag(
     method_name: str,
     tag_cls: type,
     expected_kwargs: dict[str, Any],
-) -> None:
+):
     method = getattr(options_builder, method_name)
 
     result = method(**expected_kwargs)
@@ -609,7 +609,7 @@ def test_render_options_add_tag(
 
 def test_render_options_add_includes(
     options_builder: PlantUMLRenderOptionsBuilder,
-) -> None:
+):
     result = options_builder.add_includes("!first", "!second")
 
     cfg = options_builder.build()
@@ -719,7 +719,7 @@ def test_render_options_update_style(
     method_name: str,
     style_cls: type,
     expected_kwargs: dict[str, Any],
-) -> None:
+):
     method = getattr(options_builder, method_name)
 
     result = method(**expected_kwargs)
@@ -736,7 +736,7 @@ def test_render_options_update_style(
     assert actual_non_empty_kwargs == expected_kwargs
 
 
-def test_render_options_declare_and_build() -> None:
+def test_render_options_declare_and_build():
     options_builder = PlantUMLRenderOptionsBuilder()
 
     (

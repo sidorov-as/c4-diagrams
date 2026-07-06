@@ -789,6 +789,32 @@ def test_export_provided_renderer_plantuml(
     )
 
 
+@pytest.mark.parametrize("format_", ["svg", "png", "pdf"])
+def test_export_d2_local_backend(
+    tmp_path: Path,
+    make_export_diagram: MakeCliDiagram,
+    cli: CLI,
+    format_: str,
+):
+    module_path = make_export_diagram()
+    diagram_output = tmp_path / f"diagram.{format_}"
+
+    result = cli([
+        "export",
+        str(module_path),
+        "--d2",
+        "-f",
+        format_,
+        "-o",
+        str(diagram_output),
+    ])
+
+    assert result.exit_code == 0, result.stderr
+    assert not result.stdout
+    assert not result.stderr
+    assert diagram_output.read_bytes()
+
+
 @pytest.mark.skipif(
     sys.version_info < (3, 13),
     reason="Different traceback in Python 3.13+",

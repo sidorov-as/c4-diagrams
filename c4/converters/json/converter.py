@@ -7,7 +7,18 @@ from typing import IO, Annotated, Any, cast
 
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
-from c4.constants import MERMAID, PLANTUML
+from c4.constants import D2, MERMAID, PLANTUML
+from c4.contrib.d2.converters.json.render_options import (
+    D2RenderOptionsSchema,
+)
+from c4.contrib.d2.converters.json.schemas import (
+    D2ComponentDiagramSchema,
+    D2ContainerDiagramSchema,
+    D2DeploymentDiagramSchema,
+    D2DynamicDiagramSchema,
+    D2SystemContextDiagramSchema,
+    D2SystemLandscapeDiagramSchema,
+)
 from c4.contrib.mermaid.converters.json.render_options import (
     MermaidRenderOptionsSchema,
 )
@@ -55,7 +66,9 @@ from c4.converters.json.schemas.diagrams.common import (
 from c4.diagrams.core import Boundary, Diagram, Element
 from c4.enums import RendererEnum
 from c4.renderers import RenderOptions
+from c4.renderers.d2.validation import validate_d2_diagram
 from c4.renderers.mermaid.validation import validate_mermaid_diagram
+from c4.renderers.plantuml.validation import validate_plantuml_diagram
 
 AnyCoreDiagramSchema = Annotated[
     (
@@ -90,8 +103,22 @@ AnyMermaidDiagramSchema = Annotated[
     ),
     Field(discriminator="type"),
 ]
+AnyD2DiagramSchema = Annotated[
+    (
+        D2SystemContextDiagramSchema
+        | D2SystemLandscapeDiagramSchema
+        | D2ContainerDiagramSchema
+        | D2ComponentDiagramSchema
+        | D2DeploymentDiagramSchema
+        | D2DynamicDiagramSchema
+    ),
+    Field(discriminator="type"),
+]
 AnyDiagramSchema = (
-    AnyCoreDiagramSchema | AnyPlantUMLDiagramSchema | AnyMermaidDiagramSchema
+    AnyCoreDiagramSchema
+    | AnyPlantUMLDiagramSchema
+    | AnyMermaidDiagramSchema
+    | AnyD2DiagramSchema
 )
 
 CoreDiagramSchemaAdapter: TypeAdapter = TypeAdapter(AnyCoreDiagramSchema)
@@ -99,11 +126,13 @@ PlantUMLDiagramSchemaAdapter: TypeAdapter = TypeAdapter(
     AnyPlantUMLDiagramSchema
 )
 MermaidDiagramSchemaAdapter: TypeAdapter = TypeAdapter(AnyMermaidDiagramSchema)
+D2DiagramSchemaAdapter: TypeAdapter = TypeAdapter(AnyD2DiagramSchema)
 
 DiagramSchemaAdapters = {
     None: CoreDiagramSchemaAdapter,
     PLANTUML: PlantUMLDiagramSchemaAdapter,
     MERMAID: MermaidDiagramSchemaAdapter,
+    D2: D2DiagramSchemaAdapter,
 }
 
 
@@ -284,7 +313,11 @@ class JSONToDiagramConverter:
         if not render_options_schema:
             return
 
-        render_options: dict[str, Any] = {"plantuml": None, "mermaid": None}
+        render_options: dict[str, Any] = {
+            "plantuml": None,
+            "mermaid": None,
+            "d2": None,
+        }
 
         if isinstance(render_options_schema, PlantUMLRenderOptionsSchema):
             render_options["plantuml"] = (
@@ -294,15 +327,23 @@ class JSONToDiagramConverter:
             render_options["mermaid"] = (
                 render_options_schema.to_render_options()
             )
+        elif isinstance(render_options_schema, D2RenderOptionsSchema):
+            render_options["d2"] = render_options_schema.to_render_options()
 
         if any(render_options.values()):
             self._diagram.render_options = RenderOptions(**render_options)
 
     def _validate_backend_specific_diagram(self) -> None:
         """Run semantic validations that depend on the selected backend."""
-        if self.backend is RendererEnum.MERMAID:
+        validators = {
+            RendererEnum.PLANTUML: validate_plantuml_diagram,
+            RendererEnum.MERMAID: validate_mermaid_diagram,
+            RendererEnum.D2: validate_d2_diagram,
+        }
+
+        if validator := validators.get(self.backend):  # type: ignore[arg-type]
             try:
-                validate_mermaid_diagram(self._diagram)
+                validator(self._diagram)
             except ValueError as exc:
                 raise DiagramJSONSchemaValidationError(str(exc)) from None
 

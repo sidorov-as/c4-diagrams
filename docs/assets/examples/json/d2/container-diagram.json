@@ -1,0 +1,400 @@
+{
+  "backend": "d2",
+  "type": "ContainerDiagram",
+  "title": "Online Shop - Container Diagram",
+  "elements": [
+    {
+      "type": "Person",
+      "alias": "customer",
+      "label": "Customer",
+      "description": "Browses products and places orders.",
+      "properties": {
+        "properties": [
+          [
+            "Channel",
+            "Web / Mobile"
+          ],
+          [
+            "Auth",
+            "OIDC"
+          ]
+        ]
+      },
+      "style": {
+        "fill": "#f7f0ff",
+        "stroke": "#7c3aed"
+      }
+    },
+    {
+      "type": "PersonExt",
+      "alias": "support_agent",
+      "label": "Support Agent",
+      "description": "Investigates customer issues from an external support tool.",
+      "properties": {
+        "properties": [
+          [
+            "Organization",
+            "Support Vendor"
+          ],
+          [
+            "Tooling",
+            "CRM"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "SystemExt",
+      "alias": "payment_provider",
+      "label": "Payment Provider",
+      "description": "Processes card payments and payment webhooks.",
+      "properties": {
+        "properties": [
+          [
+            "PCI scope",
+            "External"
+          ],
+          [
+            "Webhook retry",
+            "24 hours"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "ContainerExt",
+      "alias": "recommendation_api",
+      "label": "Recommendation API",
+      "description": "Returns personalized product recommendations.",
+      "technology": "REST API",
+      "properties": {
+        "properties": [
+          [
+            "Latency SLO",
+            "150ms"
+          ],
+          [
+            "Owner",
+            "Growth"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "ContainerDbExt",
+      "alias": "fraud_db",
+      "label": "Fraud Signals DB",
+      "description": "External datastore containing fraud intelligence.",
+      "technology": "Vendor DB",
+      "properties": {
+        "properties": [
+          [
+            "Feed",
+            "Hourly"
+          ],
+          [
+            "Access",
+            "Read-only"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "ContainerQueueExt",
+      "alias": "shipping_events",
+      "label": "Shipping Events Topic",
+      "description": "External topic used by logistics partner.",
+      "technology": "Kafka",
+      "properties": {
+        "properties": [
+          [
+            "Contract",
+            "Avro"
+          ],
+          [
+            "Retention",
+            "14 days"
+          ]
+        ]
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "EnterpriseBoundary",
+      "alias": "acme",
+      "label": "Acme Corp",
+      "description": "Enterprise boundary for internal commerce platforms.",
+      "properties": {
+        "properties": [
+          [
+            "Region",
+            "EU"
+          ],
+          [
+            "Business Unit",
+            "Digital Commerce"
+          ]
+        ]
+      },
+      "style": {
+        "fill": "#eef2ff",
+        "stroke": "#4f46e5"
+      },
+      "boundaries": [
+        {
+          "type": "SystemBoundary",
+          "alias": "shop_boundary",
+          "label": "Online Shop Platform",
+          "description": "Main system boundary for the commerce platform.",
+          "properties": {
+            "properties": [
+              [
+                "Owner",
+                "Commerce Team"
+              ],
+              [
+                "Environment",
+                "Production"
+              ]
+            ]
+          },
+          "direction": "right",
+          "elements": [
+            {
+              "type": "Container",
+              "alias": "web_app",
+              "label": "Web Application",
+              "description": "Serves the storefront and checkout UI.",
+              "technology": "React + Next.js",
+              "properties": {
+                "properties": [
+                  [
+                    "Runtime",
+                    "Node.js"
+                  ],
+                  [
+                    "Team",
+                    "Storefront"
+                  ]
+                ]
+              },
+              "style": {
+                "fill": "#eff6ff",
+                "stroke": "#2563eb"
+              }
+            },
+            {
+              "type": "Container",
+              "alias": "backend_api",
+              "label": "Backend API",
+              "description": "Handles catalog, carts, checkout, and order APIs.",
+              "technology": "Python / FastAPI",
+              "properties": {
+                "properties": [
+                  [
+                    "Runtime",
+                    "Python 3.12"
+                  ],
+                  [
+                    "Team",
+                    "Platform"
+                  ]
+                ]
+              },
+              "style": {
+                "fill": "#f0fdfa",
+                "stroke": "#0f766e"
+              }
+            },
+            {
+              "type": "ContainerDb",
+              "alias": "orders_db",
+              "label": "Orders Database",
+              "description": "Stores orders, payments, and status transitions.",
+              "technology": "PostgreSQL",
+              "properties": {
+                "properties": [
+                  [
+                    "Engine",
+                    "PostgreSQL 16"
+                  ],
+                  [
+                    "HA",
+                    "Primary / Replica"
+                  ]
+                ]
+              }
+            },
+            {
+              "type": "ContainerQueue",
+              "alias": "order_events",
+              "label": "Order Events Queue",
+              "description": "Publishes asynchronous order lifecycle events.",
+              "technology": "Kafka",
+              "properties": {
+                "properties": [
+                  [
+                    "Retention",
+                    "7 days"
+                  ],
+                  [
+                    "Format",
+                    "JSON"
+                  ]
+                ]
+              }
+            }
+          ],
+          "boundaries": [
+            {
+              "type": "ContainerBoundary",
+              "alias": "checkout_boundary",
+              "label": "Checkout Subsystem",
+              "description": "Groups checkout-related containers.",
+              "properties": {
+                "properties": [
+                  [
+                    "Owner",
+                    "Checkout Team"
+                  ],
+                  [
+                    "Criticality",
+                    "High"
+                  ]
+                ]
+              },
+              "direction": "right",
+              "elements": [
+                {
+                  "type": "Container",
+                  "alias": "checkout_api",
+                  "label": "Checkout API",
+                  "description": "Handles checkout and payment orchestration.",
+                  "technology": "Python / FastAPI",
+                  "properties": {
+                    "properties": [
+                      [
+                        "Autoscaling",
+                        "Enabled"
+                      ],
+                      [
+                        "SLO",
+                        "99.9%"
+                      ]
+                    ]
+                  }
+                },
+                {
+                  "type": "ContainerDb",
+                  "alias": "checkout_db",
+                  "label": "Checkout DB",
+                  "description": "Stores checkout sessions.",
+                  "technology": "PostgreSQL",
+                  "properties": {
+                    "properties": [
+                      [
+                        "TTL",
+                        "30 days"
+                      ],
+                      [
+                        "Encryption",
+                        "KMS"
+                      ]
+                    ]
+                  }
+                }
+              ],
+              "relationships": [
+                {
+                  "type": "REL",
+                  "from": "checkout_api",
+                  "to": "checkout_db",
+                  "label": "Reads and writes",
+                  "technology": "SQL"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "customer",
+      "to": "web_app",
+      "label": "Uses",
+      "technology": "HTTPS"
+    },
+    {
+      "type": "REL",
+      "from": "web_app",
+      "to": "backend_api",
+      "label": "Calls",
+      "technology": "HTTPS/JSON"
+    },
+    {
+      "type": "REL",
+      "from": "web_app",
+      "to": "checkout_api",
+      "label": "Submits checkout",
+      "technology": "HTTPS/JSON"
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "orders_db",
+      "label": "Reads and writes",
+      "technology": "SQL"
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "order_events",
+      "label": "Publishes order events",
+      "technology": "Kafka"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_api",
+      "to": "payment_provider",
+      "label": "Creates payment intents",
+      "technology": "REST API"
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "recommendation_api",
+      "label": "Fetches recommendations",
+      "technology": "REST API"
+    },
+    {
+      "type": "REL",
+      "from": "backend_api",
+      "to": "fraud_db",
+      "label": "Checks fraud signals",
+      "technology": "JDBC"
+    },
+    {
+      "type": "REL",
+      "from": "shipping_events",
+      "to": "backend_api",
+      "label": "Delivers shipping updates",
+      "technology": "Kafka"
+    },
+    {
+      "type": "REL",
+      "from": "support_agent",
+      "to": "backend_api",
+      "label": "Queries order state",
+      "technology": "HTTPS"
+    }
+  ],
+  "render_options": {
+    "layout": "dagre",
+    "include_properties": true,
+    "bidirectional_relationships": "single_edge"
+  }
+}

@@ -329,7 +329,7 @@ def test__load_module_from_file_success_loads_module(tmp_path: Path):
     assert module.value == 123
 
 
-def test__load_module_from_file_modified_sys_path(tmp_path: Path) -> None:
+def test__load_module_from_file_modified_sys_path(tmp_path: Path):
     """
     Regression test for issue https://github.com/sidorov-as/c4-diagrams/issues/23
     """

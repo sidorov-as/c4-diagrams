@@ -20,7 +20,7 @@ pytestmark = [pytest.mark.usefixtures("clean_sys_modules")]
 def _install_fake_watchfiles(
     mocker: MockerFixture,
     watch_func,
-) -> None:
+):
     fake_watchfiles = ModuleType("watchfiles")
     fake_watchfiles.watch = watch_func
     mocker.patch.dict(sys.modules, {"watchfiles": fake_watchfiles})

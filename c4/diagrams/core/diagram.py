@@ -32,6 +32,8 @@ if TYPE_CHECKING:  # pragma: no cover
     )
     from c4.renderers import (
         BaseRenderer,
+        D2Renderer,
+        D2RenderOptions,
         MermaidRenderer,
         MermaidRenderOptions,
         PlantUMLRenderer,
@@ -311,6 +313,21 @@ class Diagram:
 
         return self.render(renderer)
 
+    def as_d2(self, **kwargs: Any) -> str:
+        """
+        Render the diagram using the built-in D2 renderer.
+
+        Args:
+            **kwargs: Optional keyword arguments passed to the
+                [D2 renderer][c4.renderers.D2Renderer].
+
+        Returns:
+            The rendered D2 code.
+        """
+        renderer = self._build_d2_renderer(**kwargs)
+
+        return self.render(renderer)
+
     def is_element_referenced_by_alias(self, alias: str) -> bool:
         """
         Check whether an element identified by the given alias is referenced.
@@ -387,6 +404,19 @@ class Diagram:
 
         return self.save(path, renderer=renderer)
 
+    def save_as_d2(self, path: str | Path, **kwargs: Any) -> None:
+        """
+        Render and save the diagram using the D2 renderer.
+
+        Args:
+            path: Target file path.
+            **kwargs: Optional kwargs passed to the
+                [D2 renderer][c4.renderers.D2Renderer].
+        """
+        renderer = self._build_d2_renderer(**kwargs)
+
+        return self.save(path, renderer=renderer)
+
     @property
     def render_options(self) -> RenderOptions | None:
         """Return rendering options for the diagram."""
@@ -402,6 +432,7 @@ class Diagram:
         *,
         plantuml: Maybe[PlantUMLRenderOptions] = MISSING,
         mermaid: Maybe[MermaidRenderOptions] = MISSING,
+        d2: Maybe[D2RenderOptions] = MISSING,
     ) -> Self:
         """
         Patch renderer-specific options for this diagram.
@@ -419,6 +450,9 @@ class Diagram:
 
         if mermaid is not MISSING:
             self._render_options.mermaid = mermaid
+
+        if d2 is not MISSING:
+            self._render_options.d2 = d2
 
         return self
 
@@ -465,6 +499,28 @@ class Diagram:
             kwargs.setdefault("render_options", self._render_options.mermaid)
 
         return MermaidRenderer(**kwargs)
+
+    def _build_d2_renderer(self, **kwargs: Any) -> D2Renderer:
+        """
+        Create and configure a `D2Renderer` instance.
+
+        If diagram render options are set and include D2-specific settings,
+        they are applied as default `render_options` unless explicitly provided
+        in `kwargs`.
+
+        Args:
+            **kwargs: Additional keyword arguments passed directly to
+                `D2Renderer`.
+
+        Returns:
+            A configured `D2Renderer` instance.
+        """
+        from c4.renderers import D2Renderer
+
+        if self._render_options and self._render_options.d2:
+            kwargs.setdefault("render_options", self._render_options.d2)
+
+        return D2Renderer(**kwargs)
 
 
 TDiagram = TypeVar("TDiagram", bound=Diagram)

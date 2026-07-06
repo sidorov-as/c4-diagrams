@@ -1,0 +1,103 @@
+direction: right
+__title: ||md
+  # Checkout API - Components
+|| {
+  near: top-center
+}
+classes: {
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+web_app: ||md
+  ## Web Application
+
+  [Container: React]
+
+  Starts checkout from the storefront.
+|| {
+  shape: rectangle
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Software System]
+
+  Authorizes and captures card payments.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+checkout_api: {
+  label: ||md
+    ## Checkout API
+
+    [Container]
+
+    Components that coordinate checkout.
+  ||
+  shape: rectangle
+  controller: ||md
+    ## Checkout Controller
+
+    [Component: FastAPI]
+
+    Receives checkout requests.
+  || {
+    shape: rectangle
+  }
+  checkout_service: ||md
+    ## Checkout Service
+
+    [Component: Python]
+
+    Validates carts and creates orders.
+  || {
+    shape: rectangle
+  }
+  payment_adapter: ||md
+    ## Payment Adapter
+
+    [Component: Python]
+
+    Wraps payment provider calls.
+  || {
+    shape: rectangle
+  }
+  order_store: ||md
+    ## Order Store
+
+    [Component: PostgreSQL]
+
+    Persists checkout and order records.
+  || {
+    shape: cylinder
+    class: ["c4_database"]
+  }
+  event_publisher: ||md
+    ## Event Publisher
+
+    [Component: Kafka]
+
+    Publishes order-created events.
+  || {
+    shape: queue
+    class: ["c4_queue"]
+  }
+}
+web_app -> checkout_api.controller: "Submits checkout to\n[HTTPS/JSON]"
+checkout_api.controller -> checkout_api.checkout_service: "Delegates to\n[Python call]"
+checkout_api.checkout_service -> checkout_api.payment_adapter: "Authorizes payment through\n[Python call]"
+checkout_api.payment_adapter -> payment_provider: "Calls\n[HTTPS/JSON]"
+checkout_api.checkout_service -> checkout_api.order_store: "Stores order in\n[SQL]"
+checkout_api.checkout_service -> checkout_api.event_publisher: "Publishes event with\n[Kafka]"

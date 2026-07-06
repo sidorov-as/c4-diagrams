@@ -10,129 +10,152 @@ copyright = "Maintained by <a href=\"https://github.com/sidorov-as\">sidorov-as<
 extra_css = ["assets/styles/extra.css"]
 
 nav = [
-  {"Getting started" = [
-    {"Overview" = "index.md"},
-    {"Installation" = "installation.md"},
-    {"CLI" = "cli.md"},
-    {"Contributing" = "contributing.md"},
-    {"Changelog" = "changelog.md"},
-  ]},
-  {"Concepts" = [
-    {"What is C4?" = "concepts/introduction.md"},
-    {"Portable core and backend extensions" = "concepts/portable-core-and-extensions.md"},
-    {"Diagrams and components" = "concepts/diagrams.md"},
-    {"Renderers" = "concepts/renderers.md"},
-  ]},
-  {"Diagrams" = [
-    {"System context" = "diagrams/system-context.md"},
-    {"Containers" = "diagrams/containers.md"},
-    {"Components" = "diagrams/components.md"},
-    {"Supporting overview" = "diagrams/supporting.md"},
-    {"System landscape" = "diagrams/system-landscape.md"},
-    {"Dynamic" = "diagrams/dynamic.md"},
-    {"Deployment" = "diagrams/deployment.md"},
-  ]},
-  {"Rendering backends" = [
-    {"Comparison" = "renderers/comparison.md"},
-    {"PlantUML" = [
-      {"Overview" = "renderers/plantuml/index.md"},
-      {"Renderers" = "renderers/plantuml/renderers.md"},
-      {"Extensions" = "renderers/plantuml/extensions.md"},
-      {"Relationship and layout helpers" = "renderers/plantuml/layout.md"},
-      {"Dynamic indexes" = "renderers/plantuml/dynamic-indexes.md"},
-      {"Styles and options" = "renderers/plantuml/styles-and-options.md"},
-      {"Properties" = "renderers/plantuml/properties.md"},
-      {"Limitations" = "renderers/plantuml/limitations.md"},
-    ]},
-    {"Mermaid" = [
-      {"Overview" = "renderers/mermaid/index.md"},
-      {"Renderers" = "renderers/mermaid/renderers.md"},
-      {"Extensions" = "renderers/mermaid/extensions.md"},
-      {"Options" = "renderers/mermaid/options.md"},
-      {"Limitations" = "renderers/mermaid/limitations.md"},
-    ]},
-    {"Render options" = "renderers/render-options.md"},
-  ]},
-  {"Converters" = [
-    {"JSON" = [
-      {"JSON to Diagram" = "converters/json/json.md"},
-      {"Diagram Specs" = [
-        {"Core" = [
-          {"System Context Diagram" = "converters/json/specs/core.system_context_diagram.md"},
-          {"System Landscape Diagram" = "converters/json/specs/core.system_landscape_diagram.md"},
-          {"Container Diagram" = "converters/json/specs/core.container_diagram.md"},
-          {"Component Diagram" = "converters/json/specs/core.component_diagram.md"},
-          {"Deployment Diagram" = "converters/json/specs/core.deployment_diagram.md"},
-          {"Dynamic Diagram" = "converters/json/specs/core.dynamic_diagram.md"},
-        ]},
-        {"PlantUML" = [
-          {"System Context Diagram" = "converters/json/specs/plantuml.system_context_diagram.md"},
-          {"System Landscape Diagram" = "converters/json/specs/plantuml.system_landscape_diagram.md"},
-          {"Container Diagram" = "converters/json/specs/plantuml.container_diagram.md"},
-          {"Component Diagram" = "converters/json/specs/plantuml.component_diagram.md"},
-          {"Deployment Diagram" = "converters/json/specs/plantuml.deployment_diagram.md"},
-          {"Dynamic Diagram" = "converters/json/specs/plantuml.dynamic_diagram.md"},
-        ]},
-        {"Mermaid" = [
-          {"System Context Diagram" = "converters/json/specs/mermaid.system_context_diagram.md"},
-          {"System Landscape Diagram" = "converters/json/specs/mermaid.system_landscape_diagram.md"},
-          {"Container Diagram" = "converters/json/specs/mermaid.container_diagram.md"},
-          {"Component Diagram" = "converters/json/specs/mermaid.component_diagram.md"},
-          {"Deployment Diagram" = "converters/json/specs/mermaid.deployment_diagram.md"},
-          {"Dynamic Diagram" = "converters/json/specs/mermaid.dynamic_diagram.md"},
-        ]},
-      ]},
-    ]},
-  ]},
-  {"Examples" = [
-    {"Overview" = "examples/index.md"},
-    {"PlantUML" = "examples/plantuml/plantuml.md"},
-    {"Mermaid" = "examples/mermaid/mermaid.md"},
-  ]},
-  {"Guides" = [
-    {"Reusable diagram elements" = "guides/reusable-diagram-elements.md"},
-  ]},
-  {"API Reference" = [
-    {"Core" = [
-      {"Diagrams and components" = "api_docs/core.md"},
-      {"Relationships" = "api_docs/relationships.md"},
-      {"Contrib helpers" = "api_docs/macros.md"},
-      {"Formats" = "api_docs/diagram-formats.md"},
-      {"Converters" = "api_docs/converters.md"},
-      {"Exceptions" = "api_docs/exceptions.md"},
-    ]},
-    {"Diagrams" = [
-      {"System Context Diagram" = "api_docs/system-context.md"},
-      {"Component Diagram" = "api_docs/component.md"},
-      {"Container Diagram" = "api_docs/container.md"},
-      {"Dynamic Diagram" = "api_docs/dynamic.md"},
-      {"Deployment Diagram" = "api_docs/deployment.md"},
-    ]},
-    {"Contrib" = [
-      {"PlantUML" = [
-        {"Relationships" = "api_docs/plantuml/relationships.md"},
-        {"Layouts" = "api_docs/plantuml/layouts.md"},
-        {"Dynamic indexes" = "api_docs/plantuml/dynamic-indexes.md"},
-        {"Dynamic index helpers" = "api_docs/plantuml/macros.md"},
-        {"Extension schemas" = "api_docs/plantuml/extensions.md"},
-      ]},
-      {"Mermaid" = [
-        {"Relationships" = "api_docs/mermaid/relationships.md"},
-        {"Extension schemas" = "api_docs/mermaid/extensions.md"},
-      ]},
-    ]},
-    {"Rendering backends" = [
-      {"Render options" = "api_docs/render-options.md"},
-      {"PlantUML" = [
-        {"Renderers" = "api_docs/plantuml/renderers.md"},
-        {"Render options" = "api_docs/plantuml/render-options.md"},
-      ]},
-      {"Mermaid" = [
-        {"Renderers" = "api_docs/mermaid/renderers.md"},
-        {"Render options" = "api_docs/mermaid/render-options.md"},
-      ]},
-    ]},
-  ]},
+  { "Getting started" = [
+    { "Overview" = "index.md" },
+    { "Installation" = "installation.md" },
+    { "CLI" = "cli.md" },
+    { "Contributing" = "contributing.md" },
+    { "Changelog" = "changelog.md" },
+  ] },
+  { "Concepts" = [
+    { "What is C4?" = "concepts/introduction.md" },
+    { "Portable core and backend extensions" = "concepts/portable-core-and-extensions.md" },
+    { "Diagrams and components" = "concepts/diagrams.md" },
+    { "Renderers" = "concepts/renderers.md" },
+  ] },
+  { "Diagrams" = [
+    { "System context" = "diagrams/system-context.md" },
+    { "Containers" = "diagrams/containers.md" },
+    { "Components" = "diagrams/components.md" },
+    { "Supporting overview" = "diagrams/supporting.md" },
+    { "System landscape" = "diagrams/system-landscape.md" },
+    { "Dynamic" = "diagrams/dynamic.md" },
+    { "Deployment" = "diagrams/deployment.md" },
+  ] },
+  { "Rendering backends" = [
+    { "Comparison" = "renderers/comparison.md" },
+    { "Backends" = [
+      { "PlantUML" = [
+        { "Overview" = "renderers/plantuml/index.md" },
+        { "Renderers" = "renderers/plantuml/renderers.md" },
+        { "Extensions" = "renderers/plantuml/extensions.md" },
+        { "Relationship and layout helpers" = "renderers/plantuml/layout.md" },
+        { "Dynamic indexes" = "renderers/plantuml/dynamic-indexes.md" },
+        { "Styles and options" = "renderers/plantuml/styles-and-options.md" },
+        { "Properties" = "renderers/plantuml/properties.md" },
+        { "Limitations" = "renderers/plantuml/limitations.md" },
+      ] },
+      { "Mermaid" = [
+        { "Overview" = "renderers/mermaid/index.md" },
+        { "Renderers" = "renderers/mermaid/renderers.md" },
+        { "Extensions" = "renderers/mermaid/extensions.md" },
+        { "Options" = "renderers/mermaid/options.md" },
+        { "Limitations" = "renderers/mermaid/limitations.md" },
+      ] },
+      { "D2" = [
+        { "Overview" = "renderers/d2/index.md" },
+        { "Renderers" = "renderers/d2/renderers.md" },
+        { "Extensions" = "renderers/d2/extensions.md" },
+        { "Options" = "renderers/d2/options.md" },
+        { "Limitations" = "renderers/d2/limitations.md" },
+      ] }
+    ] },
+    { "Properties" = "renderers/properties.md" },
+    { "Render options" = "renderers/render-options.md" },
+  ] },
+  { "Converters" = [
+    { "JSON" = [
+      { "JSON to Diagram" = "converters/json/json.md" },
+      { "Diagram Specs" = [
+        { "Core" = [
+          { "System Context Diagram" = "converters/json/specs/core.system_context_diagram.md" },
+          { "System Landscape Diagram" = "converters/json/specs/core.system_landscape_diagram.md" },
+          { "Container Diagram" = "converters/json/specs/core.container_diagram.md" },
+          { "Component Diagram" = "converters/json/specs/core.component_diagram.md" },
+          { "Deployment Diagram" = "converters/json/specs/core.deployment_diagram.md" },
+          { "Dynamic Diagram" = "converters/json/specs/core.dynamic_diagram.md" },
+        ] },
+        { "PlantUML" = [
+          { "System Context Diagram" = "converters/json/specs/plantuml.system_context_diagram.md" },
+          { "System Landscape Diagram" = "converters/json/specs/plantuml.system_landscape_diagram.md" },
+          { "Container Diagram" = "converters/json/specs/plantuml.container_diagram.md" },
+          { "Component Diagram" = "converters/json/specs/plantuml.component_diagram.md" },
+          { "Deployment Diagram" = "converters/json/specs/plantuml.deployment_diagram.md" },
+          { "Dynamic Diagram" = "converters/json/specs/plantuml.dynamic_diagram.md" },
+        ] },
+        { "Mermaid" = [
+          { "System Context Diagram" = "converters/json/specs/mermaid.system_context_diagram.md" },
+          { "System Landscape Diagram" = "converters/json/specs/mermaid.system_landscape_diagram.md" },
+          { "Container Diagram" = "converters/json/specs/mermaid.container_diagram.md" },
+          { "Component Diagram" = "converters/json/specs/mermaid.component_diagram.md" },
+          { "Deployment Diagram" = "converters/json/specs/mermaid.deployment_diagram.md" },
+          { "Dynamic Diagram" = "converters/json/specs/mermaid.dynamic_diagram.md" },
+        ] },
+        { "D2" = [
+          { "System Context Diagram" = "converters/json/specs/d2.system_context_diagram.md" },
+          { "System Landscape Diagram" = "converters/json/specs/d2.system_landscape_diagram.md" },
+          { "Container Diagram" = "converters/json/specs/d2.container_diagram.md" },
+          { "Component Diagram" = "converters/json/specs/d2.component_diagram.md" },
+          { "Deployment Diagram" = "converters/json/specs/d2.deployment_diagram.md" },
+          { "Dynamic Diagram" = "converters/json/specs/d2.dynamic_diagram.md" },
+        ] },
+      ] },
+    ] },
+  ] },
+  { "Examples" = [
+    { "Overview" = "examples/index.md" },
+    { "PlantUML" = "examples/plantuml/plantuml.md" },
+    { "Mermaid" = "examples/mermaid/mermaid.md" },
+    { "D2" = "examples/d2/d2.md" },
+  ] },
+  { "Guides" = [
+    { "Reusable diagram elements" = "guides/reusable-diagram-elements.md" },
+  ] },
+  { "API Reference" = [
+    { "Core" = [
+      { "Diagrams and components" = "api_docs/core.md" },
+      { "Relationships" = "api_docs/relationships.md" },
+      { "Contrib helpers" = "api_docs/macros.md" },
+      { "Formats" = "api_docs/diagram-formats.md" },
+      { "Converters" = "api_docs/converters.md" },
+      { "Exceptions" = "api_docs/exceptions.md" },
+    ] },
+    { "Diagrams" = [
+      { "System Context Diagram" = "api_docs/system-context.md" },
+      { "Component Diagram" = "api_docs/component.md" },
+      { "Container Diagram" = "api_docs/container.md" },
+      { "Dynamic Diagram" = "api_docs/dynamic.md" },
+      { "Deployment Diagram" = "api_docs/deployment.md" },
+    ] },
+    { "Contrib" = [
+      { "PlantUML" = [
+        { "Relationships" = "api_docs/plantuml/relationships.md" },
+        { "Layouts" = "api_docs/plantuml/layouts.md" },
+        { "Dynamic indexes" = "api_docs/plantuml/dynamic-indexes.md" },
+        { "Dynamic index helpers" = "api_docs/plantuml/macros.md" },
+        { "Extension schemas" = "api_docs/plantuml/extensions.md" },
+      ] },
+      { "Mermaid" = [
+        { "Relationships" = "api_docs/mermaid/relationships.md" },
+        { "Extension schemas" = "api_docs/mermaid/extensions.md" },
+      ] },
+    ] },
+    { "Rendering backends" = [
+      { "Render options" = "api_docs/render-options.md" },
+      { "PlantUML" = [
+        { "Renderers" = "api_docs/plantuml/renderers.md" },
+        { "Render options" = "api_docs/plantuml/render-options.md" },
+      ] },
+      { "Mermaid" = [
+        { "Renderers" = "api_docs/mermaid/renderers.md" },
+        { "Render options" = "api_docs/mermaid/render-options.md" },
+      ] },
+      { "D2" = [
+        { "Renderers" = "api_docs/d2/renderers.md" },
+        { "Render options" = "api_docs/d2/render-options.md" },
+      ] },
+    ] },
+  ] },
 ]
 
 [project.theme]

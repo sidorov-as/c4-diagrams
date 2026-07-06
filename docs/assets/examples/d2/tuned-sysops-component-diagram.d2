@@ -1,0 +1,343 @@
+direction: down
+__title: ||md
+  # Customer Support System - Tuned Component View
+|| {
+  near: top-center
+}
+vars: {
+  d2-legend: "Customer Support Component Legend" {
+    legend_1: {
+      label: "Operational user"
+      shape: person
+      style.fill: "#e8f5e9"
+      style.font-color: "#1b5e20"
+      style.stroke: "#66bb6a"
+    }
+    legend_2: {
+      label: "User-facing frontend"
+      style.fill: "#e3f2fd"
+      style.font-color: "#0d47a1"
+      style.stroke: "#42a5f5"
+    }
+    legend_3: {
+      label: "API gateway"
+      style.fill: "#fce4ec"
+      style.font-color: "#880e4f"
+      style.stroke: "#ec407a"
+      style.stroke-width: 2
+    }
+    legend_4: {
+      label: "Backend service"
+      style.fill: "#ede7f6"
+      style.font-color: "#311b92"
+      style.stroke: "#7e57c2"
+    }
+    legend_5: {
+      label: "Background worker"
+      style.fill: "#fff3e0"
+      style.font-color: "#e65100"
+      style.stroke: "#fb8c00"
+    }
+    legend_6: {
+      label: "Operational datastore"
+      shape: cylinder
+      style.fill: "#fff8e1"
+      style.font-color: "#5d4037"
+      style.stroke: "#ffb300"
+    }
+    legend_7: {
+      label: "Asynchronous event stream"
+      shape: queue
+      style.fill: "#e0f2f1"
+      style.font-color: "#004d40"
+      style.stroke: "#26a69a"
+    }
+    legend_8: {
+      label: "External dependency"
+      style.fill: "#f5f5f5"
+      style.font-color: "#424242"
+      style.stroke: "#9e9e9e"
+      style.stroke-dash: 5
+    }
+    legend_9_source -> legend_9_target: {
+      label: "Synchronous call"
+      style.stroke: "#1e88e5"
+      style.font-color: "#1565c0"
+    }
+    legend_10_source -> legend_10_target: {
+      label: "Asynchronous event"
+      style.stroke: "#00897b"
+      style.font-color: "#00695c"
+      style.stroke-dash: 3
+    }
+    legend_11_source -> legend_11_target: {
+      label: "External call"
+      style.stroke: "#78909c"
+      style.font-color: "#455a64"
+      style.stroke-dash: 5
+    }
+    legend_9_source.style.opacity: 0
+    legend_9_target.style.opacity: 0
+    legend_10_source.style.opacity: 0
+    legend_10_target.style.opacity: 0
+    legend_11_source.style.opacity: 0
+    legend_11_target.style.opacity: 0
+  }
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+  c4_queue: {
+    style.fill: "#fff6e5"
+    style.stroke: "#9b6500"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Reports equipment issues and tracks repair progress.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+  style.fill: "#e8f5e9"
+  style.font-color: "#1b5e20"
+  style.stroke: "#66bb6a"
+}
+expert: ||md
+  ## Support Expert
+
+  [Person]
+
+  Accepts assignments and records repair updates.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+  style.fill: "#e8f5e9"
+  style.font-color: "#1b5e20"
+  style.stroke: "#66bb6a"
+}
+auth0: ||md
+  ## Auth0
+
+  [Component: OIDC/OAuth2]
+
+  External identity provider.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+  style.fill: "#f5f5f5"
+  style.font-color: "#424242"
+  style.stroke: "#9e9e9e"
+  style.stroke-dash: 5
+}
+email_system: ||md
+  ## E-mail System
+
+  [Component: SMTP]
+
+  Delivers customer and expert notifications.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+  style.fill: "#f5f5f5"
+  style.font-color: "#424242"
+  style.stroke: "#9e9e9e"
+  style.stroke-dash: 5
+}
+sysops_system: {
+  label: ||md
+    ## Customer Support System
+
+    [Container]
+
+    Components that handle support tickets and expert assignments.
+  ||
+  shape: rectangle
+  direction: right
+  style.fill: "#fafafa"
+  style.stroke: "#90a4ae"
+  style.stroke-dash: 4
+  customer_portal: ||md
+    ## Customer Portal
+
+    [Component: SPA]
+
+    Ticket creation and status tracking.
+  || {
+    shape: rectangle
+    style.fill: "#e3f2fd"
+    style.font-color: "#0d47a1"
+    style.stroke: "#42a5f5"
+  }
+  mobile_app: ||md
+    ## Expert Mobile App
+
+    [Component: iOS / Android]
+
+    Assignment queue and field repair updates.
+  || {
+    shape: rectangle
+    style.fill: "#e3f2fd"
+    style.font-color: "#0d47a1"
+    style.stroke: "#42a5f5"
+  }
+  api_gateway: ||md
+    ## API Gateway
+
+    [Component: Container Service]
+
+    Access control and request routing.
+  || {
+    shape: rectangle
+    style.fill: "#fce4ec"
+    style.font-color: "#880e4f"
+    style.stroke: "#ec407a"
+    style.stroke-width: 2
+  }
+  ticket_api: ||md
+    ## Ticket API
+
+    [Component: Container Service]
+
+    Ticket orchestration, search, and assignment updates.
+  || {
+    shape: rectangle
+    style.fill: "#ede7f6"
+    style.font-color: "#311b92"
+    style.stroke: "#7e57c2"
+  }
+  ticket_processor: ||md
+    ## Ticket Processor
+
+    [Component: Container Job]
+
+    Creates expert assignments for new tickets.
+  || {
+    shape: rectangle
+    style.fill: "#fff3e0"
+    style.font-color: "#e65100"
+    style.stroke: "#fb8c00"
+  }
+  notification_service: ||md
+    ## Notification Service
+
+    [Component: Container Service]
+
+    Sends customer and expert notifications.
+  || {
+    shape: rectangle
+    style.fill: "#ede7f6"
+    style.font-color: "#311b92"
+    style.stroke: "#7e57c2"
+  }
+  sysops_database: ||md
+    ## Support Database
+
+    [Component: PostgreSQL]
+
+    Tickets, contacts, assignments, and repair history.
+  || {
+    shape: cylinder
+    class: ["c4_database"]
+    style.fill: "#fff8e1"
+    style.font-color: "#5d4037"
+    style.stroke: "#ffb300"
+  }
+  ticket_created_queue: ||md
+    ## Ticket Created
+
+    [Component: Message Queue]
+
+    Event stream for new support tickets.
+  || {
+    shape: queue
+    class: ["c4_queue"]
+    style.fill: "#e0f2f1"
+    style.font-color: "#004d40"
+    style.stroke: "#26a69a"
+  }
+}
+customer -> sysops_system.customer_portal: {
+  label: "Uses\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+expert -> sysops_system.mobile_app: {
+  label: "Uses\n[HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+sysops_system.customer_portal -> auth0: {
+  label: "Authenticates\n[OIDC]"
+  style.stroke: "#78909c"
+  style.font-color: "#455a64"
+  style.stroke-dash: 5
+}
+sysops_system.mobile_app -> auth0: {
+  label: "Authenticates\n[OIDC]"
+  style.stroke: "#78909c"
+  style.font-color: "#455a64"
+  style.stroke-dash: 5
+}
+sysops_system.customer_portal -> sysops_system.api_gateway: {
+  label: "Calls\n[REST/HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+sysops_system.mobile_app -> sysops_system.api_gateway: {
+  label: "Calls\n[REST/HTTPS]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+sysops_system.api_gateway -> sysops_system.ticket_api: {
+  label: "Routes\n[REST/HTTP]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+sysops_system.ticket_api -> sysops_system.sysops_database: {
+  label: "Reads/writes\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+sysops_system.ticket_processor -> sysops_system.sysops_database: {
+  label: "Reads/writes\n[SQL/TCP]"
+  style.stroke: "#8d6e63"
+  style.font-color: "#6d4c41"
+}
+sysops_system.ticket_api -> sysops_system.ticket_created_queue: {
+  label: "Publishes\n[Queue/Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+sysops_system.ticket_created_queue -> sysops_system.ticket_processor: {
+  label: "Triggers\n[Queue/Event]"
+  style.stroke: "#00897b"
+  style.font-color: "#00695c"
+  style.stroke-dash: 3
+}
+sysops_system.ticket_processor -> sysops_system.notification_service: {
+  label: "Requests notification\n[REST/HTTP]"
+  style.stroke: "#1e88e5"
+  style.font-color: "#1565c0"
+}
+sysops_system.notification_service -> email_system: {
+  label: "Sends e-mail\n[SMTP]"
+  style.stroke: "#78909c"
+  style.font-color: "#455a64"
+  style.stroke-dash: 5
+}

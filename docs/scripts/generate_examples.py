@@ -15,13 +15,15 @@ COMMON_PYTHON_EXAMPLES_DIR = PYTHON_EXAMPLES_DIR / "common"
 CUSTOM_PYTHON_EXAMPLES_DIR = PYTHON_EXAMPLES_DIR / "custom"
 REPO_ROOT = DOCS_DIR.parent
 NO_BYTECODE_ENV = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
-TEXT_ARTIFACT_SUFFIXES = {".mmd", ".puml", ".py"}
+TEXT_ARTIFACT_SUFFIXES = {".d2", ".mmd", ".puml", ".py"}
 
+D2 = "d2"
 PLANTUML = "plantuml"
 MERMAID = "mermaid"
 
 # Core examples are JSON-only; only these backends have rendered source/images.
 RENDERABLE_BACKEND_SOURCE_SUFFIX = {
+    D2: ".d2",
     PLANTUML: ".puml",
     MERMAID: ".mmd",
 }
@@ -29,6 +31,17 @@ RENDERABLE_BACKEND_SOURCE_SUFFIX = {
 BACKEND_EXPORT_ARGS = {
     PLANTUML: ["--plantuml-skinparam-dpi=200"],
     MERMAID: ["--mermaid-puppeteer-headless=false", "--mermaid-scale-factor=5"],
+    D2: ["--d2-layout=elk"],
+}
+
+D2_LAYOUT_VARIANTS = ("dagre", "elk")
+D2_LAYOUT_VARIANT_EXAMPLE_NAMES = {
+    "component-diagram",
+    "container-diagram",
+    "deployment-diagram",
+    "dynamic-diagram",
+    "dynamic-diagram.sequence",
+    "system-context-diagram",
 }
 
 
@@ -104,6 +117,36 @@ def generate_json_example_sources(*, include_images: bool) -> None:
                 *backend_export_args,
             ])
 
+            if (
+                backend == D2
+                and json_file.stem in D2_LAYOUT_VARIANT_EXAMPLE_NAMES
+            ):
+                generate_d2_layout_variant_images(
+                    json_file=json_file,
+                    output_file=output_file,
+                )
+
+
+def generate_d2_layout_variant_images(
+    *,
+    json_file: Path,
+    output_file: Path,
+) -> None:
+    """
+    Generate D2 PNG variants for the layout tabs in docs/examples/d2/d2.md.
+    """
+    for layout in D2_LAYOUT_VARIANTS:
+        run_c4([
+            "export",
+            str(json_file),
+            "--d2",
+            "-f",
+            "png",
+            "-o",
+            str(output_file.with_suffix(f".{layout}.png")),
+            f"--d2-layout={layout}",
+        ])
+
 
 def generate_common_example_sources(*, include_images: bool) -> None:
     for python_file in iter_common_python_examples():
@@ -135,10 +178,19 @@ def generate_common_example_sources(*, include_images: bool) -> None:
 
 
 def generate_custom_example_sources(*, include_images: bool) -> None:
+    backend_export_args = {
+        PLANTUML: ["--plantuml-skinparam-dpi=100"],
+        MERMAID: [
+            "--mermaid-puppeteer-headless=false",
+            "--mermaid-scale-factor=5",
+        ],
+        D2: ["--d2-layout=elk"],
+    }
+
     for backend, python_file in iter_custom_python_examples():
         backend_flag = f"--{backend}"
         source_suffix = RENDERABLE_BACKEND_SOURCE_SUFFIX[backend]
-        backend_export_args = BACKEND_EXPORT_ARGS.get(backend, [])
+        export_args = backend_export_args.get(backend, [])
         output_file = EXAMPLES_DIR / backend / python_file.name
 
         run_c4([
@@ -159,7 +211,7 @@ def generate_custom_example_sources(*, include_images: bool) -> None:
                 "png",
                 "-o",
                 str(output_file.with_suffix(".png")),
-                *backend_export_args,
+                *export_args,
             ])
 
 

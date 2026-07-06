@@ -9,6 +9,7 @@ from c4.converters.python.renderers.plantuml import (
 )
 from c4.renderers.plantuml.options import (
     BoundaryStyle,
+    ContainerBoundaryStyle,
     ContainerTag,
     DiagramLayout,
     ElementStyle,
@@ -279,6 +280,49 @@ def test_render_options_codegen__generate_renders_element_style_with_name(
     result = codegen.generate(config)
 
     assert result == expected
+
+
+def test_render_options_codegen__style_to_call_renders_generic_boundary_style(
+    codegen: PlantUMLRenderOptionsCodegen,
+):
+    style = BoundaryStyle(
+        element_name="legacy_boundary",
+        bg_color="#eeeeee",
+        type_="Legacy",
+    )
+
+    result = codegen._style_to_call(style)
+
+    assert result == (
+        ".update_boundary_style(element_name='legacy_boundary', "
+        "bg_color='#eeeeee', type_='Legacy')"
+    )
+
+
+def test_render_options_codegen__style_to_call_renders_specific_boundary_style(
+    codegen: PlantUMLRenderOptionsCodegen,
+):
+    style = ContainerBoundaryStyle(
+        bg_color="#eeeeee",
+        type_="Container Boundary",
+    )
+
+    result = codegen._style_to_call(style)
+
+    assert result == (
+        ".update_container_boundary_style("
+        "bg_color='#eeeeee', type_='Container Boundary')"
+    )
+
+
+def test_render_options_codegen__style_element_kwargs_includes_type_for_subclass(
+    codegen: PlantUMLRenderOptionsCodegen,
+):
+    style = BoundaryStyle(element_name="boundary", type_="Custom")
+
+    result = codegen._style_element_kwargs(style)
+
+    assert result == {"element_name": "boundary", "type_": "Custom"}
 
 
 @pytest.mark.parametrize(

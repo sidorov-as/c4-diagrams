@@ -1,0 +1,63 @@
+direction: right
+__title: ||md
+  # Big Bank Landscape
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+}
+customer: ||md
+  ## Personal Banking Customer
+
+  [Person]
+
+  A customer of the bank.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+big_bank: {
+  label: "Big Bank"
+  banking: ||md
+    ## Internet Banking System
+  
+    [Software System]
+  
+    Allows customers to view account information.
+  || {
+    shape: rectangle
+  }
+  support: ||md
+    ## Customer Support
+  
+    [Person]
+  
+    External support team.
+  || {
+    shape: c4-person
+    class: ["c4_person"; "c4_external"]
+  }
+}
+email: ||md
+  ## Email System
+
+  [Software System]
+
+  External email service.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+customer -> big_bank.banking: "Uses\n[HTTPS]"
+big_bank.support -> big_bank.banking: "Helps with"
+big_bank.banking -> email: "Sends email using"

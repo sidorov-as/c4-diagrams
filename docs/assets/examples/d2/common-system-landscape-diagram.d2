@@ -1,0 +1,101 @@
+direction: right
+__title: ||md
+  # Acme Retail - System Landscape
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Places orders through digital channels.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+support_agent: ||md
+  ## Support Agent
+
+  [Person]
+
+  Supports customers after purchase.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Software System]
+
+  Processes card payments.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+warehouse_system: ||md
+  ## Warehouse System
+
+  [Software System]
+
+  Reserves stock and coordinates fulfillment.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+acme_retail: {
+  label: ||md
+    ## Acme Retail
+
+    [Enterprise]
+
+    Internal systems owned by Acme Retail.
+  ||
+  shape: rectangle
+  retail_platform: ||md
+    ## Retail Platform
+
+    [Software System]
+
+    Supports browsing, checkout, and order management.
+  || {
+    shape: rectangle
+  }
+  support_portal: ||md
+    ## Support Portal
+
+    [Software System]
+
+    Helps support teams investigate customer orders.
+  || {
+    shape: rectangle
+  }
+  reporting_platform: ||md
+    ## Reporting Platform
+
+    [Software System]
+
+    Provides operational and sales reporting.
+  || {
+    shape: rectangle
+  }
+}
+customer -> acme_retail.retail_platform: "Places orders through\n[HTTPS]"
+support_agent -> acme_retail.support_portal: "Uses\n[HTTPS]"
+acme_retail.support_portal -> acme_retail.retail_platform: "Reads order data from\n[HTTPS]"
+acme_retail.retail_platform -> payment_provider: "Requests payments from\n[HTTPS]"
+acme_retail.retail_platform -> warehouse_system: "Sends fulfillment requests to\n[HTTPS]"
+acme_retail.retail_platform -> acme_retail.reporting_platform: "Publishes order facts to\n[Kafka]"

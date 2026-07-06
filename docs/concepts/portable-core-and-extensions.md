@@ -9,8 +9,9 @@ that subset can be rendered by different backends, subject to each backend's
 supported C4 syntax.
 
 Backend-specific features are passed with explicit backend kwargs, such as
-`plantuml=` or `mermaid=`. Use those kwargs for data that only one renderer
-understands, while keeping the portable core free of renderer-specific hints.
+`plantuml=`, `mermaid=`, or `d2=`. Use those kwargs for data that only one
+renderer understands, while keeping the portable core free of
+renderer-specific hints.
 
 !!! example "Example: PlantUML-specific features"
 
@@ -20,13 +21,14 @@ understands, while keeping the portable core free of renderer-specific hints.
 
 Renderers validate extension data before rendering. By default, foreign
 extension data is ignored: PlantUML consumes `plantuml={...}` data and Mermaid
-consumes `mermaid={...}` data. Enable strict extension validation when a diagram
-must fail fast if it contains extension data owned by another backend.
+consumes `mermaid={...}` data, while D2 consumes `d2={...}` data. Enable strict
+extension validation when a diagram must fail fast if it contains extension
+data owned by another backend.
 
 ## Portable core example
 
 This diagram uses only portable C4 elements and [`Rel`](../api_docs/relationships/#c4.diagrams.core.Rel),
-so it can be rendered to either PlantUML or Mermaid source:
+so it can be rendered to PlantUML, Mermaid, or D2 source:
 
 ```python
 from c4 import Person, Rel, System, SystemContextDiagram
@@ -41,6 +43,7 @@ with SystemContextDiagram("Order Processing") as diagram:
 
 plantuml_source = diagram.as_plantuml()
 mermaid_source = diagram.as_mermaid()
+d2_source = diagram.as_d2()
 ```
 
 ## PlantUML-specific DSL

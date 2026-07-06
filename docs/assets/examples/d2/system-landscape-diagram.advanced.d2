@@ -1,0 +1,105 @@
+direction: right
+__title: ||md
+  # Retail Platform
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Places orders through the storefront.
+
+  | Property | Value |
+  | --- | --- |
+  | Role | User |
+  | Visibility | Public |
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+support_agent: ||md
+  ## Support Agent
+
+  [Person]
+
+  Handles issues in an external CRM.
+
+  | Property | Value |
+  | --- | --- |
+  | Role | External actor |
+  | Visibility | Public |
+|| {
+  shape: c4-person
+  class: ["c4_person"; "c4_external"]
+}
+payment_gateway: ||md
+  ## Payment Gateway
+
+  [Software System]
+
+  Processes card payments.
+
+  | Property | Value |
+  | --- | --- |
+  | Role | External actor |
+  | Visibility | Public |
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+crm_platform: ||md
+  ## CRM Platform
+
+  [Software System]
+
+  External CRM used by support agents.
+
+  | Property | Value |
+  | --- | --- |
+  | Role | External actor |
+  | Visibility | Public |
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+acme_enterprise: {
+  label: ||md
+    ## Acme Corp
+
+    [Enterprise]
+
+    Internal systems owned by Acme.
+  ||
+  shape: rectangle
+  retail_platform: ||md
+    ## Retail Platform
+
+    [Software System]
+
+    Core platform for catalog, checkout, and order management.
+
+    | Property | Value |
+    | --- | --- |
+    | Owner | Commerce Platform |
+    | Availability | 99.95% |
+  || {
+    shape: rectangle
+  }
+}
+customer -> acme_enterprise.retail_platform: "Browses and places orders\n[HTTPS]"
+acme_enterprise.retail_platform -> payment_gateway: "Charges card\n[REST API]"
+support_agent -> crm_platform: "Manages customer issues\n[Web UI]"

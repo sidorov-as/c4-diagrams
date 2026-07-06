@@ -1,0 +1,3259 @@
+{
+  "title": "SystemContextDiagram",
+  "type": "object",
+  "properties": {
+    "elements": {
+      "description": "Top-level elements.",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/D2PersonSchema"
+          },
+          {
+            "$ref": "#/$defs/D2PersonExtSchema"
+          },
+          {
+            "$ref": "#/$defs/D2SystemSchema"
+          },
+          {
+            "$ref": "#/$defs/D2SystemExtSchema"
+          },
+          {
+            "$ref": "#/$defs/D2SystemDbSchema"
+          },
+          {
+            "$ref": "#/$defs/D2SystemDbExtSchema"
+          },
+          {
+            "$ref": "#/$defs/D2SystemQueueSchema"
+          },
+          {
+            "$ref": "#/$defs/D2SystemQueueExtSchema"
+          }
+        ]
+      },
+      "title": "Elements",
+      "type": "array"
+    },
+    "boundaries": {
+      "description": "Top-level boundaries.",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/D2BoundarySchema"
+          },
+          {
+            "$ref": "#/$defs/D2EnterpriseBoundarySchema"
+          },
+          {
+            "$ref": "#/$defs/D2SystemBoundarySchema"
+          }
+        ]
+      },
+      "title": "Boundaries",
+      "type": "array"
+    },
+    "relationships": {
+      "description": "Top-level relationships.",
+      "items": {
+        "$ref": "#/$defs/D2RelationshipSchema"
+      },
+      "title": "Relationships",
+      "type": "array"
+    },
+    "type": {
+      "const": "SystemContextDiagram",
+      "description": "Type of the diagram.",
+      "title": "Type",
+      "type": "string"
+    },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional diagram title.",
+      "title": "Title"
+    },
+    "backend": {
+      "const": "d2",
+      "description": "JSON schema backend.",
+      "title": "Backend",
+      "type": "string"
+    },
+    "render_options": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/D2RenderOptionsSchema"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "D2-specific render options."
+    }
+  },
+  "required": [
+    "type",
+    "backend"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "D2BoundarySchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "commerce_platform",
+          "boundaries": [],
+          "description": "Boundary for the commerce system and its internal components.",
+          "elements": [
+            {
+              "alias": "web_storefront",
+              "description": "Frontend for browsing and checkout.",
+              "label": "Web Storefront",
+              "type": "System"
+            },
+            {
+              "alias": "orders_db",
+              "description": "Stores orders and payment state.",
+              "label": "Orders DB",
+              "type": "SystemDb"
+            }
+          ],
+          "label": "Commerce Platform",
+          "properties": {
+            "properties": [
+              [
+                "Owner",
+                "Commerce Team"
+              ],
+              [
+                "Environment",
+                "Production"
+              ]
+            ]
+          },
+          "relationships": [
+            {
+              "from": "web_storefront",
+              "label": "Reads and writes orders",
+              "technology": "SQL",
+              "to": "orders_db",
+              "type": "REL"
+            }
+          ],
+          "type": "Boundary"
+        }
+      ],
+      "properties": {
+        "relationships": {
+          "description": "Relationships declared inside this boundary.",
+          "items": {
+            "$ref": "#/$defs/D2RelationshipSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "type": {
+          "const": "Boundary",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "elements": {
+          "description": "Elements nested inside this boundary.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/D2PersonSchema"
+              },
+              {
+                "$ref": "#/$defs/D2PersonExtSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemExtSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemDbSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemDbExtSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemQueueSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemQueueExtSchema"
+              }
+            ]
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "boundaries": {
+          "description": "Boundaries nested inside this boundary.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/D2BoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/D2EnterpriseBoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemBoundarySchema"
+              }
+            ]
+          },
+          "title": "Boundaries",
+          "type": "array"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "Boundary",
+      "type": "object"
+    },
+    "D2EnterpriseBoundarySchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "acme",
+          "boundaries": [
+            {
+              "alias": "commerce_domain",
+              "boundaries": [],
+              "elements": [],
+              "label": "Commerce Domain",
+              "relationships": [],
+              "type": "SystemBoundary"
+            }
+          ],
+          "description": "Enterprise boundary containing internal platforms.",
+          "elements": [
+            {
+              "alias": "customer_portal",
+              "description": "Entry point for customers.",
+              "label": "Customer Portal",
+              "type": "System"
+            },
+            {
+              "alias": "shared_identity",
+              "description": "Central authentication service.",
+              "label": "Shared Identity",
+              "type": "System"
+            }
+          ],
+          "label": "Acme Corp",
+          "properties": {
+            "properties": [
+              [
+                "Region",
+                "EU"
+              ],
+              [
+                "Department",
+                "Digital"
+              ]
+            ]
+          },
+          "relationships": [
+            {
+              "from": "customer_portal",
+              "label": "Authenticates via",
+              "technology": "OIDC",
+              "to": "shared_identity",
+              "type": "REL"
+            }
+          ],
+          "type": "EnterpriseBoundary"
+        }
+      ],
+      "properties": {
+        "relationships": {
+          "description": "Relationships declared inside this boundary.",
+          "items": {
+            "$ref": "#/$defs/D2RelationshipSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "type": {
+          "const": "EnterpriseBoundary",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "elements": {
+          "description": "Elements nested inside this boundary.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/D2PersonSchema"
+              },
+              {
+                "$ref": "#/$defs/D2PersonExtSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemExtSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemDbSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemDbExtSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemQueueSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemQueueExtSchema"
+              }
+            ]
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "boundaries": {
+          "description": "Boundaries nested inside this boundary.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/D2BoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/D2EnterpriseBoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemBoundarySchema"
+              }
+            ]
+          },
+          "title": "Boundaries",
+          "type": "array"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "EnterpriseBoundary",
+      "type": "object"
+    },
+    "D2LegendElementSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "element",
+          "description": "Legend item discriminator.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Legend item label.",
+          "title": "Label",
+          "type": "string"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 identifier.",
+          "title": "Alias"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classes"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shape"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Icon"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "D2LegendElementSchema",
+      "type": "object"
+    },
+    "D2LegendRelSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "relationship",
+          "description": "Legend item discriminator.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Legend item label.",
+          "title": "Label",
+          "type": "string"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 identifier.",
+          "title": "Alias"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classes"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "bidirectional": {
+          "default": false,
+          "title": "Bidirectional",
+          "type": "boolean"
+        },
+        "hide_endpoints": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hide Endpoints"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "D2LegendRelSchema",
+      "type": "object"
+    },
+    "D2LegendSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "default": "Legend",
+          "title": "Label",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/D2LegendElementSchema"
+              },
+              {
+                "$ref": "#/$defs/D2LegendRelSchema"
+              }
+            ]
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "title": "D2LegendSchema",
+      "type": "object"
+    },
+    "D2PersonExtSchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "auditor",
+          "description": "External compliance reviewer.",
+          "label": "Auditor",
+          "properties": {
+            "properties": [
+              [
+                "Organization",
+                "Compliance Partner"
+              ],
+              [
+                "Access",
+                "Read-only"
+              ]
+            ]
+          },
+          "type": "PersonExt"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "PersonExt",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "PersonExt",
+      "type": "object"
+    },
+    "D2PersonSchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "store_manager",
+          "description": "Manages product catalog and promotions.",
+          "label": "Store Manager",
+          "properties": {
+            "properties": [
+              [
+                "Department",
+                "Retail Ops"
+              ],
+              [
+                "Role",
+                "Manager"
+              ]
+            ]
+          },
+          "type": "Person"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "Person",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "Person",
+      "type": "object"
+    },
+    "D2RelationshipSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/D2RelationshipType",
+          "description": "Type of the relationship."
+        },
+        "from": {
+          "description": "The source element alias (or unique label).",
+          "minLength": 1,
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "description": "The destination element alias (or unique label).",
+          "minLength": 1,
+          "title": "To",
+          "type": "string"
+        },
+        "label": {
+          "description": "The label shown on the relationship edge.",
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Additional details about the relationship.",
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The technology used in the communication.",
+          "title": "Technology"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        }
+      },
+      "required": [
+        "type",
+        "from",
+        "to",
+        "label"
+      ],
+      "title": "Relationship",
+      "type": "object"
+    },
+    "D2RelationshipType": {
+      "description": "Relationship types supported by D2 C4 diagrams.",
+      "enum": [
+        "REL",
+        "BI_REL"
+      ],
+      "title": "RelationshipType",
+      "type": "string"
+    },
+    "D2RenderOptionsSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "right",
+          "title": "Direction"
+        },
+        "layout": {
+          "default": "dagre",
+          "enum": [
+            "dagre",
+            "elk"
+          ],
+          "title": "Layout",
+          "type": "string"
+        },
+        "theme": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Theme"
+        },
+        "title_near": {
+          "anyOf": [
+            {
+              "enum": [
+                "top-left",
+                "top-center",
+                "top-right",
+                "center-left",
+                "center-right",
+                "bottom-left",
+                "bottom-center",
+                "bottom-right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "top-center",
+          "title": "Title Near"
+        },
+        "sequence_diagram": {
+          "default": false,
+          "title": "Sequence Diagram",
+          "type": "boolean"
+        },
+        "auto_number_relationships": {
+          "default": false,
+          "title": "Auto Number Relationships",
+          "type": "boolean"
+        },
+        "include_type_label": {
+          "default": true,
+          "title": "Include Type Label",
+          "type": "boolean"
+        },
+        "include_technology": {
+          "default": true,
+          "title": "Include Technology",
+          "type": "boolean"
+        },
+        "include_properties": {
+          "default": false,
+          "title": "Include Properties",
+          "type": "boolean"
+        },
+        "bidirectional_relationships": {
+          "default": "two_edges",
+          "enum": [
+            "two_edges",
+            "single_edge"
+          ],
+          "title": "Bidirectional Relationships",
+          "type": "string"
+        },
+        "fully_qualified_relationships": {
+          "default": true,
+          "title": "Fully Qualified Relationships",
+          "type": "boolean"
+        },
+        "legend": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2LegendSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "D2RenderOptionsSchema",
+      "type": "object"
+    },
+    "D2StyleSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "opacity": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Opacity"
+        },
+        "stroke": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stroke"
+        },
+        "fill": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fill"
+        },
+        "fill_pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fill Pattern"
+        },
+        "stroke_width": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stroke Width"
+        },
+        "stroke_dash": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stroke Dash"
+        },
+        "border_radius": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Border Radius"
+        },
+        "shadow": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shadow"
+        },
+        "three_d": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Three D"
+        },
+        "multiple": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Multiple"
+        },
+        "double_border": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Double Border"
+        },
+        "font": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font"
+        },
+        "font_size": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Size"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Color"
+        },
+        "animated": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Animated"
+        },
+        "bold": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bold"
+        },
+        "italic": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Italic"
+        },
+        "underline": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Underline"
+        },
+        "text_transform": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text Transform"
+        }
+      },
+      "title": "D2StyleSchema",
+      "type": "object"
+    },
+    "D2SystemBoundarySchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "commerce_platform",
+          "boundaries": [],
+          "description": "Boundary for the commerce system and its internal components.",
+          "elements": [
+            {
+              "alias": "web_storefront",
+              "description": "Frontend for browsing and checkout.",
+              "label": "Web Storefront",
+              "type": "System"
+            },
+            {
+              "alias": "orders_db",
+              "description": "Stores orders and payment state.",
+              "label": "Orders DB",
+              "type": "SystemDb"
+            }
+          ],
+          "label": "Commerce Platform",
+          "properties": {
+            "properties": [
+              [
+                "Owner",
+                "Commerce Team"
+              ],
+              [
+                "Environment",
+                "Production"
+              ]
+            ]
+          },
+          "relationships": [
+            {
+              "from": "web_storefront",
+              "label": "Reads and writes orders",
+              "technology": "SQL",
+              "to": "orders_db",
+              "type": "REL"
+            }
+          ],
+          "type": "SystemBoundary"
+        }
+      ],
+      "properties": {
+        "relationships": {
+          "description": "Relationships declared inside this boundary.",
+          "items": {
+            "$ref": "#/$defs/D2RelationshipSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "type": {
+          "const": "SystemBoundary",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "elements": {
+          "description": "Elements nested inside this boundary.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/D2PersonSchema"
+              },
+              {
+                "$ref": "#/$defs/D2PersonExtSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemExtSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemDbSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemDbExtSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemQueueSchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemQueueExtSchema"
+              }
+            ]
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "boundaries": {
+          "description": "Boundaries nested inside this boundary.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/D2BoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/D2EnterpriseBoundarySchema"
+              },
+              {
+                "$ref": "#/$defs/D2SystemBoundarySchema"
+              }
+            ]
+          },
+          "title": "Boundaries",
+          "type": "array"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemBoundary",
+      "type": "object"
+    },
+    "D2SystemDbExtSchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "credit_bureau_db",
+          "description": "External database with risk assessment data.",
+          "label": "Credit Bureau DB",
+          "properties": {
+            "properties": [
+              [
+                "Provider",
+                "RiskCo"
+              ],
+              [
+                "Access",
+                "Read-only"
+              ]
+            ]
+          },
+          "type": "SystemDbExt"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "SystemDbExt",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemDbExt",
+      "type": "object"
+    },
+    "D2SystemDbSchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "customer_profile_db",
+          "description": "Stores customer preferences and account metadata.",
+          "label": "Customer Profile DB",
+          "properties": {
+            "properties": [
+              [
+                "Engine",
+                "PostgreSQL"
+              ],
+              [
+                "Backup",
+                "Daily"
+              ]
+            ]
+          },
+          "type": "SystemDb"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "SystemDb",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemDb",
+      "type": "object"
+    },
+    "D2SystemExtSchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "shipping_provider",
+          "description": "External logistics platform for shipment booking and tracking.",
+          "label": "Shipping Provider",
+          "properties": {
+            "properties": [
+              [
+                "Protocol",
+                "REST"
+              ],
+              [
+                "SLA",
+                "99.9%"
+              ]
+            ]
+          },
+          "type": "SystemExt"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "SystemExt",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemExt",
+      "type": "object"
+    },
+    "D2SystemQueueExtSchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "partner_events_topic",
+          "description": "External event topic carrying delivery status updates.",
+          "label": "Partner Events Topic",
+          "properties": {
+            "properties": [
+              [
+                "Broker",
+                "Kafka"
+              ],
+              [
+                "Format",
+                "Avro"
+              ]
+            ]
+          },
+          "type": "SystemQueueExt"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "SystemQueueExt",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemQueueExt",
+      "type": "object"
+    },
+    "D2SystemQueueSchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "order_events_stream",
+          "description": "Internal stream of order lifecycle events.",
+          "label": "Order Events Stream",
+          "properties": {
+            "properties": [
+              [
+                "Retention",
+                "7 days"
+              ],
+              [
+                "Partitions",
+                "12"
+              ]
+            ]
+          },
+          "type": "SystemQueue"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "SystemQueue",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "SystemQueue",
+      "type": "object"
+    },
+    "D2SystemSchema": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "alias": "inventory_service",
+          "description": "Tracks stock levels and reservation state.",
+          "label": "Inventory Service",
+          "properties": {
+            "properties": [
+              [
+                "Language",
+                "Python"
+              ],
+              [
+                "Team",
+                "Supply Chain"
+              ]
+            ]
+          },
+          "type": "System"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "System",
+          "description": "Discriminator identifying the element type.",
+          "title": "Type",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display name for the element.",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional description text.",
+          "title": "Description"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique identifier for the element. If not provided, it is autogenerated from the label.",
+          "title": "Alias"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiagramElementPropertiesSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional property table metadata."
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 shape.",
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/D2StyleSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 style attributes."
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 icon URL.",
+          "title": "Icon"
+        },
+        "near": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 near reference.",
+          "title": "Near"
+        },
+        "tooltip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 tooltip.",
+          "title": "Tooltip"
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 link URL.",
+          "title": "Link"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 classes.",
+          "title": "Classes"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional D2 layout direction for a container.",
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "type",
+        "label"
+      ],
+      "title": "System",
+      "type": "object"
+    },
+    "DiagramElementPropertiesSchema": {
+      "properties": {
+        "show_header": {
+          "default": true,
+          "description": "Whether to display the header row.",
+          "title": "Show Header",
+          "type": "boolean"
+        },
+        "header": {
+          "default": [
+            "Property",
+            "Value"
+          ],
+          "description": "Header columns.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Header",
+          "type": "array"
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": "List of rows (each row is a list of string values).",
+          "title": "Properties"
+        }
+      },
+      "required": [
+        "properties"
+      ],
+      "title": "DiagramElementPropertiesSchema",
+      "type": "object"
+    }
+  }
+}

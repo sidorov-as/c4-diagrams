@@ -43,6 +43,12 @@ MERMAID_DIAGRAM_FORMATS = {
     PDF,
 }
 
+D2_DIAGRAM_FORMATS = {
+    SVG,
+    PNG,
+    PDF,
+}
+
 
 class DiagramConvertionFormat(StrEnum):
     JSON = "json"

@@ -1,0 +1,50 @@
+direction: right
+__title: ||md
+  # Login Flow
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+}
+user: ||md
+  ## User
+
+  [Person]
+
+  Signs in to the application.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+web_app: ||md
+  ## Web App
+
+  [Software System]
+
+  Main application used by customers.
+|| {
+  shape: rectangle
+}
+idp: ||md
+  ## Identity Provider
+
+  [Software System]
+
+  External authentication service.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+user -> web_app: "1. Opens sign-in page\n[HTTPS]"
+web_app -> idp: "2. Authenticates user\n[OIDC]"
+idp -> web_app: "3. Returns identity token\n[OIDC]"

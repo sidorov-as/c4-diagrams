@@ -2,7 +2,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 
-from c4.converters.python.renderers import mermaid, plantuml
+from c4.converters.python.renderers import d2, mermaid, plantuml
 from c4.diagrams.core import (
     DEFAULT_PROPERTIES_HEADER,
     BaseDiagramElement,
@@ -13,7 +13,7 @@ from c4.diagrams.core import (
     Relationship,
 )
 from c4.enums import RendererEnum
-from c4.renderers import MermaidRenderOptions, RenderOptions
+from c4.renderers import D2RenderOptions, MermaidRenderOptions, RenderOptions
 from c4.renderers.base import IndentedStringBuilder
 from c4.renderers.plantuml.options import PlantUMLRenderOptions
 
@@ -87,6 +87,14 @@ class PythonCodegen:
 
         render_options = diagram.render_options
         if render_options:
+            if render_options.d2:
+                import_plan.renderer_names.add("D2RenderOptionsBuilder")
+
+                if render_options.d2.legend:
+                    import_plan.renderer_names.add("D2Legend")
+                    import_plan.renderer_names.add("D2LegendElement")
+                    import_plan.renderer_names.add("D2LegendRel")
+
             if render_options.plantuml:
                 import_plan.renderer_names.add("PlantUMLRenderOptionsBuilder")
 
@@ -265,6 +273,15 @@ class PythonCodegen:
 
         self._builder.add(render_options_codegen.generate(render_options))
 
+    def _render_d2_render_options(
+        self,
+        render_options: D2RenderOptions,
+    ) -> None:
+        """Render D2 render options builder code after the diagram."""
+        render_options_codegen = d2.D2RenderOptionsCodegen()
+
+        self._builder.add(render_options_codegen.generate(render_options))
+
     def _set_diagram_render_options(
         self,
         render_options: RenderOptions,
@@ -273,6 +290,10 @@ class PythonCodegen:
 
         self._builder.add_blank_line(check_duplicates=True)
         self._builder.add_blank_line(check_duplicates=False)
+
+        if render_options.d2:
+            self._render_d2_render_options(render_options.d2)
+            options_to_render.append(f"d2={d2.RENDER_OPTIONS_VARIABLE_NAME}")
 
         if render_options.plantuml:
             self._render_plantuml_render_options(render_options.plantuml)

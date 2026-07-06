@@ -1,0 +1,58 @@
+direction: right
+__title: ||md
+  # Checkout API - Component Diagram
+|| {
+  near: top-center
+}
+classes: {
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+}
+checkout_controller: ||md
+  ## Checkout Controller
+
+  [Component: FastAPI]
+
+  Receives checkout requests and orchestrates payment flow.
+|| {
+  shape: rectangle
+}
+payment_service: ||md
+  ## Payment Service
+
+  [Component: Python]
+
+  Creates payment intents and handles payment state updates.
+|| {
+  shape: rectangle
+}
+payment_store: ||md
+  ## Payment Store
+
+  [Component: PostgreSQL]
+
+  Stores payment records and statuses.
+|| {
+  shape: cylinder
+  class: ["c4_database"]
+}
+payment_gateway_api: ||md
+  ## Payment Gateway API
+
+  [Component: REST API]
+
+  External API for payment authorization and capture.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+checkout_controller -> payment_service: "Calls\n[Python call]"
+payment_service -> payment_store: "Reads and writes\n[SQL]"
+payment_service -> payment_gateway_api: "Creates payments via\n[HTTPS/JSON]"

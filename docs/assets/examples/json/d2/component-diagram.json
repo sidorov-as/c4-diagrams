@@ -1,0 +1,292 @@
+{
+  "backend": "d2",
+  "type": "ComponentDiagram",
+  "title": "Checkout API - Component Diagram",
+  "elements": [
+    {
+      "type": "Container",
+      "label": "Web Application",
+      "alias": "web_app",
+      "description": "Storefront and checkout UI.",
+      "technology": "Next.js",
+      "properties": {
+        "properties": [
+          [
+            "Runtime",
+            "Node.js"
+          ],
+          [
+            "Team",
+            "Storefront"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "ContainerQueue",
+      "label": "Order Events",
+      "alias": "order_events",
+      "description": "Asynchronous stream for order lifecycle events.",
+      "technology": "Kafka",
+      "properties": {
+        "properties": [
+          [
+            "Retention",
+            "7 days"
+          ],
+          [
+            "Partitions",
+            "24"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "ContainerDb",
+      "label": "Checkout Database",
+      "alias": "checkout_db",
+      "description": "Stores checkout sessions, idempotency keys, and payment state.",
+      "technology": "PostgreSQL",
+      "properties": {
+        "properties": [
+          [
+            "HA",
+            "Multi-AZ"
+          ],
+          [
+            "Backups",
+            "PITR"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "ComponentExt",
+      "label": "Payment Provider",
+      "alias": "payment_provider",
+      "description": "External card authorization and capture API.",
+      "properties": {
+        "properties": [
+          [
+            "Timeout budget",
+            "2s"
+          ],
+          [
+            "Webhook signature",
+            "HMAC"
+          ]
+        ]
+      }
+    },
+    {
+      "type": "ComponentExt",
+      "label": "Inventory Service",
+      "alias": "inventory_service",
+      "description": "Reserves stock before payment capture.",
+      "properties": {
+        "properties": [
+          [
+            "Consistency",
+            "Strong"
+          ],
+          [
+            "Owner",
+            "Supply Chain"
+          ]
+        ]
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "type": "ContainerBoundary",
+      "label": "Checkout API",
+      "alias": "checkout_api_boundary",
+      "description": "Components that orchestrate checkout and payment.",
+      "properties": {
+        "properties": [
+          [
+            "Runtime",
+            "Python 3.12"
+          ],
+          [
+            "Deployment",
+            "Kubernetes"
+          ]
+        ]
+      },
+      "direction": "right",
+      "elements": [
+        {
+          "type": "Component",
+          "label": "Checkout Controller",
+          "alias": "checkout_controller",
+          "description": "HTTP entrypoint for checkout commands.",
+          "technology": "FastAPI",
+          "properties": {
+            "properties": [
+              [
+                "Endpoint",
+                "/checkout"
+              ],
+              [
+                "Auth",
+                "JWT"
+              ]
+            ]
+          },
+          "style": {
+            "fill": "#eff6ff",
+            "stroke": "#2563eb"
+          }
+        },
+        {
+          "type": "Component",
+          "label": "Checkout Orchestrator",
+          "alias": "checkout_orchestrator",
+          "description": "Coordinates validation, inventory reservation, payment, and persistence.",
+          "technology": "Python",
+          "properties": {
+            "properties": [
+              [
+                "Pattern",
+                "Application service"
+              ],
+              [
+                "Retries",
+                "Bounded"
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Component",
+          "label": "Inventory Client",
+          "alias": "inventory_client",
+          "description": "Calls the inventory service and maps reservation failures.",
+          "technology": "gRPC client",
+          "properties": {
+            "properties": [
+              [
+                "Timeout",
+                "750ms"
+              ],
+              [
+                "Circuit breaker",
+                "Enabled"
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Component",
+          "label": "Payment Adapter",
+          "alias": "payment_adapter",
+          "description": "Wraps payment provider calls and webhook verification.",
+          "technology": "Python",
+          "properties": {
+            "properties": [
+              [
+                "Idempotency",
+                "Required"
+              ],
+              [
+                "Capture mode",
+                "Manual"
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Component",
+          "label": "Order Publisher",
+          "alias": "order_publisher",
+          "description": "Publishes order-created and payment-authorized events.",
+          "technology": "Kafka producer",
+          "properties": {
+            "properties": [
+              [
+                "Schema",
+                "JSON Schema"
+              ],
+              [
+                "Acks",
+                "all"
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "REL",
+      "from": "web_app",
+      "to": "checkout_controller",
+      "label": "Submits checkout",
+      "technology": "HTTPS/JSON"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_controller",
+      "to": "checkout_orchestrator",
+      "label": "Delegates command",
+      "technology": "Python call"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_orchestrator",
+      "to": "inventory_client",
+      "label": "Reserves stock",
+      "technology": "gRPC"
+    },
+    {
+      "type": "REL",
+      "from": "inventory_client",
+      "to": "inventory_service",
+      "label": "Reserve items",
+      "technology": "mTLS / gRPC"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_orchestrator",
+      "to": "payment_adapter",
+      "label": "Authorizes payment",
+      "technology": "Python call"
+    },
+    {
+      "type": "REL",
+      "from": "payment_adapter",
+      "to": "payment_provider",
+      "label": "Creates payment intent",
+      "technology": "REST/JSON"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_orchestrator",
+      "to": "checkout_db",
+      "label": "Persists checkout state",
+      "technology": "SQL"
+    },
+    {
+      "type": "REL",
+      "from": "checkout_orchestrator",
+      "to": "order_publisher",
+      "label": "Emits domain events",
+      "technology": "Python call"
+    },
+    {
+      "type": "REL",
+      "from": "order_publisher",
+      "to": "order_events",
+      "label": "Publishes events",
+      "technology": "Kafka"
+    }
+  ],
+  "render_options": {
+    "layout": "dagre",
+    "include_properties": true,
+    "bidirectional_relationships": "single_edge"
+  }
+}

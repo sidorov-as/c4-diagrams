@@ -15,6 +15,8 @@ from c4.constants import (
     ALL_DIAGRAM_FORMATS,
     CONVERT_FROM_FORMATS,
     CONVERT_TO_FORMATS,
+    D2_BIN_ENV_VAR,
+    D2_LAYOUT_ENGINES,
     DEFAULT_JAVA_BIN,
     DEFAULT_RENDERING_TIMEOUT_SECONDS,
     FORMATS_BY_RENDERER_HELP_TEXT,
@@ -90,6 +92,7 @@ def str2bool(value: str) -> bool:
 
 _plantuml_bin_type = partial(_exporter_binary_type, backend="PlantUML")
 _mermaid_bin_type = partial(_exporter_binary_type, backend="Mermaid")
+_d2_bin_type = partial(_exporter_binary_type, backend="D2")
 
 
 def _existing_file_type(value: str | Path, label: str) -> Path:
@@ -220,6 +223,11 @@ def _add_renderer_flags(parser: argparse.ArgumentParser) -> None:
         "--mermaid",
         action="store_true",
         help="Use Mermaid renderer (alias for --renderer mermaid).",
+    )
+    group.add_argument(
+        "--d2",
+        action="store_true",
+        help="Use D2 renderer (alias for --renderer d2).",
     )
 
 
@@ -435,6 +443,30 @@ def _add_mermaid_export_flags(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _add_d2_export_flags(parser: argparse.ArgumentParser) -> None:
+    """
+    Add D2-specific export flags.
+    """
+    group = parser.add_argument_group("D2 options")
+
+    group.add_argument(
+        "--d2-bin",
+        type=_d2_bin_type,
+        default=_env_default([D2_BIN_ENV_VAR]),
+        help=(
+            "D2 executable (command name or full path). "
+            f"If not provided, the {D2_BIN_ENV_VAR} "
+            "environment variable will be used."
+        ),
+    )
+    group.add_argument(
+        "--d2-layout",
+        choices=D2_LAYOUT_ENGINES,
+        default=None,
+        help="D2 layout engine to use.",
+    )
+
+
 def _build_export_parser(
     subparser: _SubParsersAction,
 ) -> None:
@@ -496,6 +528,7 @@ def _build_export_parser(
     _add_renderer_flags(export_parser)
     _add_plantuml_export_flags(export_parser)
     _add_mermaid_export_flags(export_parser)
+    _add_d2_export_flags(export_parser)
     _add_watch_flags(export_parser)
 
     export_parser.set_defaults(func=handle_export)

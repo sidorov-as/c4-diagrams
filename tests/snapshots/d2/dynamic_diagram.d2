@@ -1,0 +1,26 @@
+direction: right
+__title: ||md
+  # Sign In Flow
+|| {
+  near: top-center
+}
+classes: {
+  c4_database: {
+    style.fill: "#edf7ff"
+    style.stroke: "#2d6f9f"
+  }
+}
+spa: "Single-Page App\n[TypeScript]"
+database: {
+  label: "Database\n[PostgreSQL]"
+  shape: cylinder
+  class: ["c4_database"]
+}
+api_application: {
+  label: "API Application"
+  controller: "Sign In Controller\n[Spring MVC]"
+  security: "Security Component\n[Spring Bean]"
+}
+spa -> api_application.controller: "Submits credentials\n[JSON/HTTPS]"
+api_application.controller -> api_application.security: "Calls isAuthenticated() on"
+api_application.security -> database: "select * from users\n[JDBC]"

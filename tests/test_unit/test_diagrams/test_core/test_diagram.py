@@ -12,7 +12,7 @@ from c4.diagrams.core import (
     get_diagram,
 )
 from c4.enums import DiagramFormat
-from c4.renderers import MermaidRenderOptions, RenderOptions
+from c4.renderers import D2RenderOptions, MermaidRenderOptions, RenderOptions
 from c4.renderers.mermaid.backends import BaseMermaidBackend
 from c4.renderers.plantuml.backends import BasePlantUMLBackend
 from c4.renderers.plantuml.options import PlantUMLRenderOptions
@@ -212,6 +212,54 @@ def test_diagram_as_mermaid(mocker: MockerFixture):
     mocked_renderer_class.assert_called_once_with(**kwargs)
     expected_renderer.render.assert_called_once_with(diagram)
     assert result == expected_renderer.render.return_value
+
+
+def test_diagram_as_d2(mocker: MockerFixture):
+    diagram = Diagram()
+    mocked_renderer_class = mocker.patch("c4.renderers.D2Renderer")
+    expected_renderer = mocked_renderer_class.return_value
+    kwargs = {
+        "render_options": D2RenderOptions(direction="down"),
+    }
+
+    result = diagram.as_d2(**kwargs)
+
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+    expected_renderer.render.assert_called_once_with(diagram)
+    assert result == expected_renderer.render.return_value
+
+
+def test_diagram_as_d2_render_options_from_diagram(mocker: MockerFixture):
+    mocked_renderer_class = mocker.patch("c4.renderers.D2Renderer")
+    expected_renderer = mocked_renderer_class.return_value
+    d2_render_options = D2RenderOptions(direction="down")
+    render_options = RenderOptions(d2=d2_render_options)
+    diagram = Diagram(render_options=render_options)
+
+    result = diagram.as_d2()
+
+    mocked_renderer_class.assert_called_once_with(
+        render_options=d2_render_options,
+    )
+    expected_renderer.render.assert_called_once_with(diagram)
+    assert result == expected_renderer.render.return_value
+
+
+def test_diagram_as_d2_override_render_options(mocker: MockerFixture):
+    mocked_renderer_class = mocker.patch("c4.renderers.D2Renderer")
+    expected_renderer = mocked_renderer_class.return_value
+    render_options = RenderOptions(d2=D2RenderOptions(direction="down"))
+    diagram = Diagram(render_options=render_options)
+    kwargs = {
+        "render_options": D2RenderOptions(direction="left"),
+    }
+
+    result = diagram.as_d2(**kwargs)
+
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+    expected_renderer.render.assert_called_once_with(diagram)
+    assert result == expected_renderer.render.return_value
+    assert kwargs["render_options"] is not render_options.d2
 
 
 def test_diagram_render_empty_renderer_error():
@@ -452,6 +500,69 @@ def test_diagram_save_as_mermaid_override_render_options(
     assert kwargs["render_options"] is not render_options.plantuml
 
 
+def test_diagram_save_as_d2(tmp_path: Path, mocker: MockerFixture):
+    mocked_renderer_class = mocker.patch("c4.renderers.D2Renderer")
+    expected_renderer = mocked_renderer_class.return_value
+    diagram = Diagram()
+    diagram_output = tmp_path / "diagram.d2"
+    mocked_save = mocker.patch.object(diagram, "save")
+    kwargs = {
+        "render_options": D2RenderOptions(direction="down"),
+    }
+
+    diagram.save_as_d2(diagram_output, **kwargs)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+
+
+def test_diagram_save_as_d2_render_options_from_diagram(
+    tmp_path: Path,
+    mocker: MockerFixture,
+):
+    mocked_renderer_class = mocker.patch("c4.renderers.D2Renderer")
+    expected_renderer = mocked_renderer_class.return_value
+    d2_render_options = D2RenderOptions(direction="down")
+    render_options = RenderOptions(d2=d2_render_options)
+    diagram = Diagram(render_options=render_options)
+    diagram_output = tmp_path / "diagram.d2"
+    mocked_save = mocker.patch.object(diagram, "save")
+
+    diagram.save_as_d2(diagram_output)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(
+        render_options=d2_render_options,
+    )
+
+
+def test_diagram_save_as_d2_override_render_options(
+    tmp_path: Path,
+    mocker: MockerFixture,
+):
+    mocked_renderer_class = mocker.patch("c4.renderers.D2Renderer")
+    expected_renderer = mocked_renderer_class.return_value
+    render_options = RenderOptions(d2=D2RenderOptions(direction="down"))
+    diagram = Diagram(render_options=render_options)
+    diagram_output = tmp_path / "diagram.d2"
+    mocked_save = mocker.patch.object(diagram, "save")
+    kwargs = {
+        "render_options": D2RenderOptions(direction="left"),
+    }
+
+    diagram.save_as_d2(diagram_output, **kwargs)
+
+    mocked_save.assert_called_once_with(
+        diagram_output, renderer=expected_renderer
+    )
+    mocked_renderer_class.assert_called_once_with(**kwargs)
+    assert kwargs["render_options"] is not render_options.d2
+
+
 def test_get_diagram():
     with Diagram() as diagram:
         result = get_diagram()
@@ -539,45 +650,54 @@ def test_diagram_set_render_options__creates_render_options():
     assert diagram.render_options is not None
     assert diagram.render_options.plantuml is plantuml_render_options
     assert diagram.render_options.mermaid is None
+    assert diagram.render_options.d2 is None
 
 
 def test_diagram_set_render_options__patches_existing_render_options():
     diagram = Diagram()
     plantuml_render_options = PlantUMLRenderOptions()
     mermaid_render_options = MermaidRenderOptions()
+    d2_render_options = D2RenderOptions()
 
     diagram.set_render_options(plantuml=plantuml_render_options)
     diagram.set_render_options(mermaid=mermaid_render_options)
+    diagram.set_render_options(d2=d2_render_options)
 
     assert diagram.render_options is not None
     assert diagram.render_options.plantuml is plantuml_render_options
     assert diagram.render_options.mermaid is mermaid_render_options
+    assert diagram.render_options.d2 is d2_render_options
 
 
 def test_diagram_set_render_options__clears_provided_renderer():
     plantuml_render_options = PlantUMLRenderOptions()
     mermaid_render_options = MermaidRenderOptions()
+    d2_render_options = D2RenderOptions()
     diagram = Diagram(
         render_options=RenderOptions(
             plantuml=plantuml_render_options,
             mermaid=mermaid_render_options,
+            d2=d2_render_options,
         )
     )
 
-    diagram.set_render_options(plantuml=None)
+    diagram.set_render_options(plantuml=None, d2=None)
 
     assert diagram.render_options is not None
     assert diagram.render_options.plantuml is None
     assert diagram.render_options.mermaid is mermaid_render_options
+    assert diagram.render_options.d2 is None
 
 
 def test_diagram_set_render_options__leaves_omitted_keys_unchanged():
     plantuml_render_options = PlantUMLRenderOptions()
     mermaid_render_options = MermaidRenderOptions()
+    d2_render_options = D2RenderOptions()
     diagram = Diagram(
         render_options=RenderOptions(
             plantuml=plantuml_render_options,
             mermaid=mermaid_render_options,
+            d2=d2_render_options,
         )
     )
 
@@ -586,3 +706,4 @@ def test_diagram_set_render_options__leaves_omitted_keys_unchanged():
     assert diagram.render_options is not None
     assert diagram.render_options.plantuml is plantuml_render_options
     assert diagram.render_options.mermaid is mermaid_render_options
+    assert diagram.render_options.d2 is d2_render_options

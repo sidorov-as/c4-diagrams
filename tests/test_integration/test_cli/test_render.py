@@ -644,6 +644,38 @@ def test_render_to_stdout(
     )
 
 
+def test_render_d2_to_stdout(
+    make_tmp_py_file: MakeTmpPyFile,
+    cli: CLI,
+):
+    module_path = make_tmp_py_file(
+        "module.py",
+        textwrap.dedent(
+            """
+            from c4 import SystemContextDiagram
+
+            diagram = SystemContextDiagram("Example")
+            """
+        ),
+    )
+    expected_result = textwrap.dedent(
+        """
+        direction: right
+        __title: ||md
+          # Example
+        || {
+          near: top-center
+        }
+        """
+    ).strip()
+
+    result = cli(["render", str(module_path), "--renderer", "d2"])
+
+    assert result.exit_code == 0
+    assert result.stdout.strip() == expected_result
+    assert not result.stderr
+
+
 def test_render_default_renderer_plantuml(
     tmp_path: Path,
     make_tmp_py_file: MakeTmpPyFile,
@@ -745,6 +777,47 @@ def test_render_shortcut_renderer_plantuml(
         diagram_code=diagram_output.read_text(),
         snapshot_dir=SNAPSHOT_DIR,
     )
+
+
+def test_render_d2_to_output_path(
+    tmp_path: Path,
+    make_tmp_py_file: MakeTmpPyFile,
+    cli: CLI,
+):
+    diagram_output = tmp_path / "diagram.d2"
+    module_path = make_tmp_py_file(
+        "module.py",
+        textwrap.dedent(
+            """
+            from c4 import SystemContextDiagram
+
+            diagram = SystemContextDiagram("Example")
+            """
+        ),
+    )
+    expected_result = textwrap.dedent(
+        """
+        direction: right
+        __title: ||md
+          # Example
+        || {
+          near: top-center
+        }
+        """
+    ).strip()
+
+    result = cli([
+        "render",
+        str(module_path),
+        "--d2",
+        "-o",
+        str(diagram_output),
+    ])
+
+    assert result.exit_code == 0
+    assert not result.stdout
+    assert not result.stderr
+    assert diagram_output.read_text(encoding="utf-8").strip() == expected_result
 
 
 @pytest.mark.skipif(

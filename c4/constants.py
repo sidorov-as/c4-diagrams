@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from c4.enums import (
+    D2_DIAGRAM_FORMATS,
     JSON,
     MERMAID_DIAGRAM_FORMATS,
     PLANTUML_DIAGRAM_FORMATS,
@@ -21,8 +22,8 @@ D2 = RendererEnum.D2
 DEFAULT_RENDERER_ENV_VAR = "DEFAULT_RENDERER"
 DEFAULT_RENDERER = PLANTUML.value
 
-KNOWN_RENDERERS = (PLANTUML, MERMAID)
-# WIP: "structurizr", "d2"
+KNOWN_RENDERERS = (PLANTUML, MERMAID, D2)
+# WIP: "structurizr"
 
 
 LOCAL_BACKEND = "local"
@@ -55,20 +56,32 @@ MERMAID_SCALE_FACTOR_ENV_VAR = "MERMAID_SCALE_FACTOR"
 
 DEFAULT_MERMAID_SCALE_FACTOR = 1
 
+# D2 options
+
+D2_BIN_ENV_VAR = "D2_BIN"
+DEFAULT_D2_BIN = "d2"
+D2_LAYOUT_ENGINES = ("dagre", "elk")
+
 # Formats
 DIAGRAM_FORMATS_BY_RENDERER: dict[RendererEnum, set[DiagramFormat]] = {
     PLANTUML: PLANTUML_DIAGRAM_FORMATS,
     MERMAID: MERMAID_DIAGRAM_FORMATS,
+    D2: D2_DIAGRAM_FORMATS,
 }
 
 _formats_by_renderer_parts = []
 for renderer, formats in sorted(DIAGRAM_FORMATS_BY_RENDERER.items()):
-    fmt_list = ", ".join(sorted({fmt.value for fmt in formats}))
+    fmt_list = ", ".join(
+        sorted({fmt.value for fmt in formats})  # pragma: no branch
+    )
     _formats_by_renderer_parts.append(f"{renderer}: {fmt_list}")
 
 FORMATS_BY_RENDERER_HELP_TEXT = "\n".join(_formats_by_renderer_parts)
 
-ALL_DIAGRAM_FORMATS = sorted({fmt.value for fmt in DiagramFormat})
+ALL_DIAGRAM_FORMATS = sorted({
+    fmt.value
+    for fmt in DiagramFormat  # pragma: no branch
+})
 
 CONVERT_FROM_FORMATS = sorted({JSON.value})
 CONVERT_TO_FORMATS = sorted({PY.value})

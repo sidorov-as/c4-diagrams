@@ -1,0 +1,80 @@
+direction: right
+__title: ||md
+  # Retail Platform - System Context
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Browses products and places orders.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+support_agent: ||md
+  ## Support Agent
+
+  [Person]
+
+  Helps customers with order questions.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Software System]
+
+  Processes card payments.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+acme_retail: {
+  label: ||md
+    ## Acme Retail
+
+    [Enterprise]
+
+    Systems owned by Acme Retail.
+  ||
+  shape: rectangle
+  retail_platform: ||md
+    ## Retail Platform
+
+    [Software System]
+
+    Handles catalog browsing, checkout, and order management.
+  || {
+    shape: rectangle
+  }
+  support_portal: ||md
+    ## Support Portal
+
+    [Software System]
+
+    Provides order lookup and customer support workflows.
+  || {
+    shape: rectangle
+  }
+}
+customer -> acme_retail.retail_platform: "Places orders using\n[HTTPS]"
+support_agent -> acme_retail.support_portal: "Investigates orders in\n[HTTPS]"
+acme_retail.support_portal -> acme_retail.retail_platform: "Reads order data from\n[HTTPS]"
+acme_retail.retail_platform -> payment_provider: "Requests payments from\n[HTTPS]"

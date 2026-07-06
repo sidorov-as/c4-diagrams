@@ -1,0 +1,63 @@
+direction: right
+__title: ||md
+  # Order Fulfillment Flow
+|| {
+  near: top-center
+}
+shape: sequence_diagram
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+  c4_external: {
+    style.fill: "#f7f7f7"
+    style.stroke: "#767676"
+    style.stroke-dash: "5"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Places orders in the online store.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+online_store: ||md
+  ## Online Store
+
+  [Software System]
+
+  Customer-facing commerce platform.
+|| {
+  shape: rectangle
+}
+payment_gateway: ||md
+  ## Payment Gateway
+
+  [Software System]
+
+  External provider that authorizes card payments.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+warehouse_system: ||md
+  ## Warehouse System
+
+  [Software System]
+
+  External warehouse platform that reserves and ships items.
+|| {
+  shape: rectangle
+  class: ["c4_external"]
+}
+customer -> online_store: "1. Places order\n[HTTPS]"
+online_store -> payment_gateway: "2. Authorizes payment\n[REST API]"
+payment_gateway -> online_store: "3. Returns authorization result\n[HTTPS]"
+online_store -> warehouse_system: "4. Sends fulfillment request\n[AMQP]"
+warehouse_system -> online_store: "5. Confirms reservation\n[AMQP]"
