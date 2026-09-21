@@ -1,0 +1,37 @@
+name: "Setup LikeC4"
+description: "Install a pinned LikeC4 CLI and Playwright Chromium for image export tests"
+
+inputs:
+  likec4-version:
+    description: "LikeC4 version to install (e.g. 1.60.0)"
+    required: true
+    default: "1.60.0"
+  node-version:
+    description: "Node.js version"
+    required: false
+    default: "22"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install LikeC4
+      shell: bash
+      run: |
+        set -euo pipefail
+        npm install --global "likec4@${{ inputs.likec4-version }}"
+        command -v likec4
+
+    - name: Install Playwright Chromium
+      shell: bash
+      run: |
+        set -euo pipefail
+        npx --yes playwright install --with-deps chromium
+
+    - name: Show LikeC4 version
+      shell: bash
+      run: likec4 --version

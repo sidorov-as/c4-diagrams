@@ -1388,3 +1388,21 @@ def test_diagram_to_python_code__empty_renderer_options(
     result = diagram_to_python_code(diagram)
 
     assert result == expected_result
+
+
+def test_diagram_to_python_code__rejects_mismatched_backends():
+    from c4 import ContainerDiagram
+    from c4.contrib.likec4 import Project
+    from c4.contrib.structurizr import Workspace
+    from c4.enums import RendererEnum
+
+    with pytest.raises(ValueError, match="requires the LikeC4 backend"):
+        diagram_to_python_code(Project(), RendererEnum.PLANTUML)
+    with pytest.raises(ValueError, match="requires a LikeC4 Project"):
+        diagram_to_python_code(Workspace("W"), RendererEnum.LIKEC4)
+    with pytest.raises(ValueError, match="requires the Structurizr backend"):
+        diagram_to_python_code(Workspace("W"), RendererEnum.PLANTUML)
+    with pytest.raises(ValueError, match="requires a Structurizr Workspace"):
+        diagram_to_python_code(ContainerDiagram("D"), RendererEnum.STRUCTURIZR)
+    with pytest.raises(TypeError, match="requires a Diagram"):
+        diagram_to_python_code(object())  # type: ignore[arg-type]

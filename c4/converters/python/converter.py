@@ -2,6 +2,10 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 
+from c4.contrib.likec4 import Project
+from c4.contrib.likec4.converters.python import project_to_python_code
+from c4.contrib.structurizr import Workspace
+from c4.contrib.structurizr.converters.python import workspace_to_python_code
 from c4.converters.python.renderers import d2, mermaid, plantuml
 from c4.diagrams.core import (
     DEFAULT_PROPERTIES_HEADER,
@@ -14,7 +18,7 @@ from c4.diagrams.core import (
 )
 from c4.enums import RendererEnum
 from c4.renderers import D2RenderOptions, MermaidRenderOptions, RenderOptions
-from c4.renderers.base import IndentedStringBuilder
+from c4.renderers.base import IndentedStringBuilder, RenderTarget
 from c4.renderers.plantuml.options import PlantUMLRenderOptions
 
 _DEFAULT_PROPERTIES_HEADER: tuple[str, str] = DEFAULT_PROPERTIES_HEADER
@@ -430,18 +434,40 @@ class PythonCodegen:
 
 
 def diagram_to_python_code(
-    diagram: Diagram, backend: RendererEnum | None = None
+    diagram: RenderTarget,
+    backend: RendererEnum | None = None,
 ) -> str:
-    """
-    Convenience helper to generate Python DSL from a diagram.
+    """Generate Python DSL that recreates a diagram, Workspace or Project."""
+    if isinstance(diagram, Project):
+        if backend is not None and backend is not RendererEnum.LIKEC4:
+            raise ValueError(
+                "LikeC4 Project requires the LikeC4 backend; got "
+                f"{backend.value!r}."
+            )
+        return project_to_python_code(diagram)
 
-    Args:
-        diagram: The diagram instance to serialize.
-        backend: Optional rendering backend type.
+    if backend is RendererEnum.LIKEC4:
+        raise ValueError(
+            "LikeC4 backend requires a LikeC4 Project; got "
+            f"{type(diagram).__name__}."
+        )
 
-    Returns:
-        Python code that recreates the given diagram.
-    """
-    renderer = PythonCodegen(backend)
+    if isinstance(diagram, Workspace):
+        if backend is not None and backend is not RendererEnum.STRUCTURIZR:
+            raise ValueError(
+                "Structurizr Workspace requires the Structurizr backend; got "
+                f"{backend.value!r}."
+            )
+        return workspace_to_python_code(diagram)
 
-    return renderer.generate(diagram)
+    if backend is RendererEnum.STRUCTURIZR:
+        raise ValueError(
+            "Structurizr backend requires a Structurizr Workspace; got "
+            f"{type(diagram).__name__}."
+        )
+    if not isinstance(diagram, Diagram):
+        raise TypeError(
+            "Core Python conversion requires a Diagram, Structurizr "
+            f"Workspace or LikeC4 Project; got {type(diagram).__name__}."
+        )
+    return PythonCodegen(backend).generate(diagram)

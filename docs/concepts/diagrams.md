@@ -3,20 +3,26 @@
 !!! note
 
     You can find a detailed description of the different C4 diagram types and components in the
-    corresponding sections of the [documentation](../diagrams/system-context.md).
+    corresponding sections of the [documentation](portable/system-context.md).
 
     For the boundary between backend-neutral model data and renderer-specific hints, see
     [Portable core and backend extensions](portable-core-and-extensions.md).
 
 ## Diagrams
 
-[`Diagram`][c4.diagrams.core.Diagram] is a primary object representing a diagram.
+A diagram is built inside a `with` block. Elements declared in the block are added to the diagram,
+and `>> Rel(...) >>` connects them:
 
 ```python
-from c4.diagrams.core import Diagram
+from c4 import Person, Rel, System, SystemContextDiagram
 
-with Diagram("Simple Diagram") as diagram:
-    # Declare diagram components here
+with SystemContextDiagram("Example system context") as diagram:
+    user = Person(label="User", description="System user")
+    backend = System(label="Backend API", description="Main application backend")
+
+    user >> Rel("Uses HTTP API") >> backend
+
+print(diagram.as_plantuml())
 ```
 
 Each C4 diagram type is implemented as a subclass of [`Diagram`][c4.diagrams.core.Diagram]:
@@ -32,21 +38,28 @@ from c4 import (
 )
 ```
 
-!!! note "Note"
+A diagram is turned into text by a renderer. [`Diagram.render()`][c4.diagrams.core.Diagram.render]
+uses the diagram's `default_renderer` or one you pass, the `as_plantuml()`,
+`as_mermaid()` and `as_d2()` shortcuts use a ready-made renderer, and
+[`Diagram.save()`][c4.diagrams.core.Diagram.save] writes the result to a file:
 
-    [`Diagram`][c4.diagrams.core.Diagram] is a low-level abstraction and is not intended to be instantiated directly.
+```python
+print(diagram.as_plantuml())
+diagram.save_as_plantuml("output.puml")
+```
 
-    Always use one of the concrete diagram classes ([`SystemContextDiagram`][c4.diagrams.system_context.SystemContextDiagram],
-    [`ContainerDiagram`][c4.diagrams.container.ContainerDiagram], [`ComponentDiagram`][c4.diagrams.component.ComponentDiagram], etc.), as they define the semantics,
-    constraints, and rendering rules specific to each C4 diagram type.
-
-<br/>
+The renderers, their options and the image export backends are described in
+[Rendering backends](../renderers/comparison.md).
 
 ## Elements
 
-[`Element`][c4.diagrams.core.Element] represents a C4 abstraction such as a **System**, **Container**, or **Component**.
+Elements such as **Person**, **System**, **Container** or **Component** are created inside a diagram context.
 
-Elements must be declared within a diagram context:
+### Low-level `Diagram` and `Element`
+
+[`Diagram`][c4.diagrams.core.Diagram] and [`Element`][c4.diagrams.core.Element] are the base classes behind
+the concrete diagram and element types. Application code uses the concrete classes above; the base classes are
+shown here because the examples on this page use them to keep the code short:
 
 ```python
 from c4.diagrams.core import Diagram, Element
@@ -224,6 +237,37 @@ with Diagram("Simple Diagram") as diagram:
 
 All syntaxes above produce the same [`Relationship`][c4.diagrams.core.Relationship] in the diagram.
 
+#### Relationship without a label
+
+`element1 >> element2` creates the relationship at once, with no label
+(`label` is `None`). The pipe then sets the label:
+
+```python
+from c4.diagrams.core import Diagram, Element
+
+with Diagram("Simple Diagram") as diagram:
+    element1 = Element(label="Element 1")
+    element2 = Element(label="Element 2")
+
+    element1 >> element2
+
+assert diagram.relationships[0].label is None
+```
+
+`element1 >> element2 | "Uses"` is the same relationship with the label
+`Uses`. The pipe only fills an empty label: it raises `ValueError` if the
+relationship already has one, including an empty string, so
+`element1 >> "Uses" >> element2 | "Reads"` fails instead of replacing `Uses`.
+
+C4-PlantUML and C4-Mermaid reject a relationship without a label, so the
+PlantUML and Mermaid renderers write the placeholder `uses` for it. Change the
+text, or turn it off with `None`, through the
+`default_relationship_label` render option
+([PlantUML](../renderers/plantuml/styles-and-options.md#unlabeled-relationships),
+[Mermaid](../renderers/mermaid/options.md#unlabeled-relationships),
+[all options](../renderers/render-options.md#unlabeled-relationships)). An explicit empty label (`""`)
+is written as it is. The other renderers do not write a placeholder.
+
 <br/>
 
 #### Reversed direction
@@ -313,6 +357,13 @@ with Diagram("Simple Diagram") as diagram:
     element1 << Rel("Uses") << [element2, element3]
 ```
 
+!!! note
+
+    A list can only stand on the left of `>>` or `<<` together with `Rel(...)`.
+    Python has no `>>` between a `list` and a `str`, so `[element2, element3] >> "Uses" >> element1`
+    raises `TypeError`. Write `[element2, element3] >> Rel("Uses") >> element1` instead.
+    A string works when a single element is on the left: `element1 >> "Uses" >> [element2, element3]`.
+
 <br/>
 
 ## Boundaries
@@ -351,126 +402,16 @@ from c4.contrib.c4_macros import NodeLeft, NodeRight
 from c4.contrib.plantuml import DeploymentNodeLeft, DeploymentNodeRight
 ```
 
-## Examples
+## Diagram types
 
-You can find all the examples on the [examples](../examples/plantuml/plantuml.md) page.
+Each C4 diagram type has its own page with supported DSL classes, examples and
+generated output:
 
-### System context diagram
+- [System context](portable/system-context.md)
+- [Containers](portable/containers.md)
+- [Components](portable/components.md)
+- [System landscape](portable/system-landscape.md)
+- [Dynamic](portable/dynamic.md)
+- [Deployment](portable/deployment.md)
 
-```python
-from c4 import SystemContextDiagram, Person, System, SystemExt
-
-with SystemContextDiagram("Internet Banking System") as diagram:
-    client = Person(
-        label="Personal Banking Customer",
-        description="A customer of the bank with one or more personal bank accounts"
-    )
-    banking_system = System(
-        label="Internal Banking System",
-        description=(
-            "Allow customers to view information about their bank accounts "
-            "and make payments via the web."
-        )
-    )
-    aws_email = SystemExt(
-        label="Amazon Web Services Simple Email Service",
-        description="Cloud-based email service provider."
-    )
-    core_banking_system = System(
-        label="Core Banking System",
-        description=(
-            "Handles core banking functions including customer information, "
-            "bank account management, transactions, etc."
-        )
-    )
-
-    client >> "Views account balances and makes payments using" >> banking_system
-    banking_system >> "Sends e-mails to customers using" >> aws_email
-    aws_email >> "Sends e-mails to" >> client
-    banking_system >> "Gets bank account information from and makes payments using" >> core_banking_system
-```
-
-The diagram above can be rendered into the following PlantUML diagram:
-
-![diagram](../assets/concepts/system-context-diagram.svg)
-
-
-### Container diagram
-
-```python
-from c4 import (
-    ContainerDiagram,
-    Person,
-    System,
-    SystemExt,
-    ContainerBoundary,
-    Container,
-    ContainerDb,
-    Rel,
-)
-from c4.contrib.plantuml import RelDown, RelLeft, RelRight, RelUp
-
-with ContainerDiagram("Internet Banking System") as diagram:
-    client = Person(
-        label="Personal Banking Customer",
-        description="A customer of the bank with one or more personal bank accounts"
-    )
-    aws_email = SystemExt(
-        label="Amazon Web Services Simple Email Service",
-        description="Cloud-based email service provider."
-    )
-    core_banking_system = System(
-        label="Core Banking System",
-        description=(
-            "Handles core banking functions including customer information, "
-            "bank account management, transactions, etc."
-        )
-    )
-
-    with ContainerBoundary(label="Internal Banking System"):
-        static = Container(
-            label="Static Content",
-            technology="Directory",
-            description="HTML, CSS, JavaScript, etc.",
-
-        )
-        ui = Container(
-            label="UI",
-            technology="JavaScript and Angular",
-            description=(
-                "Single-page app that provides Internet banking functionality "
-                "to customers via their web browser."
-            ),
-        )
-        backend = Container(
-            label="Backend",
-            technology="Java and Spring Boot",
-            description=(
-                "Provides Internet banking functionality via a JSON/HTTP API."
-            )
-        )
-        statement_store = Container(
-            label="Statement Store",
-            technology="Amazon Web Services S3 Bucket",
-            description="Bank account statements rendered as PDF files."
-        )
-        db = ContainerDb(
-            label="Database",
-            technology="MySQL",
-            description="User account information, access logs, etc.",
-        )
-
-    client >> RelDown("Loads the UI form" ) >> static
-    client >> RelDown("Views account balances and makes payments using" ) >> ui
-    static >> RelRight("Delivers") >> ui
-    backend >> RelLeft("Sends e-mails to customers using", technology="AWS SES API/HTTP") >> aws_email
-    aws_email >> RelUp("Sends e-mails to") >> client
-    ui >> Rel("Makes API requests to", technology="JSON/HTTP") >> backend
-    backend >> RelRight("Makes API requests to", technology="XML/HTTPS") >> core_banking_system
-    backend >> Rel("Reads from and writes to", technology="MySQL protocol") >> db
-    backend >> Rel("Reads from and writes to", technology="AWS S3 API/HTTP") >> statement_store
-```
-
-The diagram above can be rendered into the following PlantUML diagram:
-
-![diagram](../assets/concepts/container-diagram.svg)
+More runnable snippets are on the [examples](../examples/plantuml/plantuml.md) page.

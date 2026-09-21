@@ -1,7 +1,10 @@
 # Mermaid Relationships
 
-Mermaid relationship helpers live in `c4.contrib.mermaid`. Mermaid C4 supports
-a smaller subset of relationship syntax than PlantUML.
+Mermaid relationship helpers live in `c4.contrib.mermaid`. The library exports
+bidirectional (`BiRel*`) and directional (`Rel*`) helpers and generates their
+syntax. Mermaid C4 accepts the directional forms but ignores the direction, so
+they have no layout effect in the rendered image. Layout (`Lay*`) and `Index`
+helpers are not provided. See [limitations](../../renderers/mermaid/limitations.md).
 
 ::: c4.contrib.mermaid.RelRight
     options:

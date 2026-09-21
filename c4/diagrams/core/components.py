@@ -58,7 +58,6 @@ class ElementExtensions(TypedDict, total=False):
     plantuml: PlantUMLElementExtensions | None
     mermaid: Mapping[str, Any] | None
     d2: D2ElementExtensions | None
-    structurizr: Mapping[str, Any] | None
 
 
 class BoundaryExtensions(TypedDict, total=False):
@@ -481,26 +480,30 @@ class Element(BaseDiagramElement, abc.ABC):
     def __rshift__(self, other: str) -> Relationship: ...  # pragma: no cover
 
     @overload
-    def __rshift__(self, other: Element) -> _EdgeDraft: ...  # pragma: no cover
+    def __rshift__(
+        self, other: Element
+    ) -> Relationship: ...  # pragma: no cover
 
-    def __rshift__(self, other: str | Element) -> Relationship | _EdgeDraft:
+    def __rshift__(self, other: str | Element) -> Relationship:
         """
-        Start a fluent relationship declaration from this element.
+        Start or create a relationship from this element.
 
         Args:
             other: A relationship label for `self >> "label" >> element`,
-                or the destination element for `self >> element | "label"`.
+                or the destination element for `self >> element`.
 
         Returns:
-            A partial relationship or edge draft to complete the declaration.
+            A partial relationship for a label, or a complete unlabeled
+            relationship for an element. Use `self >> element | "label"`
+            to set its label.
         """
         if isinstance(other, str):
             # self >> "label" >> element2
             return Relationship(label=other, from_element=self)
 
         if isinstance(other, Element):
-            # Draft for: self >> element2 | "label"
-            return _EdgeDraft(source=self, destination=other)
+            # self >> element2 [| "label"]
+            return Relationship(from_element=self, to_element=other)
 
         return NotImplemented
 
@@ -508,26 +511,30 @@ class Element(BaseDiagramElement, abc.ABC):
     def __lshift__(self, other: str) -> Relationship: ...  # pragma: no cover
 
     @overload
-    def __lshift__(self, other: Element) -> _EdgeDraft: ...  # pragma: no cover
+    def __lshift__(
+        self, other: Element
+    ) -> Relationship: ...  # pragma: no cover
 
-    def __lshift__(self, other: str | Element) -> Relationship | _EdgeDraft:
+    def __lshift__(self, other: str | Element) -> Relationship:
         """
-        Start a fluent relationship declaration toward this element.
+        Start or create a relationship toward this element.
 
         Args:
             other: A relationship label for `element << "label" << self`,
-                or the source element for `element << self | "label"`.
+                or the source element for `element << self`.
 
         Returns:
-            A partial relationship or edge draft to complete the declaration.
+            A partial relationship for a label, or a complete unlabeled
+            relationship for an element. Use `element << self | "label"`
+            to set its label.
         """
         if isinstance(other, str):
             # element1 << "label" << element2
             return Relationship(label=other, to_element=self)
 
         if isinstance(other, Element):
-            # Draft for: element1 >> element2 | "label"
-            return _EdgeDraft(source=other, destination=self)
+            # element1 << element2 [| "label"]
+            return Relationship(from_element=other, to_element=self)
 
         return NotImplemented
 
@@ -895,27 +902,6 @@ class Boundary(Element):
         return element
 
 
-@dataclass(frozen=True)
-class _EdgeDraft:
-    """
-    Intermediate object for `source >> destination | "label"` syntax.
-    """
-
-    source: Element
-    destination: Element
-
-    def __or__(self, label: str) -> Relationship:
-        """Create the relationship represented by this draft."""
-        if not isinstance(label, str):
-            return NotImplemented  # pragma: no cover
-
-        return Relationship(
-            label=label,
-            from_element=self.source,
-            to_element=self.destination,
-        )
-
-
 class Relationship(BaseDiagramElement):
     """
     Represents a connection between two elements.
@@ -923,6 +909,11 @@ class Relationship(BaseDiagramElement):
     Supports direct construction and fluent chaining using `>>` and `<<`
     operators. Subclasses are registered by
     [`RelationshipType`][c4.diagrams.core.RelationshipType].
+
+    `a >> b` creates a relationship with `label=None`. `a >> b | "label"`
+    sets the label while it is `None` and raises `ValueError` once a label,
+    even an empty one, exists. PlantUML and Mermaid write the
+    `default_relationship_label` placeholder for an unlabeled relationship.
     """
 
     __relationship_by_type: ClassVar[
@@ -1087,6 +1078,31 @@ class Relationship(BaseDiagramElement):
         self._ensure_not_completed()
 
         return self._connect(source=self.from_element, destination=other)  # type: ignore[arg-type,type-var]
+
+    def __or__(self, label: str) -> Relationship:
+        """
+        Set the label of an unlabeled relationship: `a >> b | "label"`.
+
+        Args:
+            label: The label shown on the relationship edge.
+
+        Returns:
+            This relationship.
+
+        Raises:
+            ValueError: If the relationship already has a label.
+        """
+        if not isinstance(label, str):
+            return NotImplemented  # pragma: no cover
+
+        if self.label is not None:
+            raise ValueError(
+                f"Relationship already has the label {self.label!r}"
+            )
+
+        self.label = label
+
+        return self
 
     def __repr__(self) -> str:
         cls_name = self.__class__.__name__

@@ -3,7 +3,7 @@
 > **Source:** [mermaid.system-context-diagram.json](../../../assets/specs/mermaid.system-context-diagram.json)
 
 
-This schema describes the [SystemContextDiagram][c4.diagrams.system_context.SystemContextDiagram] spec for the Mermaid backend.
+This schema describes the [SystemContextDiagram][c4.diagrams.system_context.SystemContextDiagram] diagram spec for the Mermaid backend.
 
 ## Properties
 
@@ -75,19 +75,16 @@ This schema describes the [SystemContextDiagram][c4.diagrams.system_context.Syst
 - [MermaidSystemDbExtSchema](#mermaidsystemdbextschema)
 - [MermaidSystemQueueSchema](#mermaidsystemqueueschema)
 - [MermaidSystemQueueExtSchema](#mermaidsystemqueueextschema)
-
 ### Boundaries
 
 - [MermaidBoundarySchema](#mermaidboundaryschema)
 - [MermaidEnterpriseBoundarySchema](#mermaidenterpriseboundaryschema)
 - [MermaidSystemBoundarySchema](#mermaidsystemboundaryschema)
-
 ### Relationships
 
 - [MermaidRelationshipSchema](#mermaidrelationshipschema)
 
 - [MermaidRelationshipSchema types](#relationshiptype)
-
 ## Definitions
 
 
@@ -126,7 +123,6 @@ Relationship types supported by Mermaid C4 diagrams.
     | `REL_RIGHT` | A unidirectional rightward relationship. |
     | `REL_U` | A unidirectional upward relationship. Shorthand for `REL_UP`. |
     | `REL_UP` | A unidirectional upward relationship. |
-
 ### DiagramElementPropertiesSchema
 
 JSON schema for tabular diagram element properties.
@@ -140,7 +136,6 @@ JSON schema for tabular diagram element properties.
     | `header` | <code>array[string]</code> | Header columns. Default: `["Property", "Value"]`. |
     | **`properties(required)`** | <code>array[array[string]]</code> | List of rows (each row is a list of string values). |
     | `show_header` | `boolean` | Whether to display the header row. Default: `true`. |
-
 ### MermaidBoundarySchema
 
 Mermaid JSON schema for a generic boundary.
@@ -160,7 +155,6 @@ Mermaid JSON schema for a generic boundary.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional Mermaid boundary type/stereotype label. |
-
 ### MermaidEnterpriseBoundarySchema
 
 Mermaid JSON schema for an enterprise boundary.
@@ -180,7 +174,6 @@ Mermaid JSON schema for an enterprise boundary.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional Mermaid boundary type/stereotype label. |
-
 ### MermaidPersonExtSchema
 
 Mermaid JSON schema for an external person.
@@ -196,7 +189,6 @@ Mermaid JSON schema for an external person.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### MermaidPersonSchema
 
 Mermaid JSON schema for a person.
@@ -212,7 +204,6 @@ Mermaid JSON schema for a person.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### MermaidRelationshipSchema
 
 JSON schema for relationships supported by Mermaid C4 diagrams.
@@ -230,7 +221,6 @@ JSON schema for relationships supported by Mermaid C4 diagrams.
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | The technology used in the communication. |
     | **`to(required)`** | `string` | The destination element alias (or unique label). For Mermaid, this must resolve to a concrete element, not a boundary. |
-
 ### MermaidSystemBoundarySchema
 
 Mermaid JSON schema for a system boundary.
@@ -250,7 +240,6 @@ Mermaid JSON schema for a system boundary.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional Mermaid boundary type/stereotype label. |
-
 ### MermaidSystemDbExtSchema
 
 Mermaid JSON schema for an external database-like system.
@@ -266,7 +255,6 @@ Mermaid JSON schema for an external database-like system.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### MermaidSystemDbSchema
 
 Mermaid JSON schema for a database-like system.
@@ -282,7 +270,6 @@ Mermaid JSON schema for a database-like system.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### MermaidSystemExtSchema
 
 Mermaid JSON schema for an external software system.
@@ -298,7 +285,6 @@ Mermaid JSON schema for an external software system.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### MermaidSystemQueueExtSchema
 
 Mermaid JSON schema for an external queue-like system.
@@ -314,7 +300,6 @@ Mermaid JSON schema for an external queue-like system.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### MermaidSystemQueueSchema
 
 Mermaid JSON schema for a queue-like system.
@@ -330,7 +315,6 @@ Mermaid JSON schema for a queue-like system.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### MermaidSystemSchema
 
 Mermaid JSON schema for a software system.
@@ -346,7 +330,6 @@ Mermaid JSON schema for a software system.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 
 
 ## Mermaid Render Options
@@ -367,7 +350,6 @@ applied at render time.
     |---|---|---|
     | `styles` | <code>array[<code><a href="#mermaidelementstyleschema">MermaidElementStyleSchema</a></code>\|<code><a href="#mermaidrelstyleschema">MermaidRelStyleSchema</a></code>]</code> | List of style update macro configurations. |
     | `update_layout_config` | <code><a href="#updatelayoutconfigschema">UpdateLayoutConfigSchema</a></code> | Configuration for updating default layout behavior. |
-
 ### MermaidElementStyleSchema
 
 Style update for an individual diagram element.
@@ -383,7 +365,6 @@ Style update for an individual diagram element.
     | `border_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Border line color. |
     | **`element(required)`** | `string` | Alias of the element to style. |
     | `font_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Font/text color. |
-
 ### MermaidRelStyleSchema
 
 Style update for relationship lines.
@@ -401,7 +382,6 @@ Style update for relationship lines.
     | `offset_y` | <span style="white-space: nowrap;">`integer` \| `null`</span> | Optional vertical offset for the label position. |
     | `text_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Color of the relationship label text. |
     | **`to_element(required)`** | `string` | Alias of the target element to style. |
-
 ### UpdateLayoutConfigSchema
 
 Configuration for updating default layout behavior in

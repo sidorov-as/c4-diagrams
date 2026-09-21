@@ -1,4 +1,4 @@
-# JSON to Diagram Converter
+# JSON authoring and conversion
 
 Diagrams can be defined in **JSON** as an alternative to the Python DSL.
 
@@ -10,6 +10,80 @@ fields describe C4 model data, while backend-specific convenience fields are
 normalized into renderer-keyed extension data. See
 [Portable core and backend extensions](../../concepts/portable-core-and-extensions.md)
 for the Python authoring model.
+
+## Installation
+
+JSON loading needs the `converters` extra:
+
+=== "pip"
+
+    ```bash
+    pip install c4-diagrams[converters]
+    ```
+
+=== "uv"
+
+    ```bash
+    uv add c4-diagrams[converters]
+    ```
+
+Structurizr and LikeC4 JSON use the same extra. See
+[Installation](../../installation.md#python-extras) for the other extras.
+
+## Quick start
+
+Save the document as `diagram.json`:
+
+```json
+{
+  "type": "SystemContextDiagram",
+  "elements": [
+    {"type": "Person", "alias": "user", "label": "User", "description": "System user"},
+    {"type": "System", "alias": "app", "label": "Backend API", "description": "Main application backend"}
+  ],
+  "relationships": [
+    {"type": "REL", "from": "user", "to": "app", "label": "Uses HTTP API"}
+  ]
+}
+```
+
+Load it and render PlantUML source from Python:
+
+```python
+from pathlib import Path
+
+from c4.converters.json.converter import diagram_from_json
+
+diagram, backend = diagram_from_json(Path("diagram.json"))
+print(diagram.as_plantuml())
+```
+
+Or from the command line:
+
+```shell
+c4 render diagram.json > diagram.puml
+```
+
+## Document variants
+
+The optional top-level `backend` field selects the schema. The value decides
+what the loader returns:
+
+| `backend`      | Root object                                                  | Schema pages                                                                                                    |
+|----------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| omitted        | A `Diagram` subclass, such as `SystemContextDiagram`         | [Core](specs/core.system_context_diagram.md)                                                                    |
+| `plantuml`     | A `Diagram` subclass, such as `SystemContextDiagram`         | [PlantUML](specs/plantuml.system_context_diagram.md)                                                            |
+| `mermaid`      | A `Diagram` subclass, such as `SystemContextDiagram`         | [Mermaid](specs/mermaid.system_context_diagram.md)                                                              |
+| `d2`           | A `Diagram` subclass, such as `SystemContextDiagram`         | [D2](specs/d2.system_context_diagram.md)                                                                        |
+| `structurizr`  | `Workspace`                                                  | [Structurizr workspace](specs/structurizr.workspace.md)                                                         |
+| `likec4`       | `Project`                                                    | [LikeC4 project](specs/likec4.project.md)                                                                       |
+
+Core, PlantUML, Mermaid and D2 documents describe one diagram and pick the
+diagram class with the `type` field (`SystemContextDiagram`, `ContainerDiagram`
+and so on). Structurizr and LikeC4 documents are not single diagrams: a
+Structurizr document describes a workspace and a LikeC4 document describes a
+project, each with its own model, views and specification shape. They do not
+use `type`, `elements` and `relationships` at the top level.
 
 ## Canonical schema shape
 

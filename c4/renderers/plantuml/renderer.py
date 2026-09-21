@@ -28,10 +28,13 @@ from c4.diagrams.core import (
 )
 from c4.diagrams.dynamic import DynamicDiagram
 from c4.enums import RendererEnum
-from c4.exceptions import PlantUMLBackendConfigurationError
+from c4.exceptions import (
+    PlantUMLBackendConfigurationError,
+    PlantUMLRenderingError,
+)
 from c4.renderers.base import (
     IGNORE_FOREIGN,
-    BaseRenderer,
+    BaseDiagramRenderer,
     ExtensionValidationModeType,
     IndentedStringBuilder,
 )
@@ -196,7 +199,7 @@ class PlantUMLRenderOptionsRenderer:
         return builder.get_result()
 
 
-class BasePlantUMLRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
+class BasePlantUMLRenderer(BaseDiagramRenderer, Generic[TDiagram]):
     """A base renderer for converting a Diagram object into PlantUML syntax."""
 
     renderer_type: RendererEnum = RendererEnum.PLANTUML
@@ -292,7 +295,10 @@ class BasePlantUMLRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
         return builder.get_result()
 
     def _render_relationship(self, relationship: Relationship) -> list[str]:
-        macro = RelationshipPlantUMLMacro(relationship)
+        macro = RelationshipPlantUMLMacro(
+            relationship,
+            default_label=self._render_options.default_relationship_label,
+        )
 
         properties_macros = macro.render_properties(
             self._without_property_header
@@ -373,6 +379,11 @@ class BasePlantUMLRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
     @override
     def validate(self, diagram: TDiagram) -> None:
         """Validate PlantUML-specific rendering constraints."""
+        if not isinstance(diagram, Diagram):
+            raise PlantUMLRenderingError(
+                "PlantUMLRenderer requires a c4.diagrams.core.Diagram; got "
+                f"{diagram.__class__.__name__}."
+            )
         validate_plantuml_diagram(
             diagram,
             renderer_name=self.__class__.__name__,
@@ -601,7 +612,7 @@ DIAGRAM_TYPE_TO_RENDERER_MAP: dict[_DiagramType, _Renderer] = {
 }
 
 
-class PlantUMLRenderer(BaseRenderer[Diagram]):
+class PlantUMLRenderer(BaseDiagramRenderer):
     """
     Renderer for converting a Diagram object into PlantUML syntax.
     """
@@ -670,6 +681,11 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
         )
 
     @override
+    def validate(self, diagram: Diagram) -> None:
+        """Validate that the target is a portable C4 diagram."""
+        self._validate_target(diagram)
+
+    @override
     def render(self, diagram: Diagram) -> str:
         """
         Render the given Diagram into PlantUML format.
@@ -680,6 +696,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
         Returns:
             A PlantUML-formatted string representing the diagram.
         """
+        self.validate(diagram)
         renderer = self.get_renderer(diagram)
         return renderer.render(diagram)
 
@@ -709,6 +726,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
             PlantUMLError: If the underlying PlantUML backend fails to
                 render the diagram.
         """
+        self.validate(diagram)
         renderer = self.get_renderer(diagram)
         return renderer.render_bytes(
             diagram,
@@ -748,6 +766,7 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
             PlantUMLError: If the underlying PlantUML backend fails to
                 render or write the diagram.
         """
+        self.validate(diagram)
         renderer = self.get_renderer(diagram)
         return renderer.render_file(
             diagram,
@@ -755,6 +774,14 @@ class PlantUMLRenderer(BaseRenderer[Diagram]):
             format=format,
             overwrite=overwrite,
         )
+
+    @staticmethod
+    def _validate_target(diagram: Any) -> None:
+        if not isinstance(diagram, Diagram):
+            raise PlantUMLRenderingError(
+                "PlantUMLRenderer requires a c4.diagrams.core.Diagram; got "
+                f"{diagram.__class__.__name__}."
+            )
 
 
 __all__ = ("PlantUMLRenderer",)

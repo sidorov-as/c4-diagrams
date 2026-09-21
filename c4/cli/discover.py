@@ -12,21 +12,21 @@ from typing import IO, TYPE_CHECKING, Any, Protocol
 from uuid import uuid4
 
 from c4.cli.exceptions import (
-    DiagramNotFoundError,
     ImportFromStringError,
     MissingConverterDependency,
-    MultipleDiagramsFoundError,
+    MultipleRenderTargetsFoundError,
+    RenderTargetNotFoundError,
     TargetParseError,
 )
-from c4.diagrams.core import Diagram
 from c4.enums import RendererEnum
+from c4.renderers.base import RenderTarget
 
 if TYPE_CHECKING:  # pragma: no cover
 
     class DiagramFromJson(Protocol):
         def __call__(
             self, src: str | bytes | Path | IO[str] | IO[bytes]
-        ) -> tuple[Diagram, RendererEnum | None]: ...
+        ) -> tuple[RenderTarget, RendererEnum | None]: ...
 
     class DiagramBackendFromJson(Protocol):
         def __call__(
@@ -116,10 +116,10 @@ def _resolve_dotted_attribute(root: Any, dotted_path: str) -> Any:
 def _resolve_diagram_ref(
     target: Target,
     module: ModuleType,
-) -> Diagram:
+) -> RenderTarget:
     """
     Resolve a dotted attribute path inside a module and
-    validate it's a Diagram.
+    validate it is a render target.
 
     Args:
         target: Parsed target with provided object_ref.
@@ -131,10 +131,10 @@ def _resolve_diagram_ref(
     Raises:
         DiagramNotFoundError: If the attribute path does not exist.
         ImportFromStringError: If the resolved object is
-            not a Diagram instance.
+            not a render target.
     """
     if not target.object_ref:
-        raise ValueError("Diagram reference not provided")
+        raise ValueError("Render target reference not provided")
 
     dotted_path = target.object_ref
 
@@ -146,17 +146,19 @@ def _resolve_diagram_ref(
     try:
         value = _resolve_dotted_attribute(module, dotted_path)
     except AttributeError as exc:
-        raise DiagramNotFoundError(
-            f"Diagram reference {dotted_path!r} was not found in {module_repr}."
+        raise RenderTargetNotFoundError(
+            f"Render target reference {dotted_path!r} was not found in "
+            f"{module_repr}."
         ) from exc
 
-    if not isinstance(value, Diagram):
+    if isinstance(value, type) or not isinstance(value, RenderTarget):
         raise ImportFromStringError(
             f"Reference {dotted_path!r} in {module_repr} must be "
-            f"a Diagram instance; got {type(value).__name__}."
+            f"a render target; got "
+            f"{type(value).__name__}."
         )
 
-    return value
+    return typing.cast(RenderTarget, value)
 
 
 def _load_module_from_file(filepath: str) -> ModuleType:
@@ -203,29 +205,29 @@ def _load_module_from_file(filepath: str) -> ModuleType:
     return module
 
 
-def _list_diagram_globals(module: ModuleType) -> list[str]:
+def _list_render_target_globals(module: ModuleType) -> list[str]:
     """
-    List module-level globals that are Diagram instances.
+    List module-level globals that are render targets.
 
     Args:
         module: Module to inspect.
 
     Returns:
-        Sorted list of names referencing Diagram instances.
+        Sorted list of names referencing render targets.
     """
     names: list[str] = []
     for name, value in vars(module).items():
-        if isinstance(value, Diagram):
+        if not isinstance(value, type) and isinstance(value, RenderTarget):
             names.append(name)
     return sorted(names)
 
 
-def _get_single_diagram_from_module(
+def _get_single_render_target_from_module(
     target: Target,
     module: ModuleType,
-) -> Diagram:
+) -> RenderTarget:
     """
-    Auto-detect a single module-level Diagram instance.
+    Auto-detect a single module-level render target.
 
     This is used when the target does not specify an explicit
     object reference.
@@ -235,33 +237,32 @@ def _get_single_diagram_from_module(
         module: Loaded/imported module.
 
     Returns:
-        The single Diagram instance found at module level.
+        The single render target found at module level.
 
     Raises:
-        DiagramNotFoundError: If no Diagram instances are found.
-        MultipleDiagramsFoundError: If more than one
-            Diagram instance is found.
+        DiagramNotFoundError: If no render targets are found.
+        MultipleDiagramsFoundError: If more than one render target is found.
     """
-    diagram_names = _list_diagram_globals(module)
+    target_names = _list_render_target_globals(module)
 
     if target.is_py_file:
         module_repr = f"{str(module.__file__)!r}"
     else:
         module_repr = f"module {module.__name__!r}"
 
-    if not diagram_names:
-        raise DiagramNotFoundError(
-            f"No Diagram instances found in {module_repr}. "
-            "Define a Diagram at module level or "
+    if not target_names:
+        raise RenderTargetNotFoundError(
+            f"No render targets found in {module_repr}. "
+            "Define a render target at module level or "
             "specify one explicitly as '<target>:<name>'."
         )
 
-    if len(diagram_names) > 1:
-        raise MultipleDiagramsFoundError(target, diagram_names)
+    if len(target_names) > 1:
+        raise MultipleRenderTargetsFoundError(target, target_names)
 
-    diagram = getattr(module, diagram_names[0])
+    diagram = getattr(module, target_names[0])
 
-    return typing.cast(Diagram, diagram)
+    return typing.cast(RenderTarget, diagram)
 
 
 def _load_target_module(target: Target) -> ModuleType:
@@ -363,9 +364,9 @@ def resolve_target_backend(raw_target: str | Path) -> RendererEnum | None:
     return resolve_diagram_backend(json_file)
 
 
-def resolve_diagram(raw_target: str | Path) -> Diagram:
+def resolve_diagram(raw_target: str | Path) -> RenderTarget:
     """
-    Resolve a Diagram instance from a CLI target.
+    Resolve a render target from a CLI target.
 
     Behavior:
         - If the target is a JSON file:
@@ -373,22 +374,22 @@ def resolve_diagram(raw_target: str | Path) -> Diagram:
         - If "<target>:<object_ref>" is provided:
             * Load/import the module and resolve <object_ref> as
               a dotted attribute.
-            * Validate that the resolved value is a Diagram instance.
+            * Validate that the resolved value is a render target.
         - If "<object_ref>" is not provided:
             * Load/import the module and auto-detect exactly one
-              module-level Diagram.
+              module-level render target.
 
     Returns:
-        Resolved Diagram instance.
+        Resolved render target.
 
     Raises:
         TargetParseError: If the target string is malformed.
         ImportFromStringError: If the module/file cannot be imported
-            or the ref is not a Diagram.
-        DiagramNotFoundError: If the requested diagram is missing
-            (or no diagrams exist).
+            or the ref is not a render target.
+        DiagramNotFoundError: If the requested render target is missing
+            (or no render targets exist).
         MultipleDiagramsFoundError: If auto-detection finds more than
-            one diagram.
+            one render target.
         MissingConverterDependency: If converter dependencies
             are not installed.
     """
@@ -402,28 +403,28 @@ def resolve_diagram(raw_target: str | Path) -> Diagram:
     if target.object_ref:
         return _resolve_diagram_ref(target, module)
 
-    return _get_single_diagram_from_module(target, module)
+    return _get_single_render_target_from_module(target, module)
 
 
 def resolve_json_diagram(
     raw_target: str | Path,
-) -> tuple[Diagram, RendererEnum | None]:
+) -> tuple[RenderTarget, RendererEnum | None]:
     """
-    Resolve a Diagram instance from JSON file.
+    Resolve a render target from a JSON file.
     Args:
         raw_target: Target string ("file.json").
 
     Returns:
-        Resolved Diagram instance and rendering backend.
+        Resolved render target and rendering backend.
 
     Raises:
         TargetParseError: If the target string is malformed.
         ImportFromStringError: If the module/file cannot be imported
-            or the ref is not a Diagram.
-        DiagramNotFoundError: If the requested diagram is missing
-            (or no diagrams exist).
+            or the ref is not a render target.
+        DiagramNotFoundError: If the requested render target is missing
+            (or no render targets exist).
         MultipleDiagramsFoundError: If auto-detection finds more than
-            one diagram.
+            one render target.
         MissingConverterDependency: If converter dependencies
             are not installed.
     """

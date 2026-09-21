@@ -31,7 +31,7 @@ if TYPE_CHECKING:  # pragma: no cover
         TRelationship,
     )
     from c4.renderers import (
-        BaseRenderer,
+        BaseDiagramRenderer,
         D2Renderer,
         D2RenderOptions,
         MermaidRenderer,
@@ -57,7 +57,7 @@ class Diagram:
     def __init__(
         self,
         title: str | None = None,
-        default_renderer: BaseRenderer[Diagram] | None = None,
+        default_renderer: BaseDiagramRenderer | None = None,
         render_options: RenderOptions | None = None,
     ) -> None:
         """
@@ -338,7 +338,7 @@ class Diagram:
         """
         return alias in self.__referenced_elements
 
-    def render(self, renderer: BaseRenderer[Diagram] | None = None) -> str:
+    def render(self, renderer: BaseDiagramRenderer | None = None) -> str:
         """
         Render the diagram to a string using the given or default renderer.
 
@@ -361,7 +361,7 @@ class Diagram:
     def save(
         self,
         path: str | Path,
-        renderer: BaseRenderer[Diagram] | None = None,
+        renderer: BaseDiagramRenderer | None = None,
     ) -> None:
         """
         Render and save the diagram to a file.

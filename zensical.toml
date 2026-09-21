@@ -8,6 +8,7 @@ edit_uri = "edit/main/docs/"
 repo_name = "sidorov-as/c4-diagrams"
 copyright = "Maintained by <a href=\"https://github.com/sidorov-as\">sidorov-as</a>."
 extra_css = ["assets/styles/extra.css"]
+extra_javascript = ["assets/javascripts/likec4-viewer.js"]
 
 nav = [
   { "Getting started" = [
@@ -19,18 +20,24 @@ nav = [
   ] },
   { "Concepts" = [
     { "What is C4?" = "concepts/introduction.md" },
-    { "Portable core and backend extensions" = "concepts/portable-core-and-extensions.md" },
-    { "Diagrams and components" = "concepts/diagrams.md" },
-    { "Renderers" = "concepts/renderers.md" },
-  ] },
-  { "Diagrams" = [
-    { "System context" = "diagrams/system-context.md" },
-    { "Containers" = "diagrams/containers.md" },
-    { "Components" = "diagrams/components.md" },
-    { "Supporting overview" = "diagrams/supporting.md" },
-    { "System landscape" = "diagrams/system-landscape.md" },
-    { "Dynamic" = "diagrams/dynamic.md" },
-    { "Deployment" = "diagrams/deployment.md" },
+    { "Two authoring models" = "concepts/authoring-models.md" },
+    { "C4 entities across backends" = "concepts/c4-entities.md" },
+    { "Authoring in depth" = [
+      { "Portable" = [
+        { "Diagrams and components" = "concepts/diagrams.md" },
+        { "Diagram types" = [
+          { "System context" = "concepts/portable/system-context.md" },
+          { "Containers" = "concepts/portable/containers.md" },
+          { "Components" = "concepts/portable/components.md" },
+          { "System landscape" = "concepts/portable/system-landscape.md" },
+          { "Dynamic" = "concepts/portable/dynamic.md" },
+          { "Deployment" = "concepts/portable/deployment.md" },
+        ] },
+        { "Portable core and backend extensions" = "concepts/portable-core-and-extensions.md" },
+      ] },
+      { "Structurizr" = "concepts/structurizr-model.md" },
+      { "LikeC4" = "concepts/likec4-model.md" },
+    ] },
   ] },
   { "Rendering backends" = [
     { "Comparison" = "renderers/comparison.md" },
@@ -58,6 +65,26 @@ nav = [
         { "Extensions" = "renderers/d2/extensions.md" },
         { "Options" = "renderers/d2/options.md" },
         { "Limitations" = "renderers/d2/limitations.md" },
+      ] },
+      { "Structurizr" = [
+        { "Overview" = "renderers/structurizr/index.md" },
+        { "Authoring" = "renderers/structurizr/authoring.md" },
+        { "C4 cheat-sheet" = "renderers/structurizr/c4-cheatsheet.md" },
+        { "Views" = "renderers/structurizr/views.md" },
+        { "Styles" = "renderers/structurizr/styles.md" },
+        { "Reference" = "renderers/structurizr/reference.md" },
+        { "Renderers" = "renderers/structurizr/renderers.md" },
+        { "Limitations" = "renderers/structurizr/limitations.md" },
+      ] },
+      { "LikeC4" = [
+        { "Overview" = "renderers/likec4/index.md" },
+        { "Authoring" = "renderers/likec4/authoring.md" },
+        { "C4 cheat-sheet" = "renderers/likec4/c4-cheatsheet.md" },
+        { "Views" = "renderers/likec4/views.md" },
+        { "Styles" = "renderers/likec4/styles.md" },
+        { "Reference" = "renderers/likec4/reference.md" },
+        { "Renderers" = "renderers/likec4/renderers.md" },
+        { "Limitations" = "renderers/likec4/limitations.md" },
       ] }
     ] },
     { "Properties" = "renderers/properties.md" },
@@ -99,6 +126,12 @@ nav = [
           { "Deployment Diagram" = "converters/json/specs/d2.deployment_diagram.md" },
           { "Dynamic Diagram" = "converters/json/specs/d2.dynamic_diagram.md" },
         ] },
+        { "Structurizr" = [
+          { "Workspace" = "converters/json/specs/structurizr.workspace.md" },
+        ] },
+        { "LikeC4" = [
+          { "Project" = "converters/json/specs/likec4.project.md" },
+        ] },
       ] },
     ] },
   ] },
@@ -107,6 +140,8 @@ nav = [
     { "PlantUML" = "examples/plantuml/plantuml.md" },
     { "Mermaid" = "examples/mermaid/mermaid.md" },
     { "D2" = "examples/d2/d2.md" },
+    { "Structurizr" = "examples/structurizr/structurizr.md" },
+    { "LikeC4" = "examples/likec4/likec4.md" },
   ] },
   { "Guides" = [
     { "Reusable diagram elements" = "guides/reusable-diagram-elements.md" },
@@ -139,6 +174,16 @@ nav = [
         { "Relationships" = "api_docs/mermaid/relationships.md" },
         { "Extension schemas" = "api_docs/mermaid/extensions.md" },
       ] },
+      { "Structurizr" = [
+        { "Authoring" = "api_docs/structurizr/authoring.md" },
+        { "Views" = "api_docs/structurizr/views.md" },
+        { "Styles" = "api_docs/structurizr/styles.md" },
+      ] },
+      { "LikeC4" = [
+        { "Authoring" = "api_docs/likec4/authoring.md" },
+        { "Views" = "api_docs/likec4/views.md" },
+        { "Specification" = "api_docs/likec4/specification.md" },
+      ] },
     ] },
     { "Rendering backends" = [
       { "Render options" = "api_docs/render-options.md" },
@@ -153,6 +198,13 @@ nav = [
       { "D2" = [
         { "Renderers" = "api_docs/d2/renderers.md" },
         { "Render options" = "api_docs/d2/render-options.md" },
+      ] },
+      { "Structurizr" = [
+        { "Renderers" = "api_docs/structurizr/renderers.md" },
+        { "Render options" = "api_docs/structurizr/render-options.md" },
+      ] },
+      { "LikeC4" = [
+        { "Renderers" = "api_docs/likec4/renderers.md" },
       ] },
     ] },
   ] },

@@ -49,3 +49,14 @@
         # explicit members list so we can set order and include `__init__` easily
         members:
           - __init__
+
+
+::: c4.renderers.plantuml.backends.KrokiPlantUMLBackend
+    options:
+        show_root_heading: true
+        merge_init_into_class: false
+        group_by_category: false
+        show_source: false
+        # explicit members list so we can set order and include `__init__` easily
+        members:
+          - __init__

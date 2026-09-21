@@ -257,12 +257,42 @@ How it works:
 
 4. Server returns rendered image bytes
 
+### KrokiPlantUMLBackend
+
+[`KrokiPlantUMLBackend`](../../api_docs/plantuml/renderers/#c4.renderers.plantuml.backends.KrokiPlantUMLBackend)
+renders generated PlantUML source through a Kroki server using Kroki diagram
+type `plantuml`.
+
+Use this backend when you want remote rendering without a PlantUML server URL
+that includes `/plantuml`. Kroki uses a root server URL such as
+`https://kroki.io`.
+
+```python
+from c4.renderers.plantuml import KrokiPlantUMLBackend, PlantUMLRenderer
+
+backend = KrokiPlantUMLBackend(server_url="https://kroki.io")
+renderer = PlantUMLRenderer(backend=backend)
+```
+
+CLI example:
+
+```bash
+c4 export diagram.py --plantuml --plantuml-backend kroki \
+  --plantuml-use-bundled-c4-plantuml false \
+  --kroki-url https://kroki.io \
+  -f svg -o diagram.svg
+```
+
+Kroki cannot read local bundled C4-PlantUML include files. Use remote includes
+with `--plantuml-use-bundled-c4-plantuml false` when exporting through Kroki.
+
 
 ### Choosing a Backend
 
-| Scenario              | Recommended Backend     |
-|-----------------------|-------------------------|
-| Local development     | `LocalPlantUMLBackend`  |
-| CI/CD without Java    | `RemotePlantUMLBackend` |
-| Offline environments  | `LocalPlantUMLBackend`  |
-| Centralized rendering | `RemotePlantUMLBackend` |
+| Scenario               | Recommended Backend      |
+|------------------------|--------------------------|
+| Local development      | `LocalPlantUMLBackend`   |
+| CI/CD without Java     | `KrokiPlantUMLBackend`   |
+| Offline environments   | `LocalPlantUMLBackend`   |
+| PlantUML server URL    | `RemotePlantUMLBackend`  |
+| Kroki root server URL  | `KrokiPlantUMLBackend`   |

@@ -708,3 +708,11 @@ def test_plantuml_renderer__relationships_with_properties():
     result = renderer.render(diagram)
 
     assert result == expected_diagram
+
+
+def test_diagram_renderer_validate_rejects_non_diagram_targets():
+    from c4.exceptions import PlantUMLRenderingError
+    from c4.renderers.plantuml.renderer import PlantUMLContainerDiagramRenderer
+
+    with pytest.raises(PlantUMLRenderingError, match="requires a"):
+        PlantUMLContainerDiagramRenderer().validate(object())  # type: ignore[arg-type]

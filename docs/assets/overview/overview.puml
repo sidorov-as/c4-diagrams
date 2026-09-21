@@ -1,0 +1,20 @@
+@startuml
+' convert it with additional command line argument -DRELATIVE_INCLUDE="relative/absolute" to use locally
+!if %variable_exists("RELATIVE_INCLUDE")
+    !include %get_variable_value("RELATIVE_INCLUDE")/C4_Context.puml
+!else
+    !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!endif
+
+title Online Shop
+
+Person(customer, "Customer", "Buys goods online.")
+
+System(online_shop, "Online Shop", "Takes orders from customers.")
+
+System(payment_provider, "Payment Provider", "Processes card payments.")
+
+Rel_Right(customer, online_shop, "Buys goods")
+Rel_Right(online_shop, payment_provider, "Takes payments")
+
+@enduml

@@ -179,3 +179,29 @@ The execution backend can be configured via:
         mermaid_bin="/usr/local/bin/mmdc",
     )
     ```
+
+### KrokiMermaidBackend
+
+[`KrokiMermaidBackend`][c4.renderers.mermaid.KrokiMermaidBackend] renders
+generated Mermaid source through a Kroki server using Kroki diagram type
+`mermaid`.
+
+Use this backend when you want image export without a local Mermaid CLI or
+browser runtime. Mermaid render options are emitted into the Mermaid source
+before the source is sent to Kroki.
+
+```python
+from c4.renderers import KrokiMermaidBackend, MermaidRenderer
+
+renderer = MermaidRenderer(
+    backend=KrokiMermaidBackend(server_url="https://kroki.io"),
+)
+```
+
+CLI example:
+
+```bash
+c4 export diagram.py --mermaid --mermaid-backend kroki \
+  --kroki-url https://kroki.io \
+  -f svg -o diagram.svg
+```

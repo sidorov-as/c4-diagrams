@@ -33,6 +33,7 @@ from c4.exceptions import (
     PlantUMLLocalRenderingError,
     PlantUMLRemoteRenderingError,
 )
+from c4.renderers.kroki import KrokiBackend
 from c4.utils import MISSING, Maybe
 
 BASE64_TO_PLANTUML = {
@@ -225,6 +226,37 @@ class RemotePlantUMLBackend(BasePlantUMLBackend):
         compressed = compressed[2:-4]  # strip zlib header + adler32
         b64_encoded = base64.b64encode(compressed)
         return b"".join(BASE64_TO_PLANTUML[b] for b in b64_encoded)
+
+
+class KrokiPlantUMLBackend(BasePlantUMLBackend):
+    """Generate PlantUML diagrams through a Kroki server."""
+
+    def __init__(
+        self,
+        *,
+        server_url: str | None = None,
+        timeout_seconds: float = DEFAULT_RENDERING_TIMEOUT_SECONDS,
+        use_post: bool = False,
+        diagram_options: Mapping[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> None:
+        self._kroki = KrokiBackend(
+            server_url=server_url,
+            diagram_type="plantuml",
+            timeout_seconds=timeout_seconds,
+            use_post=use_post,
+            diagram_options=diagram_options,
+            headers=headers,
+        )
+
+    def to_bytes(
+        self,
+        diagram: str,
+        *,
+        format: DiagramFormat = PNG,
+    ) -> bytes:
+        self._ensure_format_supported(format)
+        return self._kroki.to_bytes(diagram, format=format)
 
 
 class LocalPlantUMLBackend(BasePlantUMLBackend):

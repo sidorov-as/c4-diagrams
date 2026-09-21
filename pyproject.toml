@@ -102,6 +102,10 @@ ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "likec4: needs the likec4 CLI and Playwright Chromium (LikeC4 CI job)",
+    "structurizr: needs the structurizr CLI and Playwright Chromium (Structurizr CI job)",
+]
 
 [tool.ruff]
 target-version = "py310"
@@ -161,6 +165,7 @@ ignore = [
     "S101",
     "E501",
     "ANN201",
+    "F841",
 ]
 "c4/cli/parser.py" = ["A001", "A002"]
 "c4/renderers/base.py" = ["A001", "A002"]
@@ -169,6 +174,9 @@ ignore = [
 "c4/renderers/plantuml/backends.py" = ["A001", "A002"]
 "c4/renderers/mermaid/backends.py" = ["A001", "A002"]
 "c4/renderers/d2/backends.py" = ["A001", "A002"]
+"c4/contrib/structurizr/renderer/backends.py" = ["A001", "A002"]
+"c4/contrib/likec4/renderer/backends.py" = ["A001", "A002"]
+"c4/contrib/likec4/renderer/renderer.py" = ["A001", "A002"]
 "c4/compat/strenum.py" = ["E501", "UP031", "SIM102",]
 "tests/fixtures/converters/json.py" = ["RUF012"]
 
@@ -205,3 +213,6 @@ version_provider = "uv"
 update_changelog_on_bump = true
 changelog_file = "CHANGELOG.md"
 changelog_start_rev = "0.0.2"
+
+[tool.deptry]
+known_first_party = ["c4", "docs", "generate_examples"]

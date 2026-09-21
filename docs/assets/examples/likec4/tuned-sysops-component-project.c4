@@ -1,0 +1,140 @@
+specification {
+  color user #66bb6a
+  color frontend #42a5f5
+  color gateway #ec407a
+  color backend #7e57c2
+  color worker #fb8c00
+  color database #ffb300
+  color queue #26a69a
+  color external #9e9e9e
+  element actor {
+    notation "Person"
+    style {
+      color user
+      shape person
+    }
+  }
+  element system { style { color primary } }
+  element external {
+    notation "External system"
+    style { color external }
+  }
+  element frontend {
+    notation "Frontend"
+    style {
+      color frontend
+      shape browser
+    }
+  }
+  element gateway {
+    notation "API gateway"
+    style { color gateway }
+  }
+  element backend {
+    notation "Backend service"
+    style {
+      color backend
+      shape component
+    }
+  }
+  element worker {
+    notation "Background worker"
+    style {
+      color worker
+      shape component
+    }
+  }
+  element database {
+    notation "Datastore"
+    style {
+      color database
+      shape storage
+    }
+  }
+  element queue {
+    notation "Event stream"
+    style {
+      color queue
+      shape queue
+    }
+  }
+  relationship sync { color sky }
+  relationship data { color amber }
+  relationship async {
+    color green
+    line dotted
+  }
+  relationship external-call {
+    color muted
+    line dashed
+  }
+}
+
+model {
+  customer = actor "Customer" { description '''Reports equipment issues and tracks repair progress.''' }
+  expert = actor "Support Expert" { description '''Accepts assignments and records repair updates.''' }
+  auth0 = external "Auth0" {
+    description '''External identity provider.'''
+    technology "OIDC/OAuth2"
+  }
+  email_system = external "E-mail System" {
+    description '''Delivers customer and expert notifications.'''
+    technology "SMTP"
+  }
+  support = system "Customer Support System" {
+    description '''Components that handle support tickets and expert assignments.'''
+    api_gateway = gateway "API Gateway" {
+      description '''Access control and request routing.'''
+      technology "Container Service"
+    }
+    customer_portal = frontend "Customer Portal" {
+      description '''Ticket creation and status tracking.'''
+      technology "SPA"
+    }
+    mobile_app = frontend "Expert Mobile App" {
+      description '''Assignment queue and field repair updates.'''
+      technology "iOS / Android"
+    }
+    notification_service = backend "Notification Service" {
+      description '''Sends customer and expert notifications.'''
+      technology "Container Service"
+    }
+    sysops_database = database "Support Database" {
+      description '''Tickets, contacts, assignments, and repair history.'''
+      technology "PostgreSQL"
+    }
+    ticket_api = backend "Ticket API" {
+      description '''Ticket orchestration, search, and assignment updates.'''
+      technology "Container Service"
+    }
+    ticket_created_queue = queue "Ticket Created" {
+      description '''Event stream for new support tickets.'''
+      technology "Message Queue"
+    }
+    ticket_processor = worker "Ticket Processor" {
+      description '''Creates expert assignments for new tickets.'''
+      technology "Container Job"
+    }
+  }
+  customer -[sync]-> support.customer_portal "Uses" { technology "HTTPS" }
+  expert -[sync]-> support.mobile_app "Uses" { technology "HTTPS" }
+  support.customer_portal -[external-call]-> auth0 "Authenticates" { technology "OIDC" }
+  support.mobile_app -[external-call]-> auth0 "Authenticates" { technology "OIDC" }
+  support.customer_portal -[sync]-> support.api_gateway "Calls" { technology "REST/HTTPS" }
+  support.mobile_app -[sync]-> support.api_gateway "Calls" { technology "REST/HTTPS" }
+  support.api_gateway -[sync]-> support.ticket_api "Routes" { technology "REST/HTTP" }
+  support.ticket_api -[data]-> support.sysops_database "Reads/writes" { technology "SQL/TCP" }
+  support.ticket_processor -[data]-> support.sysops_database "Reads/writes" { technology "SQL/TCP" }
+  support.ticket_api -[async]-> support.ticket_created_queue "Publishes" { technology "Queue/Event" }
+  support.ticket_created_queue -[async]-> support.ticket_processor "Triggers" { technology "Queue/Event" }
+  support.ticket_processor -[sync]-> support.notification_service "Requests notification" { technology "REST/HTTP" }
+  support.notification_service -[external-call]-> email_system "Sends e-mail" { technology "SMTP" }
+}
+
+views {
+  view components of support {
+    title "Customer Support System - Tuned Component View"
+    include *
+    autoLayout TopBottom
+  }
+}

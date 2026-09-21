@@ -1,0 +1,102 @@
+specification {
+  color brand #0b5fff
+  element actor {
+    notation "Person"
+    style {
+      color brand
+      shape person
+    }
+  }
+  element system { style { color primary } }
+  element service {
+    technology "Python"
+    style { shape component }
+  }
+  element database {
+    style {
+      color amber
+      shape storage
+    }
+  }
+  relationship async {
+    line dotted
+    head diamond
+  }
+  tag critical { color red }
+  tag deprecated
+  deploymentNode environment {
+    notation "Environment"
+    style { color gray }
+  }
+  deploymentNode vm
+}
+
+model {
+  customer = actor "Customer" { description '''Buys goods in the **shop**.''' }
+  shop = system "Online Shop" {
+    summary "Sells goods online"
+    metadata {
+      owner "team-shop"
+      tiers ["web", "api"]
+    }
+    link https://example.com/shop "Docs"
+    web = service "Web" { icon tech:react }
+    api = service "API" {
+      #critical
+      description '''Handles \\[\\[orders]] and payments.'''
+    }
+    db = database "Database" { #deprecated }
+  }
+  queue = service "Order Queue"
+  customer -> shop.web "opens" { technology "HTTPS" }
+  shop.web -> shop.api "calls" {
+    #critical
+    technology "REST"
+  }
+  shop.api -> shop.db "reads and writes" { technology "SQL" }
+  shop.api -[async]-> queue "publishes orders" { navigateTo checkout }
+}
+
+deployment {
+  prod = environment "Production" {
+    app = vm "App VM" {
+      primary = instanceOf shop.api
+      secondary = instanceOf shop.api
+      instanceOf shop.web
+    }
+    data = vm "Data VM" { instanceOf shop.db }
+  }
+  prod.app -> prod.data "queries" { technology "TCP/5432" }
+}
+
+views {
+  view index {
+    title "Landscape"
+    include *
+    style customer { color brand }
+    autoLayout LeftRight 80 100
+  }
+  view shop-detail of shop {
+    #critical
+    title "Shop"
+    include *
+    include shop.* where tag is #critical
+    include shop.web -> shop.api
+    exclude shop.db
+    include shop.api with { navigateTo checkout }
+  }
+  view critical { include shop.** where tag is #critical }
+  deployment view production {
+    title "Production"
+    include prod, prod.*
+    style prod { color green }
+  }
+  dynamic view checkout {
+    title "Checkout"
+    variant sequence
+    customer -> shop.web "opens checkout" { technology "HTTPS" }
+    shop.web -> shop.api "places order" { notes '''Validates the **cart**.''' }
+    shop.web <- shop.api "order id"
+    shop.api -> queue "enqueues" { color amber }
+  }
+}

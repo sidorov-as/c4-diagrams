@@ -205,8 +205,9 @@ def test_export__absolute_file_path__diagram_not_found(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        f"c4: error: No Diagram instances found in '{module_path!s}'. "
-        f"Define a Diagram at module level or specify one "
+        f"c4: error: No render targets found in '{module_path!s}'. "
+        f"Define a render target at module level or "
+        f"specify one "
         f"explicitly as '<target>:<name>'.\n"
     )
 
@@ -234,8 +235,9 @@ def test_export__module__diagram_not_found(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        "c4: error: No Diagram instances found in module 'module'. "
-        "Define a Diagram at module level or specify one "
+        "c4: error: No render targets found in module 'module'. "
+        "Define a render target at module level or "
+        "specify one "
         "explicitly as '<target>:<name>'.\n"
     )
 
@@ -265,7 +267,7 @@ def test_export__absolute_file_path_with_ref__diagram_not_found(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        f"c4: error: Diagram reference 'diagram' was not found "
+        f"c4: error: Render target reference 'diagram' was not found "
         f"in {str(module_path)!r}.\n"
     )
 
@@ -300,7 +302,7 @@ def test_export__module_with_ref__diagram_not_found(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        "c4: error: Diagram reference 'diagram' was not found "
+        "c4: error: Render target reference 'diagram' was not found "
         "in module 'module'.\n"
     )
 
@@ -400,10 +402,12 @@ def test_export__absolute_file_path__multiple_diagrams(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        f"c4: error: Multiple diagrams found in '{module_path!s}': "
+        f"c4: error: Multiple render targets found in "
+        f"'{module_path!s}': "
         f"diagram1, diagram2. "
-        f"Either ensure the target contains exactly one Diagram, or "
-        f"specify one explicitly as '{module_path!s}:<diagram_name>'.\n"
+        f"Either ensure the target contains exactly one render target, "
+        f"or specify one explicitly as "
+        f"'{module_path!s}:<target_name>'.\n"
     )
 
     result = cli(["export", str(module_path), "-o", str(diagram_output)])
@@ -433,10 +437,11 @@ def test_export__module__multiple_diagrams(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        "c4: error: Multiple diagrams found in module 'module': "
+        "c4: error: Multiple render targets found in module 'module': "
         "diagram1, diagram2. "
-        "Either ensure the target contains exactly one Diagram, or "
-        "specify one explicitly as 'module:<diagram_name>'.\n"
+        "Either ensure the target contains exactly one render target, "
+        "or specify one explicitly as "
+        "'module:<target_name>'.\n"
     )
 
     result = cli(["export", "module", "-o", str(diagram_output)])

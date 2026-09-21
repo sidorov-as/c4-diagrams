@@ -598,6 +598,16 @@ def test_diagram_get_element_by_alias():
     assert diagram.get_element_by_alias("user") is user
 
 
+def test_diagram_add__rejects_duplicate_alias():
+    with Diagram(title="Sample diagram") as diagram:
+        user = Element(alias="user", label="person")
+
+    with pytest.raises(ValueError, match="Duplicated alias 'user'") as exc:
+        diagram._check_alias(user)
+
+    assert str(user) in str(exc.value)
+
+
 def test_diagram_get_element_by_alias_none():
     with Diagram(title="Sample diagram") as diagram:
         _ = Element(label="person")
@@ -637,6 +647,27 @@ def test_diagram_render_options():
     diagram.render_options = render_options
 
     assert diagram.render_options == render_options
+
+
+def test_diagram_add_ordered_element__delegates_to_active_boundary():
+    with Diagram(title="Sample diagram") as diagram:
+        with Boundary("Group", alias="group") as boundary:
+            element = Element("Worker", alias="worker")
+            ordered = diagram.add_ordered_element(element)
+
+    assert ordered is element
+    assert boundary.ordered_elements[-1] is element
+    assert diagram.ordered_elements == [boundary]
+
+
+def test_diagram_is_element_referenced_by_alias():
+    with Diagram(title="Sample diagram") as diagram:
+        source = Element("Source", alias="source")
+        destination = Element("Destination", alias="destination")
+        source >> "Calls" >> destination
+
+    assert diagram.is_element_referenced_by_alias("source") is True
+    assert diagram.is_element_referenced_by_alias("unknown") is False
 
 
 def test_diagram_set_render_options__creates_render_options():

@@ -1,0 +1,64 @@
+name: "Setup Structurizr"
+description: "Build a pinned Structurizr CLI from source and Playwright Chromium for image export tests"
+
+inputs:
+  structurizr-version:
+    description: "Structurizr release tag without the leading v (e.g. 2026.06.28)"
+    required: true
+    default: "2026.06.28"
+  java-version:
+    description: "Java version"
+    required: false
+    default: "21"
+  node-version:
+    description: "Node.js version (for Playwright)"
+    required: false
+    default: "22"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: ${{ inputs.java-version }}
+        cache: maven
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    # Structurizr publishes no CLI binaries, so build the tagged release the
+    # same way the Homebrew formula does.
+    - name: Build Structurizr CLI
+      shell: bash
+      run: |
+        set -euo pipefail
+        VERSION="${{ inputs.structurizr-version }}"
+        SRC="$RUNNER_TEMP/structurizr-src"
+        BIN_DIR="$HOME/.local/bin"
+
+        git clone --depth 1 --branch "v${VERSION}" \
+          https://github.com/structurizr/structurizr.git "$SRC"
+        (cd "$SRC" && mvn --batch-mode -Dapp.revision="$VERSION" \
+          -Dmaven.test.skip=true package)
+
+        mkdir -p "$BIN_DIR" "$HOME/.local/lib"
+        cp "$SRC/structurizr-application/target/structurizr-${VERSION}.war" \
+          "$HOME/.local/lib/structurizr.war"
+        printf '#!/bin/bash\nexec java -jar "%s" "$@"\n' \
+          "$HOME/.local/lib/structurizr.war" > "$BIN_DIR/structurizr"
+        chmod +x "$BIN_DIR/structurizr"
+        echo "$BIN_DIR" >> "$GITHUB_PATH"
+
+    - name: Install Playwright Chromium
+      shell: bash
+      run: |
+        set -euo pipefail
+        npx --yes playwright install --with-deps chromium
+
+    - name: Show Structurizr version
+      shell: bash
+      run: structurizr version

@@ -3,7 +3,7 @@
 > **Source:** [plantuml.container-diagram.json](../../../assets/specs/plantuml.container-diagram.json)
 
 
-This schema describes the [ContainerDiagram][c4.diagrams.container.ContainerDiagram] spec for the PlantUML backend.
+This schema describes the [ContainerDiagram][c4.diagrams.container.ContainerDiagram] diagram spec for the PlantUML backend.
 
 ## Properties
 
@@ -82,25 +82,21 @@ This schema describes the [ContainerDiagram][c4.diagrams.container.ContainerDiag
 - [PlantUMLContainerDbExtSchema](#plantumlcontainerdbextschema)
 - [PlantUMLContainerQueueSchema](#plantumlcontainerqueueschema)
 - [PlantUMLContainerQueueExtSchema](#plantumlcontainerqueueextschema)
-
 ### Boundaries
 
 - [PlantUMLContainerBoundarySchema](#plantumlcontainerboundaryschema)
 - [PlantUMLContainerEnterpriseBoundarySchema](#plantumlcontainerenterpriseboundaryschema)
 - [PlantUMLContainerSystemBoundarySchema](#plantumlcontainersystemboundaryschema)
-
 ### Relationships
 
 - [PlantUMLRelationshipSchema](#plantumlrelationshipschema)
 
 - [PlantUMLRelationshipSchema types](#relationshiptype)
-
 ### Layouts
 
 - [LayoutSchema](#layoutschema)
 
 - [LayoutSchema types](#layouttype)
-
 ## Definitions
 
 
@@ -154,7 +150,6 @@ used through `c4.contrib.plantuml` relationship classes.
     | `REL_RIGHT` | A unidirectional rightward relationship. |
     | `REL_U` | A unidirectional upward relationship. Shorthand for `REL_UP`. |
     | `REL_UP` | A unidirectional upward relationship. |
-
 ### LayoutType
 
 Enum representing layout modifiers for diagram elements.
@@ -173,7 +168,6 @@ Enum representing layout modifiers for diagram elements.
     | `LAY_RIGHT` | Positions `from` element to the right of `to` element. |
     | `LAY_U` | Positions `from` element above `to` element. Shorthand for `LAY_UP` layout. |
     | `LAY_UP` | Positions `from` element above `to` element. |
-
 ### DiagramElementPropertiesSchema
 
 JSON schema for tabular diagram element properties.
@@ -187,7 +181,6 @@ JSON schema for tabular diagram element properties.
     | `header` | <code>array[string]</code> | Header columns. Default: `["Property", "Value"]`. |
     | **`properties(required)`** | <code>array[array[string]]</code> | List of rows (each row is a list of string values). |
     | `show_header` | `boolean` | Whether to display the header row. Default: `true`. |
-
 ### LayoutSchema
 
 JSON schema for a PlantUML relative layout constraint.
@@ -201,7 +194,6 @@ JSON schema for a PlantUML relative layout constraint.
     | **`type(required)`** | <code><a href="#layouttype">LayoutType</a></code> | Type of the layout. |
     | **`from(required)`** | `string` | The source element alias (or unique label). |
     | **`to(required)`** | `string` | The destination element alias (or unique label). |
-
 ### PlantUMLContainerBoundarySchema
 
 PlantUML JSON schema for a container boundary.
@@ -223,7 +215,6 @@ PlantUML JSON schema for a container boundary.
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
-
 ### PlantUMLContainerDbExtSchema
 
 PlantUML JSON schema for an external database-like container.
@@ -245,7 +236,6 @@ PlantUML JSON schema for an external database-like container.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLContainerDbSchema
 
 PlantUML JSON schema for a database-like container.
@@ -267,7 +257,6 @@ PlantUML JSON schema for a database-like container.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLContainerEnterpriseBoundarySchema
 
 PlantUML JSON schema for an enterprise boundary in container diagrams.
@@ -289,7 +278,6 @@ PlantUML JSON schema for an enterprise boundary in container diagrams.
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
-
 ### PlantUMLContainerExtSchema
 
 PlantUML JSON schema for an external container.
@@ -311,7 +299,6 @@ PlantUML JSON schema for an external container.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLContainerQueueExtSchema
 
 PlantUML JSON schema for an external queue-like container.
@@ -333,7 +320,6 @@ PlantUML JSON schema for an external queue-like container.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLContainerQueueSchema
 
 PlantUML JSON schema for a queue-like container.
@@ -355,7 +341,6 @@ PlantUML JSON schema for a queue-like container.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLContainerSchema
 
 PlantUML JSON schema for a container.
@@ -377,7 +362,6 @@ PlantUML JSON schema for a container.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLContainerSystemBoundarySchema
 
 PlantUML JSON schema for a system boundary in a container diagram.
@@ -399,7 +383,6 @@ PlantUML JSON schema for a system boundary in a container diagram.
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
-
 ### PlantUMLPersonExtSchema
 
 PlantUML JSON schema for an external person.
@@ -421,7 +404,6 @@ PlantUML JSON schema for an external person.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLPersonSchema
 
 PlantUML JSON schema for a person.
@@ -443,7 +425,6 @@ PlantUML JSON schema for a person.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLRelationshipSchema
 
 JSON schema for relationships supported by PlantUML C4 diagrams.
@@ -465,7 +446,6 @@ JSON schema for relationships supported by PlantUML C4 diagrams.
     | `tags` | <code>array[string]</code> | Optional PlantUML relationship tags. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | The technology used in the communication. |
     | **`to(required)`** | `string` | The destination element alias (or unique label). |
-
 ### PlantUMLSystemDbExtSchema
 
 PlantUML JSON schema for an external database-like system.
@@ -487,7 +467,6 @@ PlantUML JSON schema for an external database-like system.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLSystemDbSchema
 
 PlantUML JSON schema for a database-like system.
@@ -509,7 +488,6 @@ PlantUML JSON schema for a database-like system.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLSystemExtSchema
 
 PlantUML JSON schema for an external software system.
@@ -531,7 +509,6 @@ PlantUML JSON schema for an external software system.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLSystemQueueExtSchema
 
 PlantUML JSON schema for an external queue-like system.
@@ -553,7 +530,6 @@ PlantUML JSON schema for an external queue-like system.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLSystemQueueSchema
 
 PlantUML JSON schema for a queue-like system.
@@ -575,7 +551,6 @@ PlantUML JSON schema for a queue-like system.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 ### PlantUMLSystemSchema
 
 PlantUML JSON schema for a software system.
@@ -597,7 +572,6 @@ PlantUML JSON schema for a software system.
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional PlantUML custom type/stereotype label. |
     | `tags` | <code>array[string]</code> | Optional PlantUML tags for styling or grouping. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology label where supported by the element. |
-
 
 
 ## PlantUML Render Options
@@ -632,7 +606,6 @@ applied at render time.
     | `styles` | <code>array[<br/>&nbsp;<code><a href="#elementstyleschema">ElementStyleSchema</a></code><br/>&nbsp;\|<code><a href="#boundarystyleschema">BoundaryStyleSchema</a></code><br/>&nbsp;\|<code><a href="#containerboundarystyleschema">ContainerBoundaryStyleSchema</a></code><br/>&nbsp;\|<code><a href="#systemboundarystyleschema">SystemBoundaryStyleSchema</a></code><br/>&nbsp;\|<code><a href="#enterpriseboundarystyleschema">EnterpriseBoundaryStyleSchema</a></code><br/>&nbsp;\|<code><a href="#relstyleschema">RelStyleSchema</a></code><br/>]</code> | List of style update macro configurations. |
     | `tags` | <code>array[<br/>&nbsp;<code><a href="#elementtagschema">ElementTagSchema</a></code><br/>&nbsp;\|<code><a href="#boundarytagschema">BoundaryTagSchema</a></code><br/>&nbsp;\|<code><a href="#componenttagschema">ComponentTagSchema</a></code><br/>&nbsp;\|<code><a href="#externalcomponenttagschema">ExternalComponentTagSchema</a></code><br/>&nbsp;\|<code><a href="#containertagschema">ContainerTagSchema</a></code><br/>&nbsp;\|<code><a href="#externalcontainertagschema">ExternalContainerTagSchema</a></code><br/>&nbsp;\|<code><a href="#nodetagschema">NodeTagSchema</a></code><br/>&nbsp;\|<code><a href="#reltagschema">RelTagSchema</a></code><br/>&nbsp;\|<code><a href="#persontagschema">PersonTagSchema</a></code><br/>&nbsp;\|<code><a href="#externalpersontagschema">ExternalPersonTagSchema</a></code><br/>&nbsp;\|<code><a href="#systemtagschema">SystemTagSchema</a></code><br/>&nbsp;\|<code><a href="#externalsystemtagschema">ExternalSystemTagSchema</a></code><br/>]</code> | List of tag macro configurations. |
     | `without_property_header` | `boolean` | If true, omit the header row and render the second column in bold. Default: `false`. |
-
 ### DiagramLayout
 
 Defines layout direction options for a PlantUML diagram.
@@ -643,7 +616,6 @@ predefined PlantUML layout macros.
 - `LAYOUT_LANDSCAPE`
 - `LAYOUT_LEFT_RIGHT`
 - `LAYOUT_TOP_DOWN`
-
 ### BoundaryStyleSchema
 
 Style update for a boundary element (container/system/enterprise boundary).
@@ -667,7 +639,6 @@ Style update for a boundary element (container/system/enterprise boundary).
     | `shape` | <code><a href="#tagshape">TagShape</a></code> | Shape macro used for rendering. |
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon applied to the boundary. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
-
 ### BoundaryTagSchema
 
 Tag for diagram boundaries (containers/systems).
@@ -691,7 +662,6 @@ Tag for diagram boundaries (containers/systems).
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
-
 ### ComponentTagSchema
 
 Tag for internal software components.
@@ -715,7 +685,6 @@ Tag for internal software components.
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Technology label shown on the element. |
-
 ### ContainerBoundaryStyleSchema
 
 Style update for container boundaries.
@@ -738,7 +707,6 @@ Style update for container boundaries.
     | `shape` | <code><a href="#tagshape">TagShape</a></code> | Shape macro used for rendering. |
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon applied to the boundary. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
-
 ### ContainerTagSchema
 
 Tag for internal containers (microservices, databases, etc.).
@@ -762,7 +730,6 @@ Tag for internal containers (microservices, databases, etc.).
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Technology label shown on the element. |
-
 ### Details
 
 Defines PlantUML legend details.
@@ -770,7 +737,6 @@ Defines PlantUML legend details.
 - `None`
 - `Normal`
 - `Small`
-
 ### ElementStyleSchema
 
 Style update for an individual diagram element.
@@ -794,7 +760,6 @@ Style update for an individual diagram element.
     | `shape` | <code><a href="#tagshape">TagShape</a></code> | Shape macro used for rendering. |
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon applied to the element. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Technology label shown on the element. |
-
 ### ElementTagSchema
 
 Represents a tag for general diagram elements
@@ -821,7 +786,6 @@ Defines color, border, shape, and optional technology metadata.
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Technology label shown on the element. |
-
 ### EnterpriseBoundaryStyleSchema
 
 Style update for enterprise boundaries.
@@ -844,7 +808,6 @@ Style update for enterprise boundaries.
     | `shape` | <code><a href="#tagshape">TagShape</a></code> | Shape macro used for rendering. |
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon applied to the boundary. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
-
 ### ExternalComponentTagSchema
 
 Tag for external software components.
@@ -868,7 +831,6 @@ Tag for external software components.
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Technology label shown on the element. |
-
 ### ExternalContainerTagSchema
 
 Tag for external containers.
@@ -892,7 +854,6 @@ Tag for external containers.
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Technology label shown on the element. |
-
 ### ExternalPersonTagSchema
 
 Tag for external people (outside the system boundary).
@@ -916,7 +877,6 @@ Tag for external people (outside the system boundary).
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
-
 ### ExternalSystemTagSchema
 
 Tag for external software systems.
@@ -940,7 +900,6 @@ Tag for external software systems.
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
-
 ### LineStyle
 
 Defines PlantUML line style.
@@ -949,7 +908,6 @@ Defines PlantUML line style.
 - `DashedLine`
 - `DottedLine`
 - `SolidLine`
-
 ### NodeTagSchema
 
 Tag for nodes (typically infrastructure elements).
@@ -973,7 +931,6 @@ Tag for nodes (typically infrastructure elements).
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
-
 ### PersonTagSchema
 
 Tag for internal Person elements (actors, users, roles).
@@ -997,7 +954,6 @@ Tag for internal Person elements (actors, users, roles).
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
-
 ### RelStyleSchema
 
 Style update for relationship lines.
@@ -1011,7 +967,6 @@ Style update for relationship lines.
     | **`type(required)`** | `string` | Discriminator identifying the element type. Must be exactly `RelStyle`. |
     | `line_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Color of the relationship line. |
     | `text_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Color of the relationship label text. |
-
 ### RelTagSchema
 
 Represents a tag for relationship styling in the diagram.
@@ -1035,7 +990,6 @@ and sprite metadata.
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Technology label associated with the relationship. |
     | `text_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Color of the relationship label text. |
-
 ### SetSketchStyleSchema
 
 Configuration for the SET_SKETCH_STYLE macro.
@@ -1052,7 +1006,6 @@ Configuration for the SET_SKETCH_STYLE macro.
     | `footer_text` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional footer text message. |
     | `footer_warning` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional warning message shown in the footer. |
     | `warning_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Color used for warning messages in the footer. |
-
 ### ShowFloatingLegendSchema
 
 Configuration for the SHOW_FLOATING_LEGEND macro.
@@ -1066,7 +1019,6 @@ Configuration for the SHOW_FLOATING_LEGEND macro.
     | `alias` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional alias for the floating legend box. |
     | `details` | <code><a href="#details">Details</a></code> | Legend detail level. Default: `Small`. |
     | `hide_stereotype` | <span style="white-space: nowrap;">`boolean` \| `null`</span> | Whether to hide stereotype labels in the legend. |
-
 ### ShowLegendSchema
 
 Configuration for the SHOW_LEGEND macro in PlantUML.
@@ -1079,7 +1031,6 @@ Configuration for the SHOW_LEGEND macro in PlantUML.
     |---|---|---|
     | `details` | <code><a href="#details">Details</a></code> | Legend detail level. Default: `Small`. |
     | `hide_stereotype` | <span style="white-space: nowrap;">`boolean` \| `null`</span> | Whether to hide stereotype labels in the legend. |
-
 ### ShowPersonSpriteSchema
 
 Configuration for the SHOW_PERSON_SPRITE macro.
@@ -1091,7 +1042,6 @@ Configuration for the SHOW_PERSON_SPRITE macro.
     | Field | Type | Description |
     |---|---|---|
     | `alias` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional sprite alias used for the person icon. |
-
 ### SystemBoundaryStyleSchema
 
 Style update for system boundaries.
@@ -1114,7 +1064,6 @@ Style update for system boundaries.
     | `shape` | <code><a href="#tagshape">TagShape</a></code> | Shape macro used for rendering. |
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon applied to the boundary. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
-
 ### SystemTagSchema
 
 Tag for internal software systems.
@@ -1138,7 +1087,6 @@ Tag for internal software systems.
     | `sprite` | <span style="white-space: nowrap;">`string` \| `null`</span> | Sprite icon associated with the element or relationship. |
     | `stereotype` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional custom type/stereotype label. |
     | **`tag_stereo(required)`** | `string` | Stereotype name of the tag. Must match one of the tags declared in the `tags` field of a diagram component. |
-
 ### TagShape
 
 Defines PlantUML tag shape.

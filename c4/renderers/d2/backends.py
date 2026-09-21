@@ -21,6 +21,7 @@ from c4.exceptions import (
     D2LocalRenderingError,
 )
 from c4.renderers.d2.options import D2Layout, D2RenderOptions
+from c4.renderers.kroki import KrokiBackend
 from c4.utils import MISSING, Maybe
 
 
@@ -113,6 +114,49 @@ class BaseD2Backend(ABC):
         if format not in D2_DIAGRAM_FORMATS:
             raise ValueError(
                 f"{format.value!r} format is not supported by D2 renderer."
+            )
+
+
+class KrokiD2Backend(BaseD2Backend):
+    """Generate D2 diagrams through a Kroki server."""
+
+    def __init__(
+        self,
+        *,
+        server_url: str | None = None,
+        timeout_seconds: float = DEFAULT_RENDERING_TIMEOUT_SECONDS,
+        use_post: bool = False,
+        diagram_options: Mapping[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> None:
+        self._kroki = KrokiBackend(
+            server_url=server_url,
+            diagram_type="d2",
+            timeout_seconds=timeout_seconds,
+            use_post=use_post,
+            diagram_options=diagram_options,
+            headers=headers,
+        )
+
+    def to_bytes(
+        self,
+        diagram: str,
+        *,
+        format: DiagramFormat = PNG,
+        render_options: D2RenderOptions | None = None,
+    ) -> bytes:
+        self._ensure_format_supported(format)
+        self._ensure_render_options_supported(render_options)
+        return self._kroki.to_bytes(diagram, format=format)
+
+    def _ensure_render_options_supported(
+        self,
+        render_options: D2RenderOptions | None,
+    ) -> None:
+        if render_options is not None and render_options.layout is not None:
+            raise D2BackendConfigurationError(
+                "Kroki D2 backend does not support D2 layout selection. "
+                "Remove --d2-layout or use --d2-backend local."
             )
 
 

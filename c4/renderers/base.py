@@ -4,15 +4,39 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Protocol,
+    TypeVar,
+    runtime_checkable,
+)
 
 from c4 import DiagramFormat
 from c4.diagrams.core import ExtensionValidationModeType
-from c4.diagrams.core.diagram import TDiagram
 from c4.enums import IGNORE_FOREIGN, ExtensionValidationMode, RendererEnum
 
 if TYPE_CHECKING:  # pragma: no cover
-    from c4.diagrams.core import BaseDiagramElement, Boundary
+    from c4.diagrams.core import BaseDiagramElement, Boundary, Diagram
+
+
+TTarget = TypeVar("TTarget")
+TDiagram = TypeVar("TDiagram", bound="Diagram")
+
+
+@runtime_checkable
+class RenderTarget(Protocol):
+    """Common lifecycle contract for CLI-discoverable targets."""
+
+    def render(self, *args: Any, **kwargs: Any) -> str: ...  # pragma: no cover
+
+    def save(
+        self,
+        path: str | Path,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Path: ...  # pragma: no cover
 
 
 class IndentedStringBuilder:
@@ -115,7 +139,7 @@ class IndentedStringBuilder:
         return "\n".join(self._lines)
 
 
-class BaseRenderer(ABC, Generic[TDiagram]):
+class BaseRenderer(ABC, Generic[TTarget]):
     """
     Abstract base class for all diagram renderers.
 
@@ -143,28 +167,14 @@ class BaseRenderer(ABC, Generic[TDiagram]):
             extension_validation_mode
         )
 
-    def iter_render_items(
-        self,
-        diagram: TDiagram,
-    ) -> Iterator[BaseDiagramElement]:
-        """Return this renderer's top-level declaration render stream."""
-        yield from diagram.ordered_elements
-
-    def iter_boundary_render_items(
-        self,
-        boundary: Boundary,
-    ) -> Iterator[BaseDiagramElement]:
-        """Return this renderer's declaration stream inside a boundary."""
-        yield from boundary.ordered_elements
-
-    def validate(self, diagram: TDiagram) -> None:
+    def validate(self, diagram: TTarget) -> None:
         """Validate that this renderer can faithfully render the diagram."""
         raise NotImplementedError(  # pragma: no cover
             "Renderer class requires .validate() to be implemented"
         )
 
     @abstractmethod
-    def render(self, diagram: TDiagram) -> str:
+    def render(self, diagram: TTarget) -> str:
         """
         Render the provided Diagram into a textual format.
 
@@ -181,7 +191,7 @@ class BaseRenderer(ABC, Generic[TDiagram]):
     @abstractmethod
     def render_bytes(
         self,
-        diagram: TDiagram,
+        diagram: TTarget,
         *,
         format: DiagramFormat,
     ) -> bytes:
@@ -205,7 +215,7 @@ class BaseRenderer(ABC, Generic[TDiagram]):
     @abstractmethod
     def render_file(
         self,
-        diagram: TDiagram,
+        diagram: TTarget,
         output_path: Path,
         *,
         format: DiagramFormat,
@@ -228,3 +238,19 @@ class BaseRenderer(ABC, Generic[TDiagram]):
         raise NotImplementedError(  # pragma: no cover
             "Renderer class requires .render_file() to be implemented"
         )
+
+
+class BaseDiagramRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
+    """Shared traversal support for renderers whose target is a Diagram."""
+
+    def iter_render_items(
+        self, diagram: TDiagram
+    ) -> Iterator[BaseDiagramElement]:
+        """Return this renderer's top-level declaration render stream."""
+        yield from diagram.ordered_elements
+
+    def iter_boundary_render_items(
+        self, boundary: Boundary
+    ) -> Iterator[BaseDiagramElement]:
+        """Return this renderer's declaration stream inside a boundary."""
+        yield from boundary.ordered_elements

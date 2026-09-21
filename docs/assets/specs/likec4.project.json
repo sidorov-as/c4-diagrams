@@ -1,0 +1,2085 @@
+{
+  "title": "LikeC4ProjectSchema",
+  "type": "object",
+  "properties": {
+    "backend": {
+      "const": "likec4",
+      "description": "Required discriminator for the LikeC4 project JSON format.",
+      "title": "Backend",
+      "type": "string"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional project title.",
+      "title": "Name"
+    },
+    "specification": {
+      "$ref": "#/$defs/LikeC4SpecificationSchema"
+    },
+    "model": {
+      "$ref": "#/$defs/LikeC4ModelSchema"
+    },
+    "deployment": {
+      "$ref": "#/$defs/LikeC4DeploymentSchema"
+    },
+    "views": {
+      "$ref": "#/$defs/LikeC4ViewsSchema"
+    },
+    "render_options": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LikeC4RenderOptionsSchema"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "backend"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "LikeC4AutoLayoutRuleSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "const": "auto_layout",
+          "title": "Rule",
+          "type": "string"
+        },
+        "direction": {
+          "default": "TopBottom",
+          "enum": [
+            "TopBottom",
+            "LeftRight",
+            "BottomTop",
+            "RightLeft"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "rank_sep": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rank Sep"
+        },
+        "node_sep": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Node Sep"
+        }
+      },
+      "required": [
+        "rule"
+      ],
+      "title": "LikeC4AutoLayoutRuleSchema",
+      "type": "object"
+    },
+    "LikeC4BetweenSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "between",
+          "title": "Type",
+          "type": "string"
+        },
+        "source": {
+          "discriminator": {
+            "mapping": {
+              "children": "#/$defs/LikeC4ChildrenSchema",
+              "descendants": "#/$defs/LikeC4DescendantsSchema",
+              "element": "#/$defs/LikeC4ElementRefSchema",
+              "wildcard": "#/$defs/LikeC4WildcardSchema"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LikeC4WildcardSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ElementRefSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ChildrenSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4DescendantsSchema"
+            }
+          ],
+          "title": "Source"
+        },
+        "target": {
+          "discriminator": {
+            "mapping": {
+              "children": "#/$defs/LikeC4ChildrenSchema",
+              "descendants": "#/$defs/LikeC4DescendantsSchema",
+              "element": "#/$defs/LikeC4ElementRefSchema",
+              "wildcard": "#/$defs/LikeC4WildcardSchema"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LikeC4WildcardSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ElementRefSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ChildrenSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4DescendantsSchema"
+            }
+          ],
+          "title": "Target"
+        },
+        "both": {
+          "default": false,
+          "title": "Both",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "source",
+        "target"
+      ],
+      "title": "LikeC4BetweenSchema",
+      "type": "object"
+    },
+    "LikeC4ChildrenSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "children",
+          "title": "Type",
+          "type": "string"
+        },
+        "of": {
+          "minLength": 1,
+          "title": "Of",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "of"
+      ],
+      "title": "LikeC4ChildrenSchema",
+      "type": "object"
+    },
+    "LikeC4ColorSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "LikeC4ColorSchema",
+      "type": "object"
+    },
+    "LikeC4DeploymentNodeSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alias"
+        },
+        "kind": {
+          "minLength": 1,
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Metadata",
+          "type": "object"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/LikeC4LinkSchema"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "style": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Style",
+          "type": "object"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/LikeC4DeploymentNodeSchema"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "instances": {
+          "items": {
+            "$ref": "#/$defs/LikeC4InstanceSchema"
+          },
+          "title": "Instances",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "LikeC4DeploymentNodeSchema",
+      "type": "object"
+    },
+    "LikeC4DeploymentRelationshipSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "minLength": 1,
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "minLength": 1,
+          "title": "To",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "bidirectional": {
+          "default": false,
+          "title": "Bidirectional",
+          "type": "boolean"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Metadata",
+          "type": "object"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/LikeC4LinkSchema"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "style": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Style",
+          "type": "object"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "title": "LikeC4DeploymentRelationshipSchema",
+      "type": "object"
+    },
+    "LikeC4DeploymentSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/LikeC4DeploymentNodeSchema"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "relationships": {
+          "items": {
+            "$ref": "#/$defs/LikeC4DeploymentRelationshipSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        }
+      },
+      "title": "LikeC4DeploymentSchema",
+      "type": "object"
+    },
+    "LikeC4DeploymentViewSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/LikeC4LinkSchema"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "type": {
+          "const": "deployment",
+          "title": "Type",
+          "type": "string"
+        },
+        "rules": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "auto_layout": "#/$defs/LikeC4AutoLayoutRuleSchema",
+                "exclude": "#/$defs/LikeC4ExcludeRuleSchema",
+                "include": "#/$defs/LikeC4IncludeRuleSchema",
+                "style": "#/$defs/LikeC4StyleRuleSchema"
+              },
+              "propertyName": "rule"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/LikeC4IncludeRuleSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4ExcludeRuleSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4StyleRuleSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4AutoLayoutRuleSchema"
+              }
+            ]
+          },
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "key",
+        "type"
+      ],
+      "title": "LikeC4DeploymentViewSchema",
+      "type": "object"
+    },
+    "LikeC4DescendantsSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "descendants",
+          "title": "Type",
+          "type": "string"
+        },
+        "of": {
+          "minLength": 1,
+          "title": "Of",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "of"
+      ],
+      "title": "LikeC4DescendantsSchema",
+      "type": "object"
+    },
+    "LikeC4DynamicStepSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "minLength": 1,
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "minLength": 1,
+          "title": "To",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "navigate_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Navigate To"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Color"
+        },
+        "backward": {
+          "default": false,
+          "title": "Backward",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "title": "LikeC4DynamicStepSchema",
+      "type": "object"
+    },
+    "LikeC4DynamicViewSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/LikeC4LinkSchema"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "type": {
+          "const": "dynamic",
+          "title": "Type",
+          "type": "string"
+        },
+        "variant": {
+          "default": "diagram",
+          "enum": [
+            "diagram",
+            "sequence"
+          ],
+          "title": "Variant",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/LikeC4DynamicStepSchema"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "key",
+        "type"
+      ],
+      "title": "LikeC4DynamicViewSchema",
+      "type": "object"
+    },
+    "LikeC4ElementKindSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "notation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notation"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "style": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Style",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "LikeC4ElementKindSchema",
+      "type": "object"
+    },
+    "LikeC4ElementRefSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "element",
+          "title": "Type",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ],
+      "title": "LikeC4ElementRefSchema",
+      "type": "object"
+    },
+    "LikeC4ElementSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "alias": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alias"
+        },
+        "kind": {
+          "minLength": 1,
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Metadata",
+          "type": "object"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/LikeC4LinkSchema"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "style": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Style",
+          "type": "object"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Summary"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Icon"
+        },
+        "elements": {
+          "items": {
+            "$ref": "#/$defs/LikeC4ElementSchema"
+          },
+          "title": "Elements",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "LikeC4ElementSchema",
+      "type": "object"
+    },
+    "LikeC4ElementViewSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/LikeC4LinkSchema"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "type": {
+          "const": "element",
+          "title": "Type",
+          "type": "string"
+        },
+        "of": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Of"
+        },
+        "rules": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "auto_layout": "#/$defs/LikeC4AutoLayoutRuleSchema",
+                "exclude": "#/$defs/LikeC4ExcludeRuleSchema",
+                "include": "#/$defs/LikeC4IncludeRuleSchema",
+                "style": "#/$defs/LikeC4StyleRuleSchema"
+              },
+              "propertyName": "rule"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/LikeC4IncludeRuleSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4ExcludeRuleSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4StyleRuleSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4AutoLayoutRuleSchema"
+              }
+            ]
+          },
+          "title": "Rules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "key",
+        "type"
+      ],
+      "title": "LikeC4ElementViewSchema",
+      "type": "object"
+    },
+    "LikeC4ExcludeRuleSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "const": "exclude",
+          "title": "Rule",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "between": "#/$defs/LikeC4BetweenSchema",
+                "children": "#/$defs/LikeC4ChildrenSchema",
+                "descendants": "#/$defs/LikeC4DescendantsSchema",
+                "element": "#/$defs/LikeC4ElementRefSchema",
+                "incoming": "#/$defs/LikeC4IncomingSchema",
+                "inout": "#/$defs/LikeC4InOutSchema",
+                "outgoing": "#/$defs/LikeC4OutgoingSchema",
+                "raw": "#/$defs/LikeC4RawPredicateSchema",
+                "where": "#/$defs/LikeC4WhereSchema",
+                "wildcard": "#/$defs/LikeC4WildcardSchema"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/LikeC4WildcardSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4ElementRefSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4ChildrenSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4DescendantsSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4WhereSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4BetweenSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4IncomingSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4OutgoingSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4InOutSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4RawPredicateSchema"
+              }
+            ]
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "rule",
+        "items"
+      ],
+      "title": "LikeC4ExcludeRuleSchema",
+      "type": "object"
+    },
+    "LikeC4InOutSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "inout",
+          "title": "Type",
+          "type": "string"
+        },
+        "item": {
+          "discriminator": {
+            "mapping": {
+              "children": "#/$defs/LikeC4ChildrenSchema",
+              "descendants": "#/$defs/LikeC4DescendantsSchema",
+              "element": "#/$defs/LikeC4ElementRefSchema",
+              "wildcard": "#/$defs/LikeC4WildcardSchema"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LikeC4WildcardSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ElementRefSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ChildrenSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4DescendantsSchema"
+            }
+          ],
+          "title": "Item"
+        }
+      },
+      "required": [
+        "type",
+        "item"
+      ],
+      "title": "LikeC4InOutSchema",
+      "type": "object"
+    },
+    "LikeC4IncludeRuleSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "const": "include",
+          "title": "Rule",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "between": "#/$defs/LikeC4BetweenSchema",
+                "children": "#/$defs/LikeC4ChildrenSchema",
+                "descendants": "#/$defs/LikeC4DescendantsSchema",
+                "element": "#/$defs/LikeC4ElementRefSchema",
+                "incoming": "#/$defs/LikeC4IncomingSchema",
+                "inout": "#/$defs/LikeC4InOutSchema",
+                "outgoing": "#/$defs/LikeC4OutgoingSchema",
+                "raw": "#/$defs/LikeC4RawPredicateSchema",
+                "where": "#/$defs/LikeC4WhereSchema",
+                "wildcard": "#/$defs/LikeC4WildcardSchema"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/LikeC4WildcardSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4ElementRefSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4ChildrenSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4DescendantsSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4WhereSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4BetweenSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4IncomingSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4OutgoingSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4InOutSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4RawPredicateSchema"
+              }
+            ]
+          },
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        },
+        "navigate_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Navigate To"
+        }
+      },
+      "required": [
+        "rule",
+        "items"
+      ],
+      "title": "LikeC4IncludeRuleSchema",
+      "type": "object"
+    },
+    "LikeC4IncomingSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "incoming",
+          "title": "Type",
+          "type": "string"
+        },
+        "item": {
+          "discriminator": {
+            "mapping": {
+              "children": "#/$defs/LikeC4ChildrenSchema",
+              "descendants": "#/$defs/LikeC4DescendantsSchema",
+              "element": "#/$defs/LikeC4ElementRefSchema",
+              "wildcard": "#/$defs/LikeC4WildcardSchema"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LikeC4WildcardSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ElementRefSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ChildrenSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4DescendantsSchema"
+            }
+          ],
+          "title": "Item"
+        }
+      },
+      "required": [
+        "type",
+        "item"
+      ],
+      "title": "LikeC4IncomingSchema",
+      "type": "object"
+    },
+    "LikeC4InstanceSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "element": {
+          "minLength": 1,
+          "title": "Element",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Metadata",
+          "type": "object"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/LikeC4LinkSchema"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "style": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Style",
+          "type": "object"
+        }
+      },
+      "required": [
+        "element"
+      ],
+      "title": "LikeC4InstanceSchema",
+      "type": "object"
+    },
+    "LikeC4LinkSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "title": "LikeC4LinkSchema",
+      "type": "object"
+    },
+    "LikeC4ModelSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "elements": {
+          "items": {
+            "$ref": "#/$defs/LikeC4ElementSchema"
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "relationships": {
+          "items": {
+            "$ref": "#/$defs/LikeC4RelationshipSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        }
+      },
+      "title": "LikeC4ModelSchema",
+      "type": "object"
+    },
+    "LikeC4OutgoingSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "outgoing",
+          "title": "Type",
+          "type": "string"
+        },
+        "item": {
+          "discriminator": {
+            "mapping": {
+              "children": "#/$defs/LikeC4ChildrenSchema",
+              "descendants": "#/$defs/LikeC4DescendantsSchema",
+              "element": "#/$defs/LikeC4ElementRefSchema",
+              "wildcard": "#/$defs/LikeC4WildcardSchema"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LikeC4WildcardSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ElementRefSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ChildrenSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4DescendantsSchema"
+            }
+          ],
+          "title": "Item"
+        }
+      },
+      "required": [
+        "type",
+        "item"
+      ],
+      "title": "LikeC4OutgoingSchema",
+      "type": "object"
+    },
+    "LikeC4RawPredicateSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "raw",
+          "title": "Type",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "title": "LikeC4RawPredicateSchema",
+      "type": "object"
+    },
+    "LikeC4RelationshipKindSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "style": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Style",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "LikeC4RelationshipKindSchema",
+      "type": "object"
+    },
+    "LikeC4RelationshipSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "minLength": 1,
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "minLength": 1,
+          "title": "To",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "bidirectional": {
+          "default": false,
+          "title": "Bidirectional",
+          "type": "boolean"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Metadata",
+          "type": "object"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/LikeC4LinkSchema"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "style": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Style",
+          "type": "object"
+        },
+        "navigate_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Navigate To"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "title": "LikeC4RelationshipSchema",
+      "type": "object"
+    },
+    "LikeC4RenderOptionsSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "view_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "View exported as an image when none is chosen otherwise.",
+          "title": "View Key"
+        }
+      },
+      "title": "LikeC4RenderOptionsSchema",
+      "type": "object"
+    },
+    "LikeC4SpecificationSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "elements": {
+          "items": {
+            "$ref": "#/$defs/LikeC4ElementKindSchema"
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "relationships": {
+          "items": {
+            "$ref": "#/$defs/LikeC4RelationshipKindSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "deployment_nodes": {
+          "items": {
+            "$ref": "#/$defs/LikeC4ElementKindSchema"
+          },
+          "title": "Deployment Nodes",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "$ref": "#/$defs/LikeC4TagSchema"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "colors": {
+          "items": {
+            "$ref": "#/$defs/LikeC4ColorSchema"
+          },
+          "title": "Colors",
+          "type": "array"
+        }
+      },
+      "title": "LikeC4SpecificationSchema",
+      "type": "object"
+    },
+    "LikeC4StyleRuleSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "const": "style",
+          "title": "Rule",
+          "type": "string"
+        },
+        "targets": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "between": "#/$defs/LikeC4BetweenSchema",
+                "children": "#/$defs/LikeC4ChildrenSchema",
+                "descendants": "#/$defs/LikeC4DescendantsSchema",
+                "element": "#/$defs/LikeC4ElementRefSchema",
+                "incoming": "#/$defs/LikeC4IncomingSchema",
+                "inout": "#/$defs/LikeC4InOutSchema",
+                "outgoing": "#/$defs/LikeC4OutgoingSchema",
+                "raw": "#/$defs/LikeC4RawPredicateSchema",
+                "where": "#/$defs/LikeC4WhereSchema",
+                "wildcard": "#/$defs/LikeC4WildcardSchema"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/LikeC4WildcardSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4ElementRefSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4ChildrenSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4DescendantsSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4WhereSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4BetweenSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4IncomingSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4OutgoingSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4InOutSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4RawPredicateSchema"
+              }
+            ]
+          },
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "minProperties": 1,
+          "title": "Properties"
+        }
+      },
+      "required": [
+        "rule",
+        "targets",
+        "properties"
+      ],
+      "title": "LikeC4StyleRuleSchema",
+      "type": "object"
+    },
+    "LikeC4TagSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Color"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "LikeC4TagSchema",
+      "type": "object"
+    },
+    "LikeC4ViewsSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "deployment": "#/$defs/LikeC4DeploymentViewSchema",
+                "dynamic": "#/$defs/LikeC4DynamicViewSchema",
+                "element": "#/$defs/LikeC4ElementViewSchema"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/LikeC4ElementViewSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4DeploymentViewSchema"
+              },
+              {
+                "$ref": "#/$defs/LikeC4DynamicViewSchema"
+              }
+            ]
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "title": "LikeC4ViewsSchema",
+      "type": "object"
+    },
+    "LikeC4WhereSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "where",
+          "title": "Type",
+          "type": "string"
+        },
+        "item": {
+          "discriminator": {
+            "mapping": {
+              "children": "#/$defs/LikeC4ChildrenSchema",
+              "descendants": "#/$defs/LikeC4DescendantsSchema",
+              "element": "#/$defs/LikeC4ElementRefSchema",
+              "wildcard": "#/$defs/LikeC4WildcardSchema"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LikeC4WildcardSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ElementRefSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4ChildrenSchema"
+            },
+            {
+              "$ref": "#/$defs/LikeC4DescendantsSchema"
+            }
+          ],
+          "title": "Item"
+        },
+        "tag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tag"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        }
+      },
+      "required": [
+        "type",
+        "item"
+      ],
+      "title": "LikeC4WhereSchema",
+      "type": "object"
+    },
+    "LikeC4WildcardSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "wildcard",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "LikeC4WildcardSchema",
+      "type": "object"
+    }
+  }
+}

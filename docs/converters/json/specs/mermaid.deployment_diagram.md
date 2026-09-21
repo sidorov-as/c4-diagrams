@@ -3,7 +3,7 @@
 > **Source:** [mermaid.deployment-diagram.json](../../../assets/specs/mermaid.deployment-diagram.json)
 
 
-This schema describes the [DeploymentDiagram][c4.diagrams.deployment.DeploymentDiagram] spec for the Mermaid backend.
+This schema describes the [DeploymentDiagram][c4.diagrams.deployment.DeploymentDiagram] diagram spec for the Mermaid backend.
 
 ## Properties
 
@@ -81,20 +81,17 @@ This schema describes the [DeploymentDiagram][c4.diagrams.deployment.DeploymentD
 - [ContainerDbExtSchema](#containerdbextschema)
 - [ContainerQueueSchema](#containerqueueschema)
 - [ContainerQueueExtSchema](#containerqueueextschema)
-
 ### Boundaries
 
 - [NodeSchema](#nodeschema)
 - [MermaidNodeLeftSchema](#mermaidnodeleftschema)
 - [MermaidNodeRightSchema](#mermaidnoderightschema)
 - [DeploymentNodeSchema](#deploymentnodeschema)
-
 ### Relationships
 
 - [MermaidRelationshipSchema](#mermaidrelationshipschema)
 
 - [MermaidRelationshipSchema types](#relationshiptype)
-
 ## Definitions
 
 
@@ -133,7 +130,6 @@ Relationship types supported by Mermaid C4 diagrams.
     | `REL_RIGHT` | A unidirectional rightward relationship. |
     | `REL_U` | A unidirectional upward relationship. Shorthand for `REL_UP`. |
     | `REL_UP` | A unidirectional upward relationship. |
-
 ### ContainerDbExtSchema
 
 This schema describes the
@@ -152,7 +148,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerDbSchema
 
 This schema describes the
@@ -171,7 +166,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerExtSchema
 
 This schema describes the
@@ -190,7 +184,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerQueueExtSchema
 
 This schema describes the
@@ -209,7 +202,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerQueueSchema
 
 This schema describes the
@@ -228,7 +220,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerSchema
 
 This schema describes the
@@ -247,7 +238,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### DeploymentNodeSchema
 
 This schema describes the
@@ -268,7 +258,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### DiagramElementPropertiesSchema
 
 JSON schema for tabular diagram element properties.
@@ -282,7 +271,6 @@ JSON schema for tabular diagram element properties.
     | `header` | <code>array[string]</code> | Header columns. Default: `["Property", "Value"]`. |
     | **`properties(required)`** | <code>array[array[string]]</code> | List of rows (each row is a list of string values). |
     | `show_header` | `boolean` | Whether to display the header row. Default: `true`. |
-
 ### MermaidNodeLeftSchema
 
 Mermaid JSON schema for a left-aligned deployment node.
@@ -301,7 +289,6 @@ Mermaid JSON schema for a left-aligned deployment node.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### MermaidNodeRightSchema
 
 Mermaid JSON schema for a right-aligned deployment node.
@@ -320,7 +307,6 @@ Mermaid JSON schema for a right-aligned deployment node.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### MermaidRelationshipSchema
 
 JSON schema for relationships supported by Mermaid C4 diagrams.
@@ -338,7 +324,6 @@ JSON schema for relationships supported by Mermaid C4 diagrams.
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | The technology used in the communication. |
     | **`to(required)`** | `string` | The destination element alias (or unique label). For Mermaid, this must resolve to a concrete element, not a boundary. |
-
 ### NodeSchema
 
 This schema describes the
@@ -359,7 +344,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### PersonExtSchema
 
 This schema describes the
@@ -376,7 +360,6 @@ This schema describes the
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### PersonSchema
 
 This schema describes the [`Person`][c4.diagrams.system_context.Person]
@@ -393,7 +376,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### RelationshipSchema
 
 This schema describes the [`Relationship`][c4.diagrams.core.Relationship]
@@ -412,7 +394,6 @@ diagram component.
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | The technology used in the communication. |
     | **`to(required)`** | `string` | The destination element alias (or unique label). |
-
 ### SystemDbExtSchema
 
 This schema describes the
@@ -430,7 +411,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemDbSchema
 
 This schema describes the
@@ -448,7 +428,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemExtSchema
 
 This schema describes the
@@ -465,7 +444,6 @@ This schema describes the
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemQueueExtSchema
 
 This schema describes the
@@ -483,7 +461,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemQueueSchema
 
 This schema describes the
@@ -501,7 +478,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemSchema
 
 This schema describes the
@@ -518,7 +494,6 @@ This schema describes the
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 
 
 ## Mermaid Render Options
@@ -539,7 +514,6 @@ applied at render time.
     |---|---|---|
     | `styles` | <code>array[<code><a href="#mermaidelementstyleschema">MermaidElementStyleSchema</a></code>\|<code><a href="#mermaidrelstyleschema">MermaidRelStyleSchema</a></code>]</code> | List of style update macro configurations. |
     | `update_layout_config` | <code><a href="#updatelayoutconfigschema">UpdateLayoutConfigSchema</a></code> | Configuration for updating default layout behavior. |
-
 ### MermaidElementStyleSchema
 
 Style update for an individual diagram element.
@@ -555,7 +529,6 @@ Style update for an individual diagram element.
     | `border_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Border line color. |
     | **`element(required)`** | `string` | Alias of the element to style. |
     | `font_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Font/text color. |
-
 ### MermaidRelStyleSchema
 
 Style update for relationship lines.
@@ -573,7 +546,6 @@ Style update for relationship lines.
     | `offset_y` | <span style="white-space: nowrap;">`integer` \| `null`</span> | Optional vertical offset for the label position. |
     | `text_color` | <span style="white-space: nowrap;">`string` \| `null`</span> | Color of the relationship label text. |
     | **`to_element(required)`** | `string` | Alias of the target element to style. |
-
 ### UpdateLayoutConfigSchema
 
 Configuration for updating default layout behavior in

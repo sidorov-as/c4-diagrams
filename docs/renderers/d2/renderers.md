@@ -154,3 +154,28 @@ If the executable is not available as `d2`, pass `d2_bin` or set `D2_BIN`.
 |-----------------------------|-----------------------------------|---------|
 | `D2_BIN`                    | Path or name of the D2 executable | `d2`    |
 | `RENDERING_TIMEOUT_SECONDS` | Rendering timeout in seconds      | `30`    |
+
+## KrokiD2Backend
+
+[`KrokiD2Backend`](../../api_docs/d2/renderers/#c4.renderers.d2.backends.KrokiD2Backend)
+renders generated D2 source through a Kroki server using Kroki diagram type
+`d2`.
+
+```python
+from c4.renderers import D2Renderer, KrokiD2Backend
+
+renderer = D2Renderer(
+    backend=KrokiD2Backend(server_url="https://kroki.io"),
+)
+```
+
+CLI example:
+
+```bash
+c4 export diagram.py --d2 --d2-backend kroki \
+  --kroki-method post \
+  -f png -o diagram.png
+```
+
+`--d2-layout` is local-backend only. Kroki export rejects D2 layout selection
+instead of silently ignoring it.

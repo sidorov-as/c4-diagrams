@@ -1,0 +1,59 @@
+{
+  "backend": "likec4",
+  "name": "Shop",
+  "specification": {
+    "elements": [
+      {
+        "name": "actor",
+        "style": {
+          "shape": "person"
+        }
+      },
+      {
+        "name": "system"
+      }
+    ]
+  },
+  "model": {
+    "elements": [
+      {
+        "id": "customer",
+        "alias": "customer",
+        "kind": "actor",
+        "title": "Customer"
+      },
+      {
+        "id": "shop",
+        "alias": "shop",
+        "kind": "system",
+        "title": "Online Shop"
+      }
+    ],
+    "relationships": [
+      {
+        "from": "customer",
+        "to": "shop",
+        "title": "buys goods"
+      }
+    ]
+  },
+  "views": {
+    "items": [
+      {
+        "type": "element",
+        "key": "index",
+        "title": "Landscape",
+        "rules": [
+          {
+            "rule": "include",
+            "items": [
+              {
+                "type": "wildcard"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

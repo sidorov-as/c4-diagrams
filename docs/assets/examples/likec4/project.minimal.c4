@@ -1,0 +1,17 @@
+specification {
+  element actor { style { shape person } }
+  element system
+}
+
+model {
+  customer = actor "Customer"
+  shop = system "Online Shop"
+  customer -> shop "buys goods"
+}
+
+views {
+  view index {
+    title "Landscape"
+    include *
+  }
+}

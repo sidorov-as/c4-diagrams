@@ -73,6 +73,52 @@ jobs:
       - name: Check typing
         run: uv run mypy
 
+  likec4:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        likec4-version: ["1.60.0"]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-python-env
+
+      - name: Set up LikeC4
+        uses: ./.github/actions/setup-likec4
+        with:
+          likec4-version: ${{ matrix.likec4-version }}
+
+      - name: Run LikeC4 tests (validate examples, export images)
+        run: uv run python -m pytest tests -m likec4
+
+  structurizr:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        structurizr-version: ["2026.06.28"]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-python-env
+
+      - name: Set up Structurizr
+        uses: ./.github/actions/setup-structurizr
+        with:
+          structurizr-version: ${{ matrix.structurizr-version }}
+
+      - name: Run Structurizr tests (export images)
+        run: uv run python -m pytest tests -m structurizr
+
   check-docs:
     runs-on: ubuntu-latest
     strategy:

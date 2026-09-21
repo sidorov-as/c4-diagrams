@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import shlex
 import shutil
 import textwrap
 from collections.abc import Callable, Iterable
@@ -18,10 +19,14 @@ from c4.constants import (
     D2_BIN_ENV_VAR,
     D2_LAYOUT_ENGINES,
     DEFAULT_JAVA_BIN,
+    DEFAULT_KROKI_SERVER_URL,
     DEFAULT_RENDERING_TIMEOUT_SECONDS,
     FORMATS_BY_RENDERER_HELP_TEXT,
     JAVA_BIN_ENV_VAR,
     KNOWN_RENDERERS,
+    KROKI_BACKEND,
+    KROKI_SERVER_URL_ENV_VAR,
+    LIKEC4_BIN_ENV_VAR,
     LOCAL_BACKEND,
     MERMAID_BIN_ENV_VAR,
     MERMAID_SCALE_FACTOR_ENV_VAR,
@@ -31,7 +36,9 @@ from c4.constants import (
     PLANTUML_SKINPARAM_DPI_ENV_VAR,
     REMOTE_BACKEND,
     RENDERING_TIMEOUT_SECONDS_ENV_VAR,
+    STRUCTURIZR_BIN_ENV_VAR,
 )
+from c4.contrib.structurizr.renderer import STYLE_PRESET_CLI_VALUES
 from c4.enums import ConvertShortcut
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -79,6 +86,25 @@ def _exporter_binary_type(value: str, backend: str) -> str:
     return value
 
 
+def _likec4_bin_type(value: str) -> str:
+    """
+    Validate a LikeC4 command.
+
+    The value is a command name or full path, optionally followed by
+    arguments such as ``"npx likec4@1.60.0"``; only the executable is checked.
+    """
+    try:
+        parts = shlex.split(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            f"LikeC4 command {value!r} is not valid: {exc}."
+        ) from None
+    if not parts:
+        raise argparse.ArgumentTypeError("LikeC4 command must not be empty.")
+    _exporter_binary_type(parts[0], backend="LikeC4")
+    return value
+
+
 def str2bool(value: str) -> bool:
     if isinstance(value, bool):
         return value
@@ -93,6 +119,7 @@ def str2bool(value: str) -> bool:
 _plantuml_bin_type = partial(_exporter_binary_type, backend="PlantUML")
 _mermaid_bin_type = partial(_exporter_binary_type, backend="Mermaid")
 _d2_bin_type = partial(_exporter_binary_type, backend="D2")
+_structurizr_bin_type = partial(_exporter_binary_type, backend="Structurizr")
 
 
 def _existing_file_type(value: str | Path, label: str) -> Path:
@@ -229,6 +256,16 @@ def _add_renderer_flags(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Use D2 renderer (alias for --renderer d2).",
     )
+    group.add_argument(
+        "--structurizr",
+        action="store_true",
+        help="Use Structurizr renderer (alias for --renderer structurizr).",
+    )
+    group.add_argument(
+        "--likec4",
+        action="store_true",
+        help="Use LikeC4 renderer (alias for --renderer likec4).",
+    )
 
 
 def _add_plantuml_render_flags(parser: argparse.ArgumentParser) -> None:
@@ -239,6 +276,17 @@ def _add_plantuml_render_flags(parser: argparse.ArgumentParser) -> None:
         "--plantuml-use-new-c4-style",
         action="store_true",
         help="Activates the new C4-PlantUML style.",
+    )
+
+
+def _add_structurizr_render_flags(parser: argparse.ArgumentParser) -> None:
+    """Add Structurizr-specific render flags."""
+    group = parser.add_argument_group("Structurizr options")
+    group.add_argument(
+        "--structurizr-style-preset",
+        choices=STYLE_PRESET_CLI_VALUES,
+        default="classic",
+        help="Structurizr style preset to emit.",
     )
 
 
@@ -299,6 +347,7 @@ def _build_render_parser(
 
     _add_renderer_flags(render_parser)
     _add_plantuml_render_flags(render_parser)
+    _add_structurizr_render_flags(render_parser)
     _add_watch_flags(render_parser)
 
     render_parser.set_defaults(func=handle_render)
@@ -315,9 +364,9 @@ def _add_plantuml_export_flags(parser: argparse.ArgumentParser) -> None:
 
     group.add_argument(
         "--plantuml-backend",
-        choices=(LOCAL_BACKEND, REMOTE_BACKEND),
+        choices=(LOCAL_BACKEND, REMOTE_BACKEND, KROKI_BACKEND),
         default=LOCAL_BACKEND,
-        help="How to run PlantUML: local execution or remote server.",
+        help="How to run PlantUML: local execution, remote server, or Kroki.",
     )
     group.add_argument(
         "--plantuml-server-url",
@@ -393,6 +442,29 @@ def _add_plantuml_export_flags(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _add_kroki_export_flags(parser: argparse.ArgumentParser) -> None:
+    """
+    Add shared Kroki export flags.
+    """
+    group = parser.add_argument_group("Kroki options")
+
+    group.add_argument(
+        "--kroki-url",
+        default=_env_default([KROKI_SERVER_URL_ENV_VAR]),
+        help=(
+            "Kroki server root URL. If not provided, "
+            f"{KROKI_SERVER_URL_ENV_VAR} is used, falling back to "
+            f"{DEFAULT_KROKI_SERVER_URL}."
+        ),
+    )
+    group.add_argument(
+        "--kroki-method",
+        choices=("get", "post"),
+        default="get",
+        help="HTTP method used for Kroki rendering.",
+    )
+
+
 def _add_mermaid_export_flags(parser: argparse.ArgumentParser) -> None:
     """
     Add Mermaid-specific export flags.
@@ -402,6 +474,12 @@ def _add_mermaid_export_flags(parser: argparse.ArgumentParser) -> None:
     """
     group = parser.add_argument_group("Mermaid options")
 
+    group.add_argument(
+        "--mermaid-backend",
+        choices=(LOCAL_BACKEND, KROKI_BACKEND),
+        default=LOCAL_BACKEND,
+        help="How to run Mermaid: local execution or Kroki.",
+    )
     group.add_argument(
         "--mermaid-bin",
         type=_mermaid_bin_type,
@@ -450,6 +528,12 @@ def _add_d2_export_flags(parser: argparse.ArgumentParser) -> None:
     group = parser.add_argument_group("D2 options")
 
     group.add_argument(
+        "--d2-backend",
+        choices=(LOCAL_BACKEND, KROKI_BACKEND),
+        default=LOCAL_BACKEND,
+        help="How to run D2: local execution or Kroki.",
+    )
+    group.add_argument(
         "--d2-bin",
         type=_d2_bin_type,
         default=_env_default([D2_BIN_ENV_VAR]),
@@ -464,6 +548,72 @@ def _add_d2_export_flags(parser: argparse.ArgumentParser) -> None:
         choices=D2_LAYOUT_ENGINES,
         default=None,
         help="D2 layout engine to use.",
+    )
+
+
+def _add_structurizr_export_flags(parser: argparse.ArgumentParser) -> None:
+    """Add Structurizr-specific export flags."""
+    group = parser.add_argument_group("Structurizr options")
+    group.add_argument(
+        "--structurizr-backend",
+        choices=(KROKI_BACKEND, LOCAL_BACKEND),
+        default=KROKI_BACKEND,
+        help=(
+            "How to export Structurizr DSL: Kroki or the local structurizr "
+            "CLI (PNG and SVG only; needs Playwright Chromium)."
+        ),
+    )
+    group.add_argument(
+        "--structurizr-bin",
+        type=_structurizr_bin_type,
+        default=_env_default([STRUCTURIZR_BIN_ENV_VAR]),
+        help=(
+            "Structurizr CLI executable (command name or full path) for "
+            "--structurizr-backend local. "
+            f"If not provided, the {STRUCTURIZR_BIN_ENV_VAR} "
+            "environment variable will be used."
+        ),
+    )
+    group.add_argument(
+        "--structurizr-view-key",
+        default=None,
+        help=(
+            "Structurizr view key to export. Required with the local backend "
+            "unless the workspace has exactly one view."
+        ),
+    )
+
+
+def _add_likec4_export_flags(parser: argparse.ArgumentParser) -> None:
+    """Add LikeC4-specific export flags."""
+    group = parser.add_argument_group("LikeC4 options")
+    group.add_argument(
+        "--likec4-backend",
+        choices=(LOCAL_BACKEND,),
+        default=LOCAL_BACKEND,
+        help=(
+            "How to export LikeC4 views. Local likec4 CLI is the only backend "
+            "(needs Node.js and Playwright Chromium)."
+        ),
+    )
+    group.add_argument(
+        "--likec4-bin",
+        type=_likec4_bin_type,
+        default=_env_default([LIKEC4_BIN_ENV_VAR]),
+        help=(
+            "LikeC4 executable (command name, full path, or a command such "
+            'as "npx likec4@1.60.0"). '
+            f"If not provided, the {LIKEC4_BIN_ENV_VAR} "
+            "environment variable will be used."
+        ),
+    )
+    group.add_argument(
+        "--likec4-view-key",
+        default=None,
+        help=(
+            "LikeC4 view key to export. Defaults to the project's view_key, "
+            "or its only view."
+        ),
     )
 
 
@@ -526,9 +676,12 @@ def _build_export_parser(
     )
 
     _add_renderer_flags(export_parser)
+    _add_kroki_export_flags(export_parser)
     _add_plantuml_export_flags(export_parser)
     _add_mermaid_export_flags(export_parser)
     _add_d2_export_flags(export_parser)
+    _add_structurizr_export_flags(export_parser)
+    _add_likec4_export_flags(export_parser)
     _add_watch_flags(export_parser)
 
     export_parser.set_defaults(func=handle_export)

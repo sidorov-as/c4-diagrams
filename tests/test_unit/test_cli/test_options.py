@@ -7,7 +7,7 @@ from typing import Any, Protocol
 import pytest
 from pytest_mock import MockerFixture
 
-from c4 import EPS, LATEX, PNG, SVG, TXT, UTXT
+from c4 import EPS, LATEX, PNG, SVG, TXT, UTXT, SystemContextDiagram
 from c4.cli.exceptions import CLIError, RendererBackendMismatchError
 from c4.cli.options import (
     DEFAULT_RENDERING_TIMEOUT_SECONDS,
@@ -16,11 +16,14 @@ from c4.cli.options import (
     D2ExportCLIOptions,
     DiagramFormat,
     ExportCLIOptions,
+    KrokiExportCLIOptions,
     MermaidExportCLIOptions,
     PlantUMLExportCLIOptions,
     PlantUMLRenderCLIOptions,
     RenderCLIOptions,
     RendererEnum,
+    StructurizrExportCLIOptions,
+    StructurizrRenderCLIOptions,
     _build_d2_export_cli_options,
     _build_d2_exporter,
     _build_mermaid_export_cli_options,
@@ -29,6 +32,10 @@ from c4.cli.options import (
     _build_plantuml_exporter,
     _build_plantuml_render_cli_options,
     _build_plantuml_renderer,
+    _build_structurizr_export_cli_options,
+    _build_structurizr_exporter,
+    _build_structurizr_render_cli_options,
+    _build_structurizr_renderer,
     _build_watch_options,
     _get_renderer_name,
     _validate_output_format,
@@ -53,9 +60,11 @@ from c4.constants import (
     DEFAULT_MERMAID_SCALE_FACTOR,
     DEFAULT_PLANTUML_BIN,
     DEFAULT_PLANTUML_SERVER_URL,
+    DEFAULT_STRUCTURIZR_BIN,
     DIAGRAM_FORMATS_BY_RENDERER,
     JAVA_BIN_ENV_VAR,
     KNOWN_RENDERERS,
+    KROKI_BACKEND,
     MERMAID,
     MERMAID_BIN_ENV_VAR,
     MERMAID_SCALE_FACTOR_ENV_VAR,
@@ -67,8 +76,22 @@ from c4.constants import (
     REMOTE_BACKEND,
     STRUCTURIZR,
 )
+from c4.contrib.structurizr import Workspace
+from c4.contrib.structurizr.renderer import (
+    KrokiStructurizrBackend,
+    LocalStructurizrBackend,
+    StructurizrRenderer,
+    StructurizrRenderOptions,
+)
 from c4.enums import JSON, PDF, PY, ConvertShortcut, DiagramConvertionFormat
-from c4.renderers import D2Renderer, MermaidRenderer, PlantUMLRenderer
+from c4.renderers import (
+    D2Renderer,
+    KrokiD2Backend,
+    KrokiMermaidBackend,
+    KrokiPlantUMLBackend,
+    MermaidRenderer,
+    PlantUMLRenderer,
+)
 from c4.renderers.d2 import LocalD2Backend
 from c4.renderers.mermaid import LocalMermaidBackend
 from c4.renderers.plantuml import LocalPlantUMLBackend, RemotePlantUMLBackend
@@ -80,10 +103,10 @@ class MakeConvertArgs(Protocol):
         *,
         target: str = "diagram.json",
         output: Path | None = None,
-        mode_shortcut: object = None,
-        from_value: object = None,
+        mode_shortcut: Any = None,
+        from_value: Any = None,
         from_json: bool = False,
-        to_value: object = None,
+        to_value: Any = None,
         to_py: bool = False,
     ) -> argparse.Namespace: ...
 
@@ -94,10 +117,10 @@ def make_convert_args() -> MakeConvertArgs:
         *,
         target: str = "diagram.json",
         output: Path | None = None,
-        mode_shortcut: object = None,
-        from_value: object = None,
+        mode_shortcut: Any = None,
+        from_value: Any = None,
         from_json: bool = False,
-        to_value: object = None,
+        to_value: Any = None,
         to_py: bool = False,
     ) -> argparse.Namespace:
         return argparse.Namespace(
@@ -137,6 +160,13 @@ def parse_export_args(monkeypatch: pytest.MonkeyPatch):
         return parser.parse_args(["export", "diagram.py", *argv])
 
     return _parse_export_args
+
+
+class UnknownRenderer:
+    value = "unknown"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 def test_render_cli_options_open_output(
@@ -270,9 +300,19 @@ def test_convert_cli_options_open_output__output_is_none(
             D2,
         ),
         (
+            {"renderer": STRUCTURIZR.value},
+            [],
+            STRUCTURIZR,
+        ),
+        (
             {},
             [MERMAID.value],
             MERMAID,
+        ),
+        (
+            {},
+            [STRUCTURIZR.value],
+            STRUCTURIZR,
         ),
         (
             {},
@@ -314,7 +354,9 @@ def test_convert_cli_options_open_output__output_is_none(
         "renderer_provided_plantuml",
         "renderer_provided_mermaid",
         "renderer_provided_d2",
+        "renderer_provided_structurizr",
         "renderer_provided_mermaid_flag",
+        "renderer_provided_structurizr_flag",
         "renderer_provided_d2_flag",
         "renderer_priority_over_plantuml",
         "renderer_priority_over_mermaid",
@@ -340,16 +382,6 @@ def test_get_renderer_name(
     ("cli_args", "flags", "renderer"),
     [
         (
-            {"renderer": STRUCTURIZR.value},
-            [],
-            STRUCTURIZR.value,
-        ),
-        (
-            {},
-            [STRUCTURIZR.value],
-            STRUCTURIZR.value,
-        ),
-        (
             {"renderer": "unknown"},
             [],
             "unknown",
@@ -361,7 +393,8 @@ def test_get_renderer_name_unknown(
 ):
     args = argparse.Namespace(**cli_args, **dict.fromkeys(flags, True))
     expected_error = re.escape(
-        f"Unknown renderer {renderer!r}. Allowed: d2, mermaid, plantuml."
+        f"Unknown renderer {renderer!r}. "
+        "Allowed: d2, likec4, mermaid, plantuml, structurizr."
     )
 
     with pytest.raises(CLIError, match=expected_error):
@@ -386,6 +419,17 @@ def test_validate_output_format_unknown_renderer(
 
     with pytest.raises(CLIError, match=expected_error):
         _validate_output_format(renderer, fmt=mocker.ANY)
+
+
+def test_validate_output_format_unknown_renderer_without_registered_formats():
+    renderer = UnknownRenderer()
+    expected_error = (
+        "Renderer 'unknown' has no registered formats. "
+        "Allowed renderers: d2, likec4, mermaid, plantuml, structurizr."
+    )
+
+    with pytest.raises(CLIError, match=expected_error):
+        _validate_output_format(renderer, fmt=SVG)
 
 
 @pytest.mark.parametrize(
@@ -548,6 +592,27 @@ def test_build_render_cli_options__d2(
     assert result.renderer_options is None
 
 
+@pytest.mark.parametrize("output", [None, Path("/path/to/output.dsl")])
+def test_build_render_cli_options__structurizr(
+    mocker: MockerFixture, output: Path | None
+):
+    mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=RendererEnum.STRUCTURIZR,
+    )
+    args = argparse.Namespace(
+        target="module:diagram",
+        output=output,
+    )
+
+    result = build_render_cli_options(args)
+
+    assert result.renderer == RendererEnum.STRUCTURIZR
+    assert result.target == "module:diagram"
+    assert result.output is output
+    assert result.renderer_options == StructurizrRenderCLIOptions()
+
+
 def test_build_render_cli_options__builds_watch_options_without_validation(
     mocker: MockerFixture,
 ):
@@ -613,6 +678,30 @@ def test_build_render_cli_options__json_backend_mismatched_renderer(
         build_render_cli_options(args)
 
 
+def test_build_render_cli_options__structurizr_json_backend_mismatch(
+    tmp_path: Path,
+):
+    diagram_path = tmp_path / "diagram.json"
+    diagram_path.write_text(
+        """
+        {"backend": "structurizr", "type": "SystemContextDiagram", "title": "Example"}
+        """,
+        encoding="utf-8",
+    )
+    args = argparse.Namespace(
+        target=str(diagram_path),
+        renderer=MERMAID.value,
+        output=None,
+    )
+    expected_error = (
+        "JSON diagram backend 'structurizr' does not match "
+        "selected renderer 'mermaid'."
+    )
+
+    with pytest.raises(RendererBackendMismatchError, match=expected_error):
+        build_render_cli_options(args)
+
+
 @pytest.mark.parametrize(
     "renderer",
     [renderer for renderer in RendererEnum if renderer not in KNOWN_RENDERERS],
@@ -634,6 +723,25 @@ def test_build_render_cli_options_unsupported_renderer(
         build_render_cli_options(args)
 
 
+def test_build_render_cli_options_unsupported_unknown_renderer(
+    mocker: MockerFixture,
+):
+    renderer = UnknownRenderer()
+    mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=renderer,
+    )
+    args = argparse.Namespace(target="x")
+
+    with pytest.raises(
+        CLIError,
+        match=re.escape(
+            "Renderer 'unknown' is not supported by the 'render' command."
+        ),
+    ):
+        build_render_cli_options(args)
+
+
 @pytest.mark.parametrize("use_new_c4_style", [True, False])
 def test_build_plantuml_render_cli_options_c4_style(
     use_new_c4_style: bool,
@@ -645,6 +753,35 @@ def test_build_plantuml_render_cli_options_c4_style(
     result = _build_plantuml_render_cli_options(args)
 
     assert result.use_new_c4_style == use_new_c4_style
+
+
+def test_build_structurizr_render_cli_options():
+    args = argparse.Namespace()
+
+    result = _build_structurizr_render_cli_options(args)
+
+    assert result == StructurizrRenderCLIOptions()
+
+
+@pytest.mark.parametrize(
+    ("raw_style_preset", "expected_style_preset"),
+    [
+        ("classic", "classic"),
+        ("new-c4-style", "new-c4-style"),
+        ("none", None),
+    ],
+)
+def test_build_structurizr_render_cli_options_style_preset(
+    raw_style_preset: str,
+    expected_style_preset: str | None,
+):
+    args = argparse.Namespace(
+        structurizr_style_preset=raw_style_preset,
+    )
+
+    result = _build_structurizr_render_cli_options(args)
+
+    assert result.render_options.style_preset == expected_style_preset
 
 
 def test_build_watch_options_defaults():
@@ -809,6 +946,70 @@ def test_build_renderer_d2():
     assert isinstance(result, D2Renderer)
 
 
+def test_build_renderer_structurizr():
+    cli_options = RenderCLIOptions(
+        renderer=RendererEnum.STRUCTURIZR,
+        target="x",
+        renderer_options=StructurizrRenderCLIOptions(),
+    )
+
+    result = build_renderer(cli_options)
+
+    assert isinstance(result, StructurizrRenderer)
+
+
+@pytest.mark.parametrize(
+    ("renderer", "renderer_options", "target"),
+    [
+        (
+            RendererEnum.PLANTUML,
+            PlantUMLRenderCLIOptions(),
+            Workspace("Payments"),
+        ),
+        (
+            RendererEnum.STRUCTURIZR,
+            StructurizrRenderCLIOptions(),
+            SystemContextDiagram("Payments"),
+        ),
+    ],
+)
+def test_build_renderer_rejects_incompatible_render_target(
+    renderer: RendererEnum,
+    renderer_options: PlantUMLRenderCLIOptions | StructurizrRenderCLIOptions,
+    target: Any,
+):
+    cli_options = RenderCLIOptions(
+        renderer=renderer,
+        target="payments",
+        renderer_options=renderer_options,
+    )
+
+    with pytest.raises(
+        CLIError,
+        match=(
+            rf"Cannot render {target.__class__.__name__} \"Payments\" "
+            rf"with renderer {renderer.value!r}:"
+        ),
+    ):
+        build_renderer(cli_options, target=target)  # type: ignore[arg-type]
+
+
+def test_build_exporter_rejects_incompatible_render_target():
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.PLANTUML,
+        target="payments",
+        renderer_options=PlantUMLExportCLIOptions(),
+    )
+
+    with pytest.raises(
+        CLIError,
+        match=(
+            "Cannot render Workspace \"Payments\" with renderer 'plantuml':"
+        ),
+    ):
+        build_exporter(cli_options, target=Workspace("Payments"))
+
+
 @pytest.mark.parametrize(
     "renderer",
     [renderer for renderer in RendererEnum if renderer not in KNOWN_RENDERERS],
@@ -825,6 +1026,18 @@ def test_build_renderer_unsupported_renderer(renderer: RendererEnum):
         build_renderer(cli_options)
 
 
+def test_build_renderer_unsupported_unknown_renderer():
+    renderer = UnknownRenderer()
+    cli_options = RenderCLIOptions(
+        renderer=renderer,
+        target="x",
+        renderer_options=PlantUMLRenderCLIOptions(),
+    )
+
+    with pytest.raises(CLIError, match="Unsupported renderer: 'unknown'"):
+        build_renderer(cli_options)
+
+
 def test_build_plantuml_renderer_new_c4_style():
     cli_options = RenderCLIOptions(
         renderer=RendererEnum.PLANTUML,
@@ -838,6 +1051,22 @@ def test_build_plantuml_renderer_new_c4_style():
 
     assert isinstance(result, PlantUMLRenderer)
     assert result._use_new_c4_style is True
+
+
+def test_build_structurizr_renderer():
+    options = StructurizrRenderOptions()
+    cli_options = RenderCLIOptions(
+        renderer=RendererEnum.STRUCTURIZR,
+        target="x",
+        renderer_options=StructurizrRenderCLIOptions(
+            render_options=options,
+        ),
+    )
+
+    result = _build_structurizr_renderer(cli_options)
+
+    assert isinstance(result, StructurizrRenderer)
+    assert result._render_options is options
 
 
 @pytest.mark.parametrize(
@@ -879,7 +1108,7 @@ def test_build_plantuml_export_cli_options_c4_style(
     mocker: MockerFixture,
 ):
     args = argparse.Namespace(
-        plantuml_backend=mocker.ANY,
+        plantuml_backend=LOCAL_BACKEND,
         plantuml_server_url=mocker.ANY,
         plantuml_bin=mocker.ANY,
         plantuml_jar=mocker.ANY,
@@ -899,7 +1128,7 @@ def test_build_plantuml_export_cli_options_use_bundled_c4_plantuml(
     mocker: MockerFixture,
 ):
     args = argparse.Namespace(
-        plantuml_backend=mocker.ANY,
+        plantuml_backend=LOCAL_BACKEND,
         plantuml_server_url=mocker.ANY,
         plantuml_bin=mocker.ANY,
         plantuml_jar=mocker.ANY,
@@ -931,6 +1160,21 @@ def test_build_plantuml_export_cli_options_remote_backend():
     assert result.plantuml_backend == "remote"
     assert result.java_bin is None
     assert result.plantuml_skinparam_dpi == 300
+
+
+def test_build_plantuml_export_cli_options_kroki_rejects_bundled_includes():
+    args = argparse.Namespace(
+        plantuml_backend=KROKI_BACKEND,
+        plantuml_server_url=None,
+        plantuml_bin=None,
+        plantuml_jar=None,
+        java_bin=None,
+        plantuml_skinparam_dpi=None,
+        plantuml_use_bundled_c4_plantuml=True,
+    )
+
+    with pytest.raises(CLIError, match="cannot be used with"):
+        _build_plantuml_export_cli_options(args)
 
 
 def test_build_plantuml_exporter_local_backend(
@@ -1023,6 +1267,37 @@ def test_build_plantuml_exporter_remote_backend(
         result._plantuml_backend,
         timeout_seconds=12.5,
         server_url="https://plantuml.com",
+    )
+
+
+def test_build_plantuml_exporter_kroki_backend(
+    mocker: MockerFixture,
+):
+    backend_init = mocker.spy(KrokiPlantUMLBackend, "__init__")
+    renderer_options = PlantUMLExportCLIOptions(
+        plantuml_backend=KROKI_BACKEND,
+        kroki=KrokiExportCLIOptions(
+            url="https://kroki.example",
+            method="post",
+        ),
+    )
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.PLANTUML,
+        target="x",
+        renderer_options=renderer_options,
+        format=DiagramFormat.PNG,
+        timeout=12.5,
+    )
+
+    result = _build_plantuml_exporter(cli_options)
+
+    assert isinstance(result, PlantUMLRenderer)
+    assert isinstance(result._plantuml_backend, KrokiPlantUMLBackend)
+    backend_init.assert_called_once_with(
+        result._plantuml_backend,
+        timeout_seconds=12.5,
+        server_url="https://kroki.example",
+        use_post=True,
     )
 
 
@@ -1164,6 +1439,34 @@ def test_build_mermaid_exporter__puppeteer_headless(
     )
 
 
+def test_build_mermaid_exporter__kroki_backend(
+    mocker: MockerFixture,
+):
+    backend_init = mocker.spy(KrokiMermaidBackend, "__init__")
+    renderer_options = MermaidExportCLIOptions(
+        mermaid_backend=KROKI_BACKEND,
+        kroki=KrokiExportCLIOptions(url="https://kroki.example"),
+    )
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.MERMAID,
+        target="x",
+        renderer_options=renderer_options,
+        format=DiagramFormat.PNG,
+        timeout=12.5,
+    )
+
+    result = _build_mermaid_exporter(cli_options)
+
+    assert isinstance(result, MermaidRenderer)
+    assert isinstance(result._mermaid_backend, KrokiMermaidBackend)
+    backend_init.assert_called_once_with(
+        result._mermaid_backend,
+        timeout_seconds=12.5,
+        server_url="https://kroki.example",
+        use_post=False,
+    )
+
+
 def test_build_d2_exporter(
     mocker: MockerFixture,
 ):
@@ -1216,6 +1519,117 @@ def test_build_d2_exporter__layout(
         d2_bin="d2",
         layout="elk",
     )
+
+
+def test_build_d2_exporter__kroki_backend(
+    mocker: MockerFixture,
+):
+    backend_init = mocker.spy(KrokiD2Backend, "__init__")
+    renderer_options = D2ExportCLIOptions(
+        d2_backend=KROKI_BACKEND,
+        kroki=KrokiExportCLIOptions(url="https://kroki.example"),
+    )
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.D2,
+        target="x",
+        renderer_options=renderer_options,
+        format=DiagramFormat.SVG,
+        timeout=12.5,
+    )
+
+    result = _build_d2_exporter(cli_options)
+
+    assert isinstance(result, D2Renderer)
+    assert isinstance(result._d2_backend, KrokiD2Backend)
+    backend_init.assert_called_once_with(
+        result._d2_backend,
+        timeout_seconds=12.5,
+        server_url="https://kroki.example",
+        use_post=False,
+    )
+
+
+def test_build_structurizr_exporter__kroki_backend(
+    mocker: MockerFixture,
+):
+    backend_init = mocker.spy(KrokiStructurizrBackend, "__init__")
+    renderer_options = StructurizrExportCLIOptions(
+        view_key="container-view",
+        kroki=KrokiExportCLIOptions(url="https://kroki.example"),
+    )
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.STRUCTURIZR,
+        target="x",
+        renderer_options=renderer_options,
+        format=DiagramFormat.SVG,
+        timeout=12.5,
+    )
+
+    result = _build_structurizr_exporter(cli_options)
+
+    assert isinstance(result, StructurizrRenderer)
+    assert isinstance(result._backend, KrokiStructurizrBackend)
+    backend_init.assert_called_once_with(
+        result._backend,
+        timeout_seconds=12.5,
+        view_key="container-view",
+        server_url="https://kroki.example",
+        use_post=False,
+    )
+
+
+def _local_structurizr_cli_options(
+    format: DiagramFormat = DiagramFormat.PNG,  # noqa: A002
+) -> ExportCLIOptions:
+    return ExportCLIOptions(
+        renderer=RendererEnum.STRUCTURIZR,
+        target="x",
+        renderer_options=StructurizrExportCLIOptions(
+            structurizr_backend="local",
+            structurizr_bin="npx structurizr",
+            view_key="container-view",
+        ),
+        format=format,
+        timeout=12.5,
+    )
+
+
+def test_build_structurizr_exporter__local_backend(mocker: MockerFixture):
+    mocker.patch(
+        "c4.contrib.structurizr.renderer.backends.shutil.which",
+        return_value="/usr/bin/npx",
+    )
+    backend_init = mocker.spy(LocalStructurizrBackend, "__init__")
+
+    result = _build_structurizr_exporter(_local_structurizr_cli_options())
+
+    assert isinstance(result, StructurizrRenderer)
+    assert isinstance(result._backend, LocalStructurizrBackend)
+    backend_init.assert_called_once_with(
+        result._backend,
+        timeout_seconds=12.5,
+        structurizr_bin=["npx", "structurizr"],
+        view_key="container-view",
+    )
+
+
+def test_build_structurizr_exporter__local_backend_rejects_pdf():
+    with pytest.raises(CLIError, match="exports only png and svg"):
+        _build_structurizr_exporter(
+            _local_structurizr_cli_options(DiagramFormat.PDF)
+        )
+
+
+def test_build_structurizr_exporter__local_backend_missing_binary(
+    mocker: MockerFixture,
+):
+    mocker.patch(
+        "c4.contrib.structurizr.renderer.backends.shutil.which",
+        return_value=None,
+    )
+
+    with pytest.raises(CLIError, match="Structurizr CLI is not available"):
+        _build_structurizr_exporter(_local_structurizr_cli_options())
 
 
 def test_build_mermaid_export_cli_options():
@@ -1283,6 +1697,19 @@ def test_build_mermaid_export_cli_options__puppeteer_headless(
     assert result.puppeteer_headless is headless
 
 
+def test_build_mermaid_export_cli_options__kroki_rejects_local_flags():
+    args = argparse.Namespace(
+        mermaid_backend=KROKI_BACKEND,
+        mermaid_bin="mmdc",
+        mermaid_scale_factor=None,
+        mermaid_puppeteer_config=None,
+        mermaid_puppeteer_headless=None,
+    )
+
+    with pytest.raises(CLIError, match="cannot be used with local Mermaid"):
+        _build_mermaid_export_cli_options(args)
+
+
 def test_build_d2_export_cli_options():
     args = argparse.Namespace()
 
@@ -1313,6 +1740,73 @@ def test_build_d2_export_cli_options__layout():
 
     assert result.d2_bin == "custom-d2"
     assert result.layout == "elk"
+
+
+def test_build_d2_export_cli_options__kroki_rejects_layout():
+    args = argparse.Namespace(
+        d2_backend=KROKI_BACKEND,
+        d2_bin=None,
+        d2_layout="elk",
+    )
+
+    with pytest.raises(CLIError, match="not supported with --d2-backend kroki"):
+        _build_d2_export_cli_options(args)
+
+
+def test_build_structurizr_export_cli_options__kroki():
+    args = argparse.Namespace(
+        structurizr_backend=KROKI_BACKEND,
+        structurizr_view_key="container-view",
+        kroki_url="https://kroki.example",
+        kroki_method="post",
+    )
+
+    result = _build_structurizr_export_cli_options(args)
+
+    assert result == StructurizrExportCLIOptions(
+        view_key="container-view",
+        kroki=KrokiExportCLIOptions(
+            url="https://kroki.example",
+            method="post",
+        ),
+    )
+
+
+def test_build_structurizr_export_cli_options__local():
+    args = argparse.Namespace(
+        structurizr_backend=LOCAL_BACKEND,
+        structurizr_bin="/opt/structurizr",
+        structurizr_view_key="container-view",
+    )
+
+    result = _build_structurizr_export_cli_options(args)
+
+    assert result == StructurizrExportCLIOptions(
+        structurizr_backend="local",
+        structurizr_bin="/opt/structurizr",
+        view_key="container-view",
+    )
+
+
+def test_build_structurizr_export_cli_options__local_default_bin():
+    args = argparse.Namespace(
+        structurizr_backend=LOCAL_BACKEND,
+        structurizr_bin=None,
+    )
+
+    result = _build_structurizr_export_cli_options(args)
+
+    assert result.structurizr_bin == DEFAULT_STRUCTURIZR_BIN
+
+
+def test_build_structurizr_export_cli_options__kroki_rejects_bin():
+    args = argparse.Namespace(
+        structurizr_backend=KROKI_BACKEND,
+        structurizr_bin="structurizr",
+    )
+
+    with pytest.raises(CLIError, match="cannot be used with the local"):
+        _build_structurizr_export_cli_options(args)
 
 
 @pytest.mark.parametrize(
@@ -1536,6 +2030,39 @@ def test_build_export_cli_options__json_backend_mismatched_renderer(
         build_export_cli_options(args)
 
 
+def test_build_export_cli_options__structurizr__maps_args_and_validates_format(
+    mocker: MockerFixture,
+):
+    mocked_get_renderer_name = mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=STRUCTURIZR,
+    )
+    mocked_validate_output_format = mocker.patch(
+        "c4.cli.options._validate_output_format",
+        return_value=SVG,
+    )
+    args = argparse.Namespace(
+        target="module:diagram",
+        renderer=STRUCTURIZR.value,
+        format=SVG,
+        timeout=10.0,
+        output=None,
+    )
+
+    result = build_export_cli_options(args)
+
+    assert result.renderer == RendererEnum.STRUCTURIZR
+    assert result.target == "module:diagram"
+    assert result.format == SVG
+    assert result.timeout == 10.0
+    assert result.output is None
+    assert isinstance(result.renderer_options, StructurizrExportCLIOptions)
+    mocked_get_renderer_name.assert_called_once_with(args)
+    mocked_validate_output_format.assert_called_once_with(
+        result.renderer, fmt=SVG
+    )
+
+
 @pytest.mark.parametrize(
     "renderer",
     [renderer for renderer in RendererEnum if renderer not in KNOWN_RENDERERS],
@@ -1554,6 +2081,25 @@ def test_build_export_cli_options_unsupported_renderer(
     )
 
     with pytest.raises(CLIError, match=expected_error):
+        build_export_cli_options(args)
+
+
+def test_build_export_cli_options_unsupported_unknown_renderer(
+    mocker: MockerFixture,
+):
+    renderer = UnknownRenderer()
+    mocker.patch(
+        "c4.cli.options._get_renderer_name",
+        return_value=renderer,
+    )
+    args = argparse.Namespace(target="x")
+
+    with pytest.raises(
+        CLIError,
+        match=re.escape(
+            "Renderer 'unknown' is not supported by the 'export' command."
+        ),
+    ):
         build_export_cli_options(args)
 
 
@@ -1608,6 +2154,20 @@ def test_build_exporter_d2(
     assert isinstance(result, D2Renderer)
 
 
+def test_build_exporter_structurizr():
+    cli_options = ExportCLIOptions(
+        renderer=RendererEnum.STRUCTURIZR,
+        target="x",
+        renderer_options=StructurizrExportCLIOptions(),
+        format=DiagramFormat.SVG,
+        timeout=1.0,
+    )
+
+    result = build_exporter(cli_options)
+
+    assert isinstance(result, StructurizrRenderer)
+
+
 @pytest.mark.parametrize(
     "renderer",
     [renderer for renderer in RendererEnum if renderer not in KNOWN_RENDERERS],
@@ -1623,6 +2183,20 @@ def test_build_exporter_unsupported_renderer(renderer: RendererEnum):
     expected_error = f"Unsupported renderer: '{renderer.value}'"
 
     with pytest.raises(CLIError, match=expected_error):
+        build_exporter(cli_options)
+
+
+def test_build_exporter_unsupported_unknown_renderer():
+    renderer = UnknownRenderer()
+    cli_options = ExportCLIOptions(
+        renderer=renderer,
+        target="x",
+        renderer_options=PlantUMLExportCLIOptions(),
+        format=DiagramFormat.PNG,
+        timeout=1.0,
+    )
+
+    with pytest.raises(CLIError, match="Unsupported renderer: 'unknown'"):
         build_exporter(cli_options)
 
 

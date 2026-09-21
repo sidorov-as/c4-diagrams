@@ -37,24 +37,13 @@ and relationships — allowing you to describe software architecture in Python a
 
 ## Rendering backends
 
-Currently supported backends:
-
-- [**PlantUML**](https://github.com/plantuml-stdlib/C4-PlantUML)
-
-    - local rendering via `plantuml` CLI or `plantuml.jar`
-    - remote rendering via PlantUML server
-
-- [**Mermaid**](https://mermaid.ai/open-source/syntax/c4.html)
-
-    - local rendering via [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli)
-    - Mermaid’s C4 diagram support is currently [experimental](https://mermaid.ai/open-source/syntax/c4.html)
-
-- [**D2**](https://d2lang.com/)
-
-    - local rendering via [D2 CLI](https://d2lang.com/tour/install/)
-
-- [**Structurizr**](https://structurizr.com/) - WIP
-
+| Backend                                                    | What you describe                                       | Formats                         | Docs                                                                                   |
+|------------------------------------------------------------|---------------------------------------------------------|---------------------------------|----------------------------------------------------------------------------------------|
+| [PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML) | Portable diagram, rendered as C4-PlantUML               | PNG, SVG, EPS, LaTeX, TXT, UTXT | [PlantUML backend](https://sidorov-as.github.io/c4-diagrams/renderers/plantuml/)       |
+| [Mermaid](https://mermaid.ai/open-source/syntax/c4.html)   | Portable diagram, rendered as Mermaid C4 (experimental) | PNG, SVG, PDF                   | [Mermaid backend](https://sidorov-as.github.io/c4-diagrams/renderers/mermaid/)         |
+| [D2](https://d2lang.com/)                                  | Portable diagram, rendered as D2                        | PNG, SVG, PDF                   | [D2 backend](https://sidorov-as.github.io/c4-diagrams/renderers/d2/)                   |
+| [Structurizr](https://structurizr.com/)                    | Structurizr `Workspace` (model, views, styles)          | PNG, SVG, PDF                   | [Structurizr backend](https://sidorov-as.github.io/c4-diagrams/renderers/structurizr/) |
+| [LikeC4](https://likec4.dev/)                              | LikeC4 `Project` (specification, model, views)          | PNG, JPG                        | [LikeC4 backend](https://sidorov-as.github.io/c4-diagrams/renderers/likec4/)           |
 
 ## Getting started
 
@@ -68,46 +57,20 @@ pip install c4-diagrams
 
 Here’s an example of a **system context diagram** defined in Python:
 
-```python3
+```python
 # diagram.py
-from c4 import (
-    EnterpriseBoundary,
-    Person,
-    System,
-    SystemContextDiagram,
-    SystemExt,
-)
-from c4.contrib.plantuml import RelDown, RelRight
+from c4 import Person, Rel, System, SystemContextDiagram
 
+with SystemContextDiagram("Online Shop") as diagram:
+    customer = Person("Customer", "Buys goods online.")
+    shop = System("Online Shop", "Takes orders from customers.")
+    payments = System("Payment Provider", "Processes card payments.")
 
-with SystemContextDiagram("Acme Shop Platform") as diagram:
-    user = Person(
-        "Customer",
-        "A registered customer who browses products and places orders.",
-    )
-
-    with EnterpriseBoundary("Acme Corp"):
-        web_app = System(
-            "Web Application",
-            "Customer-facing website for browsing products and placing orders.",
-        )
-
-        api_backend = System(
-            "Backend API",
-            "Handles authentication, order processing, and business logic.",
-        )
-
-    email_provider = SystemExt(
-        "Email Provider",
-        "Delivers transactional emails.",
-    )
-
-    user >> RelRight("Uses") >> web_app
-    web_app >> RelRight("Calls API") >> api_backend
-    api_backend >> RelDown("Sends emails via") >> email_provider
+    customer >> Rel("Buys goods") >> shop
+    shop >> Rel("Takes payments") >> payments
 ```
 
-To export the diagram to a rendered artifact, run:
+To export the diagram to a rendered artifact (PlantUML by default), run:
 
 ```console
 c4 export diagram.py > diagram.png
@@ -116,14 +79,16 @@ c4 export diagram.py > diagram.png
 This generates the diagram below:
 
 <p align="center">
-  <img src="https://sidorov-as.github.io/c4-diagrams/assets/readme-diagram.png" alt="readme-diagram" />
+  <img src="https://sidorov-as.github.io/c4-diagrams/assets/overview/overview.plantuml.png" alt="overview-diagram" />
 </p>
 
 <p align="center">
   <em>diagram.png</em>
 </p>
 
-For details (renderers, diagram types, API), see the [documentation](https://sidorov-as.github.io/c4-diagrams/).
+The same diagram renders with Mermaid and D2, and Structurizr and LikeC4 have their own
+authoring models. See the [documentation](https://sidorov-as.github.io/c4-diagrams/) for all backends,
+and the [Examples](https://sidorov-as.github.io/c4-diagrams/examples/) page for more diagram types.
 
 ## Project Links
 
@@ -143,6 +108,20 @@ C4-PlantUML is licensed under the [MIT License](https://github.com/plantuml-stdl
 ## Contribution
 
 [Contribution guidelines for this project](https://github.com/sidorov-as/c4-diagrams/blob/main/CONTRIBUTING.md)
+
+## Acknowledgements
+
+- [C4 model](https://c4model.com/)
+- [C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML)
+- [Structurizr](https://structurizr.com/)
+- [LikeC4](https://likec4.dev/)
+- [Mermaid](https://mermaid.js.org/)
+- [D2](https://d2lang.com/)
+- [Kroki](https://kroki.io/)
+- [diagrams](https://github.com/mingrammer/diagrams)
+- [buildzr](https://github.com/amirulmenjeni/buildzr)
+- [pystructurizr](https://github.com/nielsvanspauwen/pystructurizr)
+
 
 ---
 
