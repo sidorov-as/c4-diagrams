@@ -99,9 +99,17 @@ def test_likec4_quickstart_runs_and_matches_the_shown_source():
     assert rendered.strip() == shown.group(2).strip()
 
 
-@pytest.mark.parametrize(
-    "path", BACKEND_PAGES, ids=lambda path: path.parent.name + "/" + path.name
-)
+def _backend_page(path: Path):
+    # Pages that build a local backend need that CLI, so they run in its CI job.
+    marks = []
+    if path.name == "renderers.md":
+        marks.append(getattr(pytest.mark, path.parent.name))
+    return pytest.param(
+        path, id=path.parent.name + "/" + path.name, marks=marks
+    )
+
+
+@pytest.mark.parametrize("path", [_backend_page(p) for p in BACKEND_PAGES])
 def test_self_contained_python_blocks_in_backend_pages_run(
     path: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

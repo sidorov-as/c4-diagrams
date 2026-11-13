@@ -25,7 +25,7 @@ jobs:
         run: make check
 
   tests-and-type-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
@@ -60,14 +60,8 @@ jobs:
         with:
           d2-version: ${{ matrix.d2-version }}
 
-      - name: Set up LikeC4
-        uses: ./.github/actions/setup-likec4
-
-      - name: Set up Structurizr
-        uses: ./.github/actions/setup-structurizr
-
       - name: Run tests
-        run: uv run python -m pytest tests --cov --cov-config=pyproject.toml --cov-report=lcov
+        run: uv run python -m pytest tests -m "not likec4 and not structurizr" --cov --cov-config=pyproject.toml --cov-report=lcov
 
       - name: Upload coverage reports to Qlty.sh with GitHub Action on Python 3.12
         uses: qltysh/qlty-action/coverage@v2
@@ -80,7 +74,7 @@ jobs:
         run: uv run mypy
 
   likec4:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         likec4-version: ["1.60.0"]
@@ -103,7 +97,7 @@ jobs:
         run: uv run python -m pytest tests -m likec4
 
   structurizr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         structurizr-version: ["2026.06.28"]
@@ -126,7 +120,7 @@ jobs:
         run: uv run python -m pytest tests -m structurizr
 
   check-docs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         plantuml-version: ["1.2025.10"]
