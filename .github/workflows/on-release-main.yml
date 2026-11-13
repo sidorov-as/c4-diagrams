@@ -52,7 +52,7 @@ jobs:
         run: uv build --package=c4-diagrams
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.13.0
+        uses: pypa/gh-action-pypi-publish@v1.14.2
 
       - name: Update GitHub Release body from CHANGELOG
         uses: softprops/action-gh-release@v2.4.2
