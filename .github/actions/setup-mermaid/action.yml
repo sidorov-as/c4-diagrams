@@ -15,6 +15,12 @@ runs:
       with:
         node-version: "20"
 
+    # Ubuntu 24.04 runners block unprivileged user namespaces, which breaks
+    # Chromium's sandbox when mmdc launches it.
+    - name: Allow Chromium sandbox
+      shell: bash
+      run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
     - name: Install Mermaid CLI (mmdc)
       shell: bash
       run: |

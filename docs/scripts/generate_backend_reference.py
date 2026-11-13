@@ -63,7 +63,7 @@ BIN_FLAG_DEFAULTS = {
     "--structurizr-bin": "structurizr",
     "--likec4-bin": "likec4",
 }
-CLI_ENV_VARS = ("STRUCTURIZR_BIN", "LIKEC4_BIN")
+CLI_ENV_VARS = ("STRUCTURIZR_BIN", "LIKEC4_BIN", "D2_BIN")
 
 
 @dataclass(frozen=True)

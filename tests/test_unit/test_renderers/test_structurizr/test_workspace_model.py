@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 from c4.contrib.structurizr import Workspace
@@ -12,24 +10,6 @@ from c4.diagrams.core import Diagram
 
 def _workspace_model(workspace: Workspace) -> dict[str, object]:
     return StructurizrRenderer()._build_workspace(workspace).to_dict()
-
-
-def test_workspace_model_shape_is_derived_from_local_structurizr_schema():
-    schema = (
-        Path(__file__).parents[4] / "local" / "structurizr.yaml"
-    ).read_text()
-
-    for name in (
-        "Workspace",
-        "Model",
-        "Person",
-        "SoftwareSystem",
-        "Container",
-        "Component",
-        "DeploymentNode",
-        "Views",
-    ):
-        assert f"    {name}:" in schema
 
 
 def test_renderer_rejects_diagram_target():

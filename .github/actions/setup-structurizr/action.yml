@@ -23,16 +23,23 @@ runs:
       with:
         distribution: temurin
         java-version: ${{ inputs.java-version }}
-        cache: maven
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
 
+    - name: Cache Structurizr CLI
+      id: structurizr-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/lib/structurizr.war
+        key: structurizr-war-${{ runner.os }}-${{ inputs.structurizr-version }}-java${{ inputs.java-version }}
+
     # Structurizr publishes no CLI binaries, so build the tagged release the
     # same way the Homebrew formula does.
     - name: Build Structurizr CLI
+      if: steps.structurizr-cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         set -euo pipefail
@@ -48,6 +55,13 @@ runs:
         mkdir -p "$BIN_DIR" "$HOME/.local/lib"
         cp "$SRC/structurizr-application/target/structurizr-${VERSION}.war" \
           "$HOME/.local/lib/structurizr.war"
+
+    - name: Install Structurizr launcher
+      shell: bash
+      run: |
+        set -euo pipefail
+        BIN_DIR="$HOME/.local/bin"
+        mkdir -p "$BIN_DIR"
         printf '#!/bin/bash\nexec java -jar "%s" "$@"\n' \
           "$HOME/.local/lib/structurizr.war" > "$BIN_DIR/structurizr"
         chmod +x "$BIN_DIR/structurizr"
