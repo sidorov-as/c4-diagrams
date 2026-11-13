@@ -41,24 +41,24 @@ class TargetParseError(CLIError):
         )
 
 
-class DiagramNotFoundError(CLIError):
+class RenderTargetNotFoundError(CLIError):
     """
     Raised when a requested Diagram cannot be found.
 
     This may happen if:
         - The specified diagram name does not exist.
-        - No Diagram instances exist in the target module.
+        - No render targets exist in the target module.
     """
 
     pass
 
 
-class MultipleDiagramsFoundError(CLIError):
+class MultipleRenderTargetsFoundError(CLIError):
     """
-    Raised when multiple Diagram instances are found but no
-    explicit diagram name was provided.
+    Raised when multiple render targets are found but no explicit target name
+    was provided.
 
-    In this case, the user must specify which diagram to use.
+    In this case, the user must specify which render target to use.
     """
 
     def __init__(self, target: Target, names: list[str]) -> None:
@@ -70,20 +70,20 @@ class MultipleDiagramsFoundError(CLIError):
         else:
             module_repr = f"module {target.module_or_file!r}"
 
-        diagrams = ", ".join(names)
+        targets = ", ".join(names)
 
         super().__init__(
-            f"Multiple diagrams found in {module_repr}: {diagrams}. "
-            f"Either ensure the target contains exactly one Diagram, "
+            f"Multiple render targets found in {module_repr}: {targets}. "
+            "Either ensure the target contains exactly one render target, "
             f"or specify one explicitly as "
-            f"'{target.module_or_file}:<diagram_name>'."
+            f"'{target.module_or_file}:<target_name>'."
         )
 
 
 class ImportFromStringError(CLIError):
     """
     Raised when a module, file, or attribute cannot be imported
-    or does not resolve to a valid Diagram instance.
+    or does not resolve to a valid render target.
     """
 
     pass

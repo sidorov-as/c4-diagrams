@@ -20,6 +20,7 @@ from c4.cli.options import (
 from c4.cli.watch import WatchOptions
 from c4.constants import LOCAL_BACKEND, MERMAID, PLANTUML
 from c4.diagrams.core import Diagram
+from c4.exceptions import C4Exception
 from c4.renderers import BaseRenderer
 
 
@@ -60,7 +61,8 @@ def test_handle_render(
     assert result == 0
     resolve_diagram.assert_called_once_with("module:diagram")
     build_renderer.assert_called_once_with(
-        spied_build_render_cli_options.spy_return
+        spied_build_render_cli_options.spy_return,
+        target=diagram,
     )
     renderer.render.assert_called_once_with(diagram)
     assert diagram_output.read_text(encoding="utf-8") == "diagram-source"
@@ -101,6 +103,38 @@ def test_handle_render__json_backend_mismatch_cli_renderer(
 
     build_render_cli_options.assert_called_once_with(args)
     build_renderer.assert_not_called()
+    assert not diagram_output.exists()
+
+
+def test_render_once__wraps_renderer_c4_errors_as_cli_error(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    diagram_output = tmp_path / "diagram.puml"
+    cli_options = RenderCLIOptions(
+        renderer=PLANTUML,
+        target="module:diagram",
+        output=diagram_output,
+        renderer_options=PlantUMLRenderCLIOptions(),
+    )
+    mocker.patch.object(
+        commands,
+        "resolve_diagram",
+        autospec=True,
+        return_value=Diagram(),
+    )
+    renderer = mocker.Mock(spec=BaseRenderer)
+    renderer.render.side_effect = C4Exception("cannot render")
+    mocker.patch.object(
+        commands,
+        "build_renderer",
+        autospec=True,
+        return_value=renderer,
+    )
+
+    with pytest.raises(CLIError, match="cannot render"):
+        commands.render_once(cli_options)
+
     assert not diagram_output.exists()
 
 
@@ -344,7 +378,7 @@ def test_handle_export(
     spied_build_export_cli_options.assert_called_once_with(args)
     resolve_diagram.assert_called_once_with("module:diagram")
     build_exporter.assert_called_once_with(
-        spied_build_export_cli_options.spy_return
+        spied_build_export_cli_options.spy_return, target=diagram
     )
     exporter.render_bytes.assert_called_once_with(diagram, format=PNG)
     assert diagram_output.read_bytes() == b"content"
@@ -394,7 +428,7 @@ def test_handle_export__json_backend_matches_cli_renderer(
     spied_build_export_cli_options.assert_called_once_with(args)
     resolve_diagram.assert_called_once_with(str(file_path))
     build_exporter.assert_called_once_with(
-        spied_build_export_cli_options.spy_return
+        spied_build_export_cli_options.spy_return, target=diagram
     )
     exporter.render_bytes.assert_called_once_with(diagram, format=PNG)
     assert diagram_output.read_bytes() == b"content"
@@ -442,6 +476,38 @@ def test_handle_export__json_backend_mismatch_cli_renderer(
 
     build_export_cli_options.assert_called_once_with(args)
     build_exporter.assert_not_called()
+    assert not diagram_output.exists()
+
+
+def test_export_once__wraps_exporter_c4_errors_as_cli_error(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    diagram_output = tmp_path / "diagram.png"
+    cli_options = ExportCLIOptions(
+        renderer=MERMAID,
+        target="module:diagram",
+        output=diagram_output,
+        renderer_options=MermaidExportCLIOptions(),
+    )
+    mocker.patch.object(
+        commands,
+        "resolve_diagram",
+        autospec=True,
+        return_value=Diagram(),
+    )
+    exporter = mocker.Mock(spec=["render_bytes"])
+    exporter.render_bytes.side_effect = C4Exception("backend failed")
+    mocker.patch.object(
+        commands,
+        "build_exporter",
+        autospec=True,
+        return_value=exporter,
+    )
+
+    with pytest.raises(CLIError, match="backend failed"):
+        commands.export_once(cli_options)
+
     assert not diagram_output.exists()
 
 
@@ -638,6 +704,53 @@ def test_handle_convert(
         backend,
     )
     assert diagram_output.read_text() == expected_output
+
+
+def test_handle_convert__structurizr_workspace(
+    mocker: MockerFixture,
+    tmp_path: Path,
+):
+    file_path = tmp_path / "workspace.json"
+    file_path.write_text(
+        """
+        {
+            "backend": "structurizr",
+            "model": {},
+            "views": {"items": []}
+        }
+        """
+    )
+    workspace_output = tmp_path / "workspace.py"
+    args = argparse.Namespace(
+        target=str(file_path),
+        mode_shortcut="json_to_py",
+        output=workspace_output,
+    )
+    resolve_json_diagram = mocker.spy(commands, "resolve_json_diagram")
+    diagram_to_python_code = mocker.spy(commands, "diagram_to_python_code")
+
+    result = handle_convert(_context(args))
+
+    assert result == 0
+    workspace, backend = resolve_json_diagram.spy_return
+    diagram_to_python_code.assert_called_once_with(
+        workspace,
+        backend,
+    )
+    assert (
+        workspace_output.read_text()
+        == textwrap.dedent(
+            """
+        from c4.contrib.structurizr import Workspace
+
+
+        workspace = Workspace('Workspace')
+        with workspace.model as model:
+            pass
+
+        """
+        ).lstrip()
+    )
 
 
 def test_handle_convert__unsupported_conversion(

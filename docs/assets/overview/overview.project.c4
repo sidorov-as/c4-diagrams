@@ -1,0 +1,20 @@
+specification {
+  element actor { style { shape person } }
+  element system
+}
+
+model {
+  customer = actor "Customer"
+  shop = system "Online Shop"
+  payments = system "Payment Provider"
+  customer -> shop "buys goods"
+  shop -> payments "takes payments"
+}
+
+views {
+  view index {
+    title "Landscape"
+    include *
+    autoLayout LeftRight
+  }
+}

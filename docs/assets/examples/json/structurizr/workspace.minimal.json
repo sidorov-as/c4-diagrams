@@ -1,0 +1,32 @@
+{
+  "backend": "structurizr",
+  "model": {
+    "people": [
+      {
+        "id": "customer",
+        "name": "Customer"
+      }
+    ],
+    "software_systems": [
+      {
+        "id": "shop",
+        "name": "Online Shop"
+      }
+    ],
+    "relationships": [
+      {
+        "from": "customer",
+        "to": "shop",
+        "description": "Buys goods"
+      }
+    ]
+  },
+  "views": {
+    "items": [
+      {
+        "type": "system_landscape",
+        "key": "landscape"
+      }
+    ]
+  }
+}

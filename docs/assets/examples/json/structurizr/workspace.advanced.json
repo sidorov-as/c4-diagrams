@@ -1,0 +1,645 @@
+{
+  "backend": "structurizr",
+  "name": "Payments",
+  "description": "Payments architecture",
+  "theme": "default",
+  "styles": {
+    "elements": [
+      {
+        "target": "Person",
+        "properties": {
+          "shape": "Person"
+        }
+      },
+      {
+        "target": "Staff",
+        "properties": {
+          "background": "#455a64",
+          "color": "#ffffff"
+        }
+      },
+      {
+        "target": "External",
+        "properties": {
+          "background": "#999999",
+          "color": "#ffffff",
+          "border": "Dashed"
+        }
+      },
+      {
+        "target": "Critical",
+        "properties": {
+          "background": "#ffcc00",
+          "color": "#111111"
+        }
+      },
+      {
+        "target": "Frontend",
+        "properties": {
+          "shape": "WebBrowser"
+        }
+      },
+      {
+        "target": "Mobile",
+        "properties": {
+          "shape": "MobileDevicePortrait"
+        }
+      },
+      {
+        "target": "Storage",
+        "properties": {
+          "shape": "Cylinder"
+        }
+      },
+      {
+        "target": "Queue",
+        "properties": {
+          "shape": "Pipe"
+        }
+      },
+      {
+        "target": "Worker",
+        "properties": {
+          "shape": "Hexagon"
+        }
+      }
+    ],
+    "relationships": [
+      {
+        "target": "Persistent",
+        "properties": {
+          "thickness": 4
+        }
+      },
+      {
+        "target": "Async",
+        "properties": {
+          "border": "Dashed"
+        }
+      },
+      {
+        "target": "Critical",
+        "properties": {
+          "color": "#c62828",
+          "thickness": 3
+        }
+      }
+    ]
+  },
+  "model": {
+    "people": [
+      {
+        "id": "customer",
+        "name": "Customer",
+        "description": "Pays for goods and services.",
+        "tags": [
+          "External"
+        ],
+        "properties": {
+          "segment": "retail"
+        },
+        "url": "https://example.com/customer"
+      },
+      {
+        "id": "agent",
+        "name": "Support Agent",
+        "description": "Investigates failed and disputed payments.",
+        "tags": [
+          "Staff"
+        ]
+      },
+      {
+        "id": "analyst",
+        "name": "Fraud Analyst",
+        "description": "Reviews suspicious transactions.",
+        "tags": [
+          "Staff"
+        ]
+      }
+    ],
+    "software_systems": [
+      {
+        "id": "payments",
+        "name": "Payments",
+        "description": "Collects money.",
+        "containers": [
+          {
+            "id": "web",
+            "name": "Web App",
+            "description": "Customer checkout UI.",
+            "technology": "Django",
+            "tags": [
+              "Frontend"
+            ]
+          },
+          {
+            "id": "mobile",
+            "name": "Mobile App",
+            "description": "Checkout and payment history on phones.",
+            "technology": "React Native",
+            "tags": [
+              "Mobile"
+            ]
+          },
+          {
+            "id": "backoffice",
+            "name": "Back Office",
+            "description": "Payment search, refunds and disputes.",
+            "technology": "React",
+            "tags": [
+              "Frontend"
+            ]
+          },
+          {
+            "id": "api",
+            "name": "API",
+            "description": "Checkout API.",
+            "technology": "FastAPI",
+            "tags": [
+              "Critical"
+            ],
+            "components": [
+              {
+                "id": "controller",
+                "name": "Checkout Controller",
+                "description": "Validates requests and exposes the checkout endpoints.",
+                "technology": "FastAPI Router"
+              },
+              {
+                "id": "checkout",
+                "name": "Checkout",
+                "description": "Orchestrates a payment from cart to confirmation.",
+                "technology": "Python"
+              },
+              {
+                "id": "risk_client",
+                "name": "Risk Client",
+                "description": "Asks the fraud engine to score a payment.",
+                "technology": "gRPC"
+              },
+              {
+                "id": "psp_adapter",
+                "name": "PSP Adapter",
+                "description": "Talks to the payment provider and maps its errors.",
+                "technology": "Python"
+              },
+              {
+                "id": "ledger_repo",
+                "name": "Ledger Repository",
+                "description": "Persists payments and double-entry ledger records.",
+                "technology": "SQLAlchemy"
+              },
+              {
+                "id": "events",
+                "name": "Event Publisher",
+                "description": "Publishes payment lifecycle events.",
+                "technology": "Python"
+              }
+            ]
+          },
+          {
+            "id": "fraud",
+            "name": "Fraud Engine",
+            "description": "Scores payments in real time.",
+            "technology": "Python / scikit-learn",
+            "tags": [
+              "Critical"
+            ]
+          },
+          {
+            "id": "worker",
+            "name": "Settlement Worker",
+            "description": "Settles captured payments and sends receipts.",
+            "technology": "Celery",
+            "tags": [
+              "Worker"
+            ]
+          },
+          {
+            "id": "broker",
+            "name": "Message Broker",
+            "description": "Payment lifecycle events.",
+            "technology": "RabbitMQ",
+            "tags": [
+              "Queue"
+            ]
+          },
+          {
+            "id": "cache",
+            "name": "Session Cache",
+            "description": "Idempotency keys and checkout sessions.",
+            "technology": "Redis",
+            "tags": [
+              "Storage"
+            ]
+          },
+          {
+            "id": "database",
+            "name": "Database",
+            "description": "Payments and ledger.",
+            "technology": "PostgreSQL",
+            "tags": [
+              "Storage"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "psp",
+        "name": "Payment Provider",
+        "description": "Card acquiring and 3-D Secure.",
+        "tags": [
+          "External"
+        ]
+      },
+      {
+        "id": "bank",
+        "name": "Banking Network",
+        "description": "Settles funds with issuing banks.",
+        "tags": [
+          "External"
+        ]
+      },
+      {
+        "id": "identity",
+        "name": "Identity Provider",
+        "description": "Authenticates customers and staff.",
+        "tags": [
+          "External"
+        ]
+      },
+      {
+        "id": "notifier",
+        "name": "Notification Service",
+        "description": "Delivers e-mail and SMS receipts.",
+        "tags": [
+          "External"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "from": "customer",
+        "to": "web",
+        "description": "Uses",
+        "technology": "HTTPS"
+      },
+      {
+        "from": "customer",
+        "to": "mobile",
+        "description": "Uses",
+        "technology": "HTTPS"
+      },
+      {
+        "from": "agent",
+        "to": "backoffice",
+        "description": "Looks up payments",
+        "technology": "HTTPS"
+      },
+      {
+        "from": "analyst",
+        "to": "backoffice",
+        "description": "Reviews flagged payments",
+        "technology": "HTTPS"
+      },
+      {
+        "from": "web",
+        "to": "api",
+        "description": "Calls",
+        "technology": "JSON/HTTPS"
+      },
+      {
+        "from": "mobile",
+        "to": "api",
+        "description": "Calls",
+        "technology": "JSON/HTTPS"
+      },
+      {
+        "from": "backoffice",
+        "to": "api",
+        "description": "Calls",
+        "technology": "JSON/HTTPS"
+      },
+      {
+        "from": "web",
+        "to": "identity",
+        "description": "Signs customers in",
+        "technology": "OIDC"
+      },
+      {
+        "from": "backoffice",
+        "to": "identity",
+        "description": "Signs staff in",
+        "technology": "OIDC"
+      },
+      {
+        "from": "api",
+        "to": "cache",
+        "description": "Reads and writes sessions",
+        "technology": "Redis protocol"
+      },
+      {
+        "from": "api",
+        "to": "fraud",
+        "description": "Scores payments",
+        "technology": "gRPC"
+      },
+      {
+        "from": "api",
+        "to": "psp",
+        "description": "Authorises and captures",
+        "technology": "HTTPS",
+        "tags": [
+          "Critical"
+        ]
+      },
+      {
+        "from": "api",
+        "to": "broker",
+        "description": "Publishes events",
+        "technology": "AMQP",
+        "tags": [
+          "Async"
+        ]
+      },
+      {
+        "from": "api",
+        "to": "database",
+        "description": "Reads from and writes to",
+        "technology": "SQL",
+        "tags": [
+          "Persistent"
+        ]
+      },
+      {
+        "from": "fraud",
+        "to": "database",
+        "description": "Reads payment history",
+        "technology": "SQL"
+      },
+      {
+        "from": "broker",
+        "to": "worker",
+        "description": "Delivers events",
+        "technology": "AMQP",
+        "tags": [
+          "Async"
+        ]
+      },
+      {
+        "from": "worker",
+        "to": "database",
+        "description": "Updates settlements",
+        "technology": "SQL",
+        "tags": [
+          "Persistent"
+        ]
+      },
+      {
+        "from": "worker",
+        "to": "bank",
+        "description": "Submits settlement files",
+        "technology": "SFTP"
+      },
+      {
+        "from": "worker",
+        "to": "notifier",
+        "description": "Sends receipts",
+        "technology": "HTTPS",
+        "tags": [
+          "Async"
+        ]
+      },
+      {
+        "from": "psp",
+        "to": "bank",
+        "description": "Routes card transactions",
+        "technology": "ISO 8583"
+      },
+      {
+        "from": "web",
+        "to": "controller",
+        "description": "Submits checkout",
+        "technology": "JSON/HTTPS"
+      },
+      {
+        "from": "mobile",
+        "to": "controller",
+        "description": "Submits checkout",
+        "technology": "JSON/HTTPS"
+      },
+      {
+        "from": "backoffice",
+        "to": "controller",
+        "description": "Requests refunds",
+        "technology": "JSON/HTTPS"
+      },
+      {
+        "from": "controller",
+        "to": "checkout",
+        "description": "Starts payment"
+      },
+      {
+        "from": "checkout",
+        "to": "risk_client",
+        "description": "Requests risk score"
+      },
+      {
+        "from": "checkout",
+        "to": "psp_adapter",
+        "description": "Charges the card"
+      },
+      {
+        "from": "checkout",
+        "to": "ledger_repo",
+        "description": "Records payment"
+      },
+      {
+        "from": "checkout",
+        "to": "events",
+        "description": "Emits payment events"
+      },
+      {
+        "from": "risk_client",
+        "to": "fraud",
+        "description": "Scores payments",
+        "technology": "gRPC"
+      },
+      {
+        "from": "psp_adapter",
+        "to": "psp",
+        "description": "Authorises and captures",
+        "technology": "HTTPS",
+        "tags": [
+          "Critical"
+        ]
+      },
+      {
+        "from": "ledger_repo",
+        "to": "database",
+        "description": "Reads from and writes to",
+        "technology": "SQL",
+        "tags": [
+          "Persistent"
+        ]
+      },
+      {
+        "from": "events",
+        "to": "broker",
+        "description": "Publishes events",
+        "technology": "AMQP",
+        "tags": [
+          "Async"
+        ]
+      }
+    ]
+  },
+  "views": {
+    "items": [
+      {
+        "type": "system_landscape",
+        "key": "landscape"
+      },
+      {
+        "type": "system_context",
+        "scope": "payments",
+        "key": "context",
+        "include": [
+          "*"
+        ],
+        "exclude": [
+          "relationship.tag==Deprecated"
+        ]
+      },
+      {
+        "type": "container",
+        "scope": "payments",
+        "key": "containers",
+        "include": [
+          "*",
+          "element.tag==Storage"
+        ],
+        "auto_layout": {
+          "rank_direction": "TopBottom"
+        },
+        "animation": [
+          [
+            {
+              "id": "customer"
+            },
+            {
+              "id": "web"
+            },
+            {
+              "id": "mobile"
+            }
+          ],
+          [
+            {
+              "id": "api"
+            },
+            {
+              "id": "cache"
+            },
+            {
+              "id": "fraud"
+            }
+          ],
+          [
+            {
+              "id": "database"
+            },
+            {
+              "id": "broker"
+            },
+            {
+              "id": "worker"
+            }
+          ]
+        ]
+      },
+      {
+        "type": "component",
+        "scope": "api",
+        "key": "components",
+        "auto_layout": {
+          "rank_direction": "TopBottom"
+        }
+      },
+      {
+        "type": "dynamic",
+        "scope": "payments",
+        "key": "checkout-flow",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "web",
+            "description": "Starts checkout",
+            "technology": "HTTPS"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "description": "Submits checkout",
+            "technology": "JSON/HTTPS"
+          },
+          {
+            "from": "api",
+            "to": "fraud",
+            "description": "Scores the payment",
+            "technology": "gRPC"
+          },
+          {
+            "from": "api",
+            "to": "psp",
+            "description": "Authorises the card",
+            "technology": "HTTPS"
+          },
+          {
+            "from": "api",
+            "to": "database",
+            "description": "Persists checkout",
+            "technology": "SQL"
+          },
+          {
+            "from": "api",
+            "to": "broker",
+            "description": "Publishes payment captured",
+            "technology": "AMQP"
+          }
+        ]
+      },
+      {
+        "type": "dynamic",
+        "scope": "payments",
+        "key": "settlement-flow",
+        "steps": [
+          {
+            "from": "broker",
+            "to": "worker",
+            "description": "Delivers payment captured",
+            "technology": "AMQP"
+          },
+          {
+            "from": "worker",
+            "to": "database",
+            "description": "Marks payment as settled",
+            "technology": "SQL"
+          },
+          {
+            "from": "worker",
+            "to": "bank",
+            "description": "Submits settlement file",
+            "technology": "SFTP"
+          },
+          {
+            "from": "worker",
+            "to": "notifier",
+            "description": "Sends receipt",
+            "technology": "HTTPS"
+          }
+        ]
+      }
+    ]
+  }
+}

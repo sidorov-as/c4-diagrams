@@ -549,6 +549,22 @@ class RelationshipPlantUMLMacro(PlantUMLMacro[Relationship]):
         Argument.keyword(name="index", format=force_str),
     ]
 
+    def __init__(
+        self,
+        relationship: Relationship,
+        default_label: str | None = None,
+    ) -> None:
+        """
+        Initialize the macro for a relationship.
+
+        Args:
+            relationship: The relationship to render.
+            default_label: Label written when the relationship has none.
+                The relationship itself is not changed.
+        """
+        super().__init__(relationship)
+        self._default_label = default_label
+
     @override
     def get_macro(self) -> str | None:
         """
@@ -564,6 +580,10 @@ class RelationshipPlantUMLMacro(PlantUMLMacro[Relationship]):
         """
         relationship: Relationship = self._diagram_element
 
+        label = relationship.label
+        if label is None:
+            label = self._default_label
+
         extensions = self.get_plantuml_extensions()
 
         from_element, to_element = relationship.get_participants()  # type: ignore[var-annotated]
@@ -571,7 +591,7 @@ class RelationshipPlantUMLMacro(PlantUMLMacro[Relationship]):
         return {
             "from": from_element.alias,
             "to": to_element.alias,
-            "label": relationship.label,
+            "label": label,
             "description": relationship.description,
             "technology": relationship.technology,
             **extensions,

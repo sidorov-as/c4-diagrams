@@ -31,12 +31,22 @@ generate-examples: ## Generate docs examples from JSON sources.
 	@echo "🚀 Generate docs examples"
 	@uv run python docs/scripts/generate_examples.py --all
 
+.PHONY: generate-overview
+generate-overview: ## Generate the overview example artifacts.
+	@echo "🚀 Generate overview example"
+	@uv run python docs/scripts/generate_overview.py
+
+.PHONY: generate-backend-reference
+generate-backend-reference: ## Generate Structurizr/LikeC4 reference tables and CLI flag tables.
+	@echo "🚀 Generate backend reference"
+	@uv run python docs/scripts/generate_backend_reference.py
+
 .PHONY: generate-docs-artifacts
-generate-docs-artifacts: generate-examples ## Generate all checked-in docs artifacts.
+generate-docs-artifacts: generate-examples generate-overview generate-diagram-specs generate-backend-reference ## Generate all checked-in docs artifacts.
 
 .PHONY: check-docs-artifacts
 check-docs-artifacts: generate-docs-artifacts ## Check generated docs artifacts are up to date.
-	@git diff --exit-code -- docs/assets/examples docs/assets/specs docs/converters/json/specs
+	@git diff --exit-code -- docs/assets/examples docs/assets/overview docs/assets/specs docs/converters/json/specs docs/renderers/structurizr/reference.md docs/renderers/likec4/reference.md docs/cli.md
 
 .PHONY: test
 test: ## Test the code with pytest

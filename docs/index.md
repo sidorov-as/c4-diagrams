@@ -28,76 +28,164 @@ and relationships — allowing you to describe software architecture in Python a
 
 ## Rendering backends
 
-Currently supported backends:
+| Backend                                   | What you describe                                  | Formats                  | Docs                                      |
+|-------------------------------------------|----------------------------------------------------|--------------------------|-------------------------------------------|
+| [PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML) | Portable diagram, rendered as C4-PlantUML          | PNG, SVG, EPS, LaTeX, TXT, UTXT | [PlantUML backend](renderers/plantuml/index.md) |
+| [Mermaid](https://mermaid.ai/open-source/syntax/c4.html)   | Portable diagram, rendered as Mermaid C4 (experimental) | PNG, SVG, PDF       | [Mermaid backend](renderers/mermaid/index.md)   |
+| [D2](https://d2lang.com/)                 | Portable diagram, rendered as D2                   | PNG, SVG, PDF            | [D2 backend](renderers/d2/index.md)             |
+| [Structurizr](https://structurizr.com/)   | Structurizr `Workspace` (model, views, styles)     | PNG, SVG, PDF            | [Structurizr backend](renderers/structurizr/index.md) |
+| [LikeC4](https://likec4.dev/)             | LikeC4 `Project` (specification, model, views)     | PNG, JPG                 | [LikeC4 backend](renderers/likec4/index.md)     |
 
-- [**PlantUML**](https://github.com/plantuml-stdlib/C4-PlantUML)
-
-    - local rendering via `plantuml` CLI or `plantuml.jar`
-    - remote rendering via PlantUML server
-
-- [**Mermaid**](https://mermaid.ai/open-source/syntax/c4.html)
-
-    - local rendering via [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli)
-    - Mermaid’s C4 diagram support is currently [experimental](https://mermaid.ai/open-source/syntax/c4.html)
-
-- [**D2**](https://d2lang.com/)
-
-    - local rendering via [D2 CLI](https://d2lang.com/tour/install/)
-
-- [**Structurizr**](https://structurizr.com/) - WIP
+For a side-by-side feature matrix, see the [comparison](renderers/comparison.md).
 
 ## Example
 
-Here’s an example of a **system context diagram** defined in Python:
+!!! note
 
-```python
-# diagram.py
-from c4 import (
-    EnterpriseBoundary,
-    Person,
-    System,
-    SystemContextDiagram,
-    SystemExt,
-)
-from c4.contrib.plantuml import RelDown, RelRight
+    PlantUML, Mermaid and D2 render the same portable diagram (the PlantUML tab
+    uses `RelRight` to lay it out left to right). Structurizr and LikeC4 describe their own object
+    (a `Workspace` or a `Project`), so their DSL differs from the portable one.
 
+Here is a **system context diagram** of an online shop, defined in Python and rendered with each backend:
 
-with SystemContextDiagram("Acme Shop Platform") as diagram:
-    user = Person(
-        "Customer",
-        "A registered customer who browses products and places orders.",
-    )
+=== "PlantUML"
 
-    with EnterpriseBoundary("Acme Corp"):
-        web_app = System(
-            "Web Application",
-            "Customer-facing website for browsing products and placing orders.",
-        )
+    ```python
+    --8<-- "assets/overview/overview.plantuml.py"
+    ```
 
-        api_backend = System(
-            "Backend API",
-            "Handles authentication, order processing, and business logic.",
-        )
+    The model is the same as in the portable code. The only difference is
+    `RelRight` from `c4.contrib.plantuml` instead of `Rel`: PlantUML lays
+    diagrams out top-down by default, and the portable model has no layout
+    setting, so the direction is set per relationship.
 
-    email_provider = SystemExt(
-        "Email Provider",
-        "Delivers transactional emails.",
-    )
+    ```console
+    c4 render overview.py --plantuml
+    ```
 
-    user >> RelRight("Uses") >> web_app
-    web_app >> RelRight("Calls API") >> api_backend
-    api_backend >> RelDown("Sends emails via") >> email_provider
-```
+    ??? abstract "Rendered PlantUML source"
 
-To export the diagram to a rendered artifact, run:
+        ```puml
+        --8<-- "assets/overview/overview.puml"
+        ```
 
-```shell
-c4 export diagram.py > diagram.png
-```
+    ```console
+    c4 export overview.py --plantuml > diagram.png
+    ```
 
-This generates the diagram below:
+    <figure markdown="span">
+      ![PlantUML overview diagram](assets/overview/overview.plantuml.lr.png)
+      <figcaption>diagram.png</figcaption>
+    </figure>
 
-<figure markdown="span">
-  ![overview-diagram](assets/readme-diagram.png)
-  <figcaption>diagram.png</figcaption>
-</figure>
+    See the [PlantUML backend](renderers/plantuml/index.md).
+
+=== "Mermaid"
+
+    ```python
+    --8<-- "assets/overview/overview.py"
+    ```
+
+    ```console
+    c4 render overview.py --mermaid
+    ```
+
+    ??? abstract "Rendered Mermaid source"
+
+        ```text
+        --8<-- "assets/overview/overview.mmd"
+        ```
+
+    ```console
+    c4 export overview.py --mermaid > diagram.png
+    ```
+
+    <figure markdown="span">
+      ![Mermaid overview diagram](assets/overview/overview.mermaid.png)
+      <figcaption>diagram.png</figcaption>
+    </figure>
+
+    See the [Mermaid backend](renderers/mermaid/index.md).
+
+=== "D2"
+
+    ```python
+    --8<-- "assets/overview/overview.py"
+    ```
+
+    ```console
+    c4 render overview.py --d2
+    ```
+
+    ??? abstract "Rendered D2 source"
+
+        ```text
+        --8<-- "assets/overview/overview.d2"
+        ```
+
+    ```console
+    c4 export overview.py --d2 > diagram.png
+    ```
+
+    <figure markdown="span">
+      ![D2 overview diagram](assets/overview/overview.d2.png)
+      <figcaption>diagram.png</figcaption>
+    </figure>
+
+    See the [D2 backend](renderers/d2/index.md).
+
+=== "Structurizr"
+
+    ```python
+    --8<-- "assets/overview/overview.workspace.py"
+    ```
+
+    ```console
+    c4 render overview.py --structurizr
+    ```
+
+    ??? abstract "Rendered Structurizr DSL"
+
+        ```text
+        --8<-- "assets/overview/overview.workspace.dsl"
+        ```
+
+    ```console
+    c4 export overview.py --structurizr --structurizr-view-key landscape > diagram.png
+    ```
+
+    <figure markdown="span">
+      ![Structurizr overview diagram](assets/overview/overview.workspace.landscape.png)
+      <figcaption>diagram.png</figcaption>
+    </figure>
+
+    See the [Structurizr backend](renderers/structurizr/index.md).
+
+=== "LikeC4"
+
+    ```python
+    --8<-- "assets/overview/overview.project.py"
+    ```
+
+    ```console
+    c4 render overview.py --likec4
+    ```
+
+    ??? abstract "Rendered LikeC4 source"
+
+        ```text
+        --8<-- "assets/overview/overview.project.c4"
+        ```
+
+    ```console
+    c4 export overview.py --likec4 > diagram.png
+    ```
+
+    <figure markdown="span">
+      ![LikeC4 overview diagram](assets/overview/overview.project.png)
+      <figcaption>diagram.png</figcaption>
+    </figure>
+
+    See the [LikeC4 backend](renderers/likec4/index.md).
+
+More diagram types and backend-specific features are on the [Examples](examples/index.md) page.

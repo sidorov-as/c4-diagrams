@@ -27,11 +27,11 @@ surface than the PlantUML rendering backend.
 | Boundary extension data                        | Supported with `mermaid={...}`                                |
 | Element and relationship style options         | Supported through `MermaidRenderOptionsBuilder`               |
 | Layout row configuration                       | Supported through `UpdateLayoutConfig` options                |
-| Image rendering                                | Local Mermaid CLI only                                        |
+| Image rendering                                | Local Mermaid CLI or Kroki                                    |
 
 ## Pages
 
-- [Renderers](renderers.md): `MermaidRenderer` and local Mermaid CLI backend.
+- [Renderers](renderers.md): `MermaidRenderer`, local Mermaid CLI and Kroki backends.
 - [Extensions](extensions.md): preferred `mermaid={...}` authoring syntax.
 - [Options](options.md): layout and style options.
 - [Limitations](limitations.md): Mermaid C4 syntax limits and unsupported PlantUML helpers.

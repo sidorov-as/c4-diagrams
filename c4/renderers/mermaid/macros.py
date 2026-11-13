@@ -107,6 +107,22 @@ class RelationshipMermaidMacro(BaseMacro[Relationship]):
         Argument(name="techn", source="technology", format=quote_and_escape),
     ]
 
+    def __init__(
+        self,
+        relationship: Relationship,
+        default_label: str | None = None,
+    ) -> None:
+        """
+        Initialize the macro for a relationship.
+
+        Args:
+            relationship: The relationship to render.
+            default_label: Label written when the relationship has none.
+                The relationship itself is not changed.
+        """
+        super().__init__(relationship)
+        self._default_label = default_label
+
     @override
     def get_macro(self) -> str | None:
         """
@@ -125,12 +141,16 @@ class RelationshipMermaidMacro(BaseMacro[Relationship]):
         """
         relationship = self._diagram_element
 
+        label = relationship.label
+        if label is None:
+            label = self._default_label
+
         from_element, to_element = relationship.get_participants()  # type: ignore[var-annotated]
 
         return {
             "from": from_element.alias,
             "to": to_element.alias,
-            "label": relationship.label,
+            "label": label,
             "technology": relationship.technology,
         }
 

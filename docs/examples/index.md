@@ -247,6 +247,50 @@ notification, queue, and database flow.
         --8<-- "assets/examples/d2/tuned-sysops-component-diagram.d2"
         ```
 
+=== "Structurizr"
+
+    <figure markdown="span">
+      ![Structurizr tuned customer support component example](../assets/examples/structurizr/tuned-sysops-component-workspace.components.png)
+      <figcaption>Structurizr tuned customer support component diagram</figcaption>
+    </figure>
+
+    ??? abstract "Python workspace"
+
+        ```python
+        --8<-- "assets/examples/python/custom/structurizr/tuned-sysops-component-workspace.py"
+        ```
+
+    ??? abstract "Rendered Structurizr DSL"
+
+        ```dsl
+        --8<-- "assets/examples/structurizr/tuned-sysops-component-workspace.dsl"
+        ```
+
+=== "LikeC4"
+
+    === "Image"
+
+        <figure markdown="span">
+          ![LikeC4 tuned customer support component example](../assets/examples/likec4/tuned-sysops-component-project.png)
+          <figcaption>LikeC4 tuned customer support component diagram</figcaption>
+        </figure>
+
+    === "Interactive"
+
+        <div class="likec4-embed" data-bundle="../assets/examples/likec4/tuned-sysops-component-project.viewer.js" data-prefix="likec4-tuned-sysops-component-project" data-view="components"></div>
+
+    ??? abstract "Python project"
+
+        ```python
+        --8<-- "assets/examples/python/custom/likec4/tuned-sysops-component-project.py"
+        ```
+
+    ??? abstract "Rendered LikeC4 source"
+
+        ```c4
+        --8<-- "assets/examples/likec4/tuned-sysops-component-project.c4"
+        ```
+
 ### Customer support system extended component view
 
 This deeper view uses the same domain model with more operational surfaces:
@@ -310,8 +354,61 @@ flows.
         --8<-- "assets/examples/d2/extended-customer-support-component-diagram.d2"
         ```
 
+=== "Structurizr"
+
+    <figure markdown="span">
+      ![Structurizr extended customer support component example](../assets/examples/structurizr/extended-customer-support-component-workspace.components.png)
+      <figcaption>Structurizr extended customer support component diagram</figcaption>
+    </figure>
+
+    ??? abstract "Python workspace"
+
+        ```python
+        --8<-- "assets/examples/python/custom/structurizr/extended-customer-support-component-workspace.py"
+        ```
+
+    ??? abstract "Rendered Structurizr DSL"
+
+        ```dsl
+        --8<-- "assets/examples/structurizr/extended-customer-support-component-workspace.dsl"
+        ```
+
+=== "LikeC4"
+
+    === "Image"
+
+        <figure markdown="span">
+          ![LikeC4 extended customer support component example](../assets/examples/likec4/extended-customer-support-component-project.png)
+          <figcaption>LikeC4 extended customer support component diagram</figcaption>
+        </figure>
+
+    === "Interactive"
+
+        <div class="likec4-embed" data-bundle="../assets/examples/likec4/extended-customer-support-component-project.viewer.js" data-prefix="likec4-extended-customer-support-component-project" data-view="components"></div>
+
+    ??? abstract "Python project"
+
+        ```python
+        --8<-- "assets/examples/python/custom/likec4/extended-customer-support-component-project.py"
+        ```
+
+    ??? abstract "Rendered LikeC4 source"
+
+        ```c4
+        --8<-- "assets/examples/likec4/extended-customer-support-component-project.c4"
+        ```
+
 PlantUML is useful when you need rich C4 styling, legends, tags, and stronger
 layout nudges. Mermaid is useful when you want simple text output that embeds
 well in Markdown-centric tools, but its C4 support has fewer tuning controls.
 D2 is useful when you want readable text output plus local rendering with D2's
-layout engine, themes, links, tooltips, icons, classes, and structured legends.
+layout engine, themes, links, tooltips, icons, classes, and structured legends. Structurizr and LikeC4 render a whole workspace or project: Structurizr styles elements by tag, and LikeC4 by declared element kinds, and its **Interactive** tab opens the diagram in the LikeC4 viewer.
+
+## Backend-native examples
+
+Structurizr and LikeC4 model a whole workspace or project instead of a single
+portable diagram, so they have their own example pages (the backend-tuned
+examples above show them side by side with the other backends):
+
+- [Structurizr](structurizr/structurizr.md)
+- [LikeC4](likec4/likec4.md)

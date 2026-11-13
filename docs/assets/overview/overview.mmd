@@ -1,0 +1,12 @@
+C4Context
+title Online Shop
+
+Person(customer, "Customer", "Buys goods online.")
+
+System(online_shop, "Online Shop", "Takes orders from customers.")
+
+System(payment_provider, "Payment Provider", "Processes card payments.")
+
+Rel(customer, online_shop, "Buys goods")
+
+Rel(online_shop, payment_provider, "Takes payments")

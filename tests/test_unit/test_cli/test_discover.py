@@ -12,12 +12,13 @@ import c4.cli.discover as discover
 from c4 import Person, SystemContextDiagram
 from c4.cli.discover import Target
 from c4.cli.exceptions import (
-    DiagramNotFoundError,
     ImportFromStringError,
     MissingConverterDependency,
-    MultipleDiagramsFoundError,
+    MultipleRenderTargetsFoundError,
+    RenderTargetNotFoundError,
     TargetParseError,
 )
+from c4.contrib.structurizr import Workspace
 from c4.diagrams.core import Diagram
 from c4.enums import RendererEnum
 from tests.conftest import MakeTmpPyFile
@@ -140,7 +141,9 @@ def test__resolve_diagram_ref_no_object_ref_error():
     module.diagram = Diagram()
     target = Target(module_or_file="m", object_ref="", is_py_file=False)
 
-    with pytest.raises(ValueError, match="Diagram reference not provided"):
+    with pytest.raises(
+        ValueError, match="Render target reference not provided"
+    ):
         discover._resolve_diagram_ref(
             target,
             module,
@@ -159,10 +162,10 @@ def test__resolve_diagram_ref_missing_raises_module(attr_path: str):
     module.diagram = Diagram()
     target = Target(module_or_file="m", object_ref=attr_path, is_py_file=False)
     expected_error = (
-        f"Diagram reference '{attr_path}' was not found in module 'm'."
+        f"Render target reference '{attr_path}' was not found in module 'm'."
     )
 
-    with pytest.raises(DiagramNotFoundError, match=expected_error):
+    with pytest.raises(RenderTargetNotFoundError, match=expected_error):
         discover._resolve_diagram_ref(target, module)
 
 
@@ -183,11 +186,11 @@ def test__resolve_diagram_ref_missing_raises_file(attr_path: str):
         is_py_file=True,
     )
     expected_error = (
-        f"Diagram reference '{attr_path}' was not found "
+        f"Render target reference '{attr_path}' was not found "
         f"in '/path/to/diagram.py'."
     )
 
-    with pytest.raises(DiagramNotFoundError, match=expected_error):
+    with pytest.raises(RenderTargetNotFoundError, match=expected_error):
         discover._resolve_diagram_ref(target, module)
 
 
@@ -199,7 +202,7 @@ def test__resolve_diagram_ref_wrong_type_raises_module():
     )
     expected_error = (
         "Reference 'not_diagram' in module 'm' must be a "
-        "Diagram instance; got object."
+        "render target; got object."
     )
 
     with pytest.raises(ImportFromStringError, match=expected_error):
@@ -217,7 +220,7 @@ def test__resolve_diagram_ref_wrong_type_raises_file():
     )
     expected_error = (
         "Reference 'not_diagram' in '/path/to/diagram.py' must be a "
-        "Diagram instance; got object."
+        "render target; got object."
     )
 
     with pytest.raises(ImportFromStringError, match=expected_error):
@@ -386,7 +389,7 @@ def test__load_module_from_file_loads_related_modules(tmp_path: Path):
     assert module.value == 123
 
 
-def test__list_diagram_globals_filters_and_sorts(
+def test__list_render_target_globals_filters_and_sorts(
     make_tmp_py_file: MakeTmpPyFile,
 ):
     make_tmp_py_file(
@@ -405,12 +408,35 @@ def test__list_diagram_globals_filters_and_sorts(
     )
     module = discover._import_module_or_raise("diagram")
 
-    result = discover._list_diagram_globals(module)
+    result = discover._list_render_target_globals(module)
 
     assert result == ["_diagram1", "diagram2"]
 
 
-def test__get_single_diagram_from_module_single_returns_instance(
+def test__list_render_target_globals_includes_structurizr_workspace(
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    make_tmp_py_file(
+        "diagram.py",
+        textwrap.dedent(
+            """
+            from c4 import SystemContextDiagram
+            from c4.contrib.structurizr import Workspace
+
+            diagram = SystemContextDiagram("Example")
+            workspace = Workspace("Workspace")
+            value = object()
+            """
+        ),
+    )
+    module = discover._import_module_or_raise("diagram")
+
+    result = discover._list_render_target_globals(module)
+
+    assert result == ["diagram", "workspace"]
+
+
+def test__get_single_render_target_from_module_single_returns_instance(
     make_tmp_py_file: MakeTmpPyFile,
 ):
     make_tmp_py_file(
@@ -427,12 +453,12 @@ def test__get_single_diagram_from_module_single_returns_instance(
     module = discover._import_module_or_raise("diagram")
     target = Target(module_or_file="diagram", object_ref=None, is_py_file=False)
 
-    result = discover._get_single_diagram_from_module(target, module)
+    result = discover._get_single_render_target_from_module(target, module)
 
     assert result is module.diagram1
 
 
-def test__get_single_diagram_from_module_none_raises_module(
+def test__get_single_render_target_from_module_none_raises_module(
     make_tmp_py_file: MakeTmpPyFile,
 ):
     make_tmp_py_file(
@@ -446,16 +472,34 @@ def test__get_single_diagram_from_module_none_raises_module(
     module = discover._import_module_or_raise("diagram")
     target = Target(module_or_file="diagram", object_ref=None, is_py_file=False)
     expected_error = (
-        "No Diagram instances found in module 'diagram'. "
-        "Define a Diagram at module level or "
+        "No render targets found in module 'diagram'. "
+        "Define a render target at module level or "
         "specify one explicitly as '<target>:<name>'."
     )
 
-    with pytest.raises(DiagramNotFoundError, match=expected_error):
-        discover._get_single_diagram_from_module(target, module)
+    with pytest.raises(RenderTargetNotFoundError, match=expected_error):
+        discover._get_single_render_target_from_module(target, module)
 
 
-def test__get_single_diagram_from_module_none_raises_file(
+def test__get_single_render_target_from_module_reports_missing_render_targets(
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    make_tmp_py_file("empty.py", "")
+    module = discover._import_module_or_raise("empty")
+    target = Target(module_or_file="empty", object_ref=None, is_py_file=False)
+
+    with pytest.raises(
+        RenderTargetNotFoundError,
+        match=re.escape(
+            "No render targets found in module 'empty'. "
+            "Define a render target at module level or "
+            "specify one explicitly as '<target>:<name>'."
+        ),
+    ):
+        discover._get_single_render_target_from_module(target, module)
+
+
+def test__get_single_render_target_from_module_none_raises_file(
     make_tmp_py_file: MakeTmpPyFile,
 ):
     module_path = make_tmp_py_file(
@@ -471,16 +515,16 @@ def test__get_single_diagram_from_module_none_raises_file(
         module_or_file="diagram.py", object_ref=None, is_py_file=True
     )
     expected_error = (
-        f"No Diagram instances found in {str(module_path)!r}. "
-        "Define a Diagram at module level or "
+        f"No render targets found in {str(module_path)!r}. "
+        "Define a render target at module level or "
         "specify one explicitly as '<target>:<name>'."
     )
 
-    with pytest.raises(DiagramNotFoundError, match=expected_error):
-        discover._get_single_diagram_from_module(target, module)
+    with pytest.raises(RenderTargetNotFoundError, match=expected_error):
+        discover._get_single_render_target_from_module(target, module)
 
 
-def test__get_single_diagram_from_module_multiple_raises_module(
+def test__get_single_render_target_from_module_multiple_raises_module(
     make_tmp_py_file: MakeTmpPyFile,
 ):
     make_tmp_py_file(
@@ -499,16 +543,17 @@ def test__get_single_diagram_from_module_multiple_raises_module(
     module = discover._import_module_or_raise("diagram")
     target = Target(module_or_file="diagram", object_ref=None, is_py_file=False)
     expected_error = (
-        "Multiple diagrams found in module 'diagram': diagram1, diagram2. "
-        "Either ensure the target contains exactly one Diagram, "
-        "or specify one explicitly as 'diagram:<diagram_name>'."
+        "Multiple render targets found in module 'diagram': "
+        "diagram1, diagram2. Either ensure the target contains exactly "
+        "one render target, or specify one explicitly "
+        "as 'diagram:<target_name>'."
     )
 
-    with pytest.raises(MultipleDiagramsFoundError, match=expected_error):
-        discover._get_single_diagram_from_module(target, module)
+    with pytest.raises(MultipleRenderTargetsFoundError, match=expected_error):
+        discover._get_single_render_target_from_module(target, module)
 
 
-def test__get_single_diagram_from_module_multiple_raises_file(
+def test__get_single_render_target_from_module_multiple_raises_file(
     make_tmp_py_file: MakeTmpPyFile,
 ):
     make_tmp_py_file(
@@ -529,13 +574,14 @@ def test__get_single_diagram_from_module_multiple_raises_file(
         module_or_file="diagram.py", object_ref=None, is_py_file=True
     )
     expected_error = (
-        "Multiple diagrams found in 'diagram.py': diagram1, diagram2. "
-        "Either ensure the target contains exactly one Diagram, "
-        "or specify one explicitly as 'diagram.py:<diagram_name>'."
+        "Multiple render targets found in 'diagram.py': "
+        "diagram1, diagram2. Either ensure the target contains exactly "
+        "one render target, or specify one explicitly "
+        "as 'diagram.py:<target_name>'."
     )
 
-    with pytest.raises(MultipleDiagramsFoundError, match=expected_error):
-        discover._get_single_diagram_from_module(target, module)
+    with pytest.raises(MultipleRenderTargetsFoundError, match=expected_error):
+        discover._get_single_render_target_from_module(target, module)
 
 
 def test__load_target_module(
@@ -773,6 +819,46 @@ def test_resolve_diagram_module_target_dotted_ref(
     assert result.title == "Example"
 
 
+def test_resolve_diagram_module_target_explicit_workspace_ref(
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    make_tmp_py_file(
+        "module.py",
+        textwrap.dedent(
+            """
+            from c4.contrib.structurizr import Workspace
+
+            workspace = Workspace("Payments")
+            """
+        ),
+    )
+
+    result = discover.resolve_diagram("module:workspace")
+
+    assert isinstance(result, Workspace)
+    assert result.name == "Payments"
+
+
+def test_resolve_diagram_module_target_single_workspace_autodetect(
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    make_tmp_py_file(
+        "module.py",
+        textwrap.dedent(
+            """
+            from c4.contrib.structurizr import Workspace
+
+            workspace = Workspace("Payments")
+            """
+        ),
+    )
+
+    result = discover.resolve_diagram("module")
+
+    assert isinstance(result, Workspace)
+    assert result.name == "Payments"
+
+
 def test_resolve_diagram_module_target_no_diagrams_raises(
     make_tmp_py_file: MakeTmpPyFile,
 ):
@@ -785,7 +871,7 @@ def test_resolve_diagram_module_target_no_diagrams_raises(
         ),
     )
 
-    with pytest.raises(DiagramNotFoundError):
+    with pytest.raises(RenderTargetNotFoundError):
         discover.resolve_diagram("module")
 
 
@@ -804,7 +890,7 @@ def test_resolve_diagram_module_target_multiple_diagrams_raises(
         ),
     )
 
-    with pytest.raises(MultipleDiagramsFoundError):
+    with pytest.raises(MultipleRenderTargetsFoundError):
         discover.resolve_diagram("module")
 
 

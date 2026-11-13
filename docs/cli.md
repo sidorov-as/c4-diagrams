@@ -38,11 +38,11 @@ c4 render diagram.py > diagram.puml
     !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
 !endif
 
-Person(user_a467, "User", "System user")
+Person(user, "User", "System user")
 
-System(backend_api_8c20, "Backend API", "Main application backend")
+System(backend_api, "Backend API", "Main application backend")
 
-Rel(user_a467, backend_api_8c20, "Uses HTTP API")
+Rel(user, backend_api, "Uses HTTP API")
 
 @enduml
 ```
@@ -98,7 +98,12 @@ The same diagram expressed in JSON:
 }
 ```
 
-JSON diagrams are treated the same way as Python diagrams:
+JSON diagram files are treated the same way as Python diagrams. A Structurizr
+JSON file is a workspace rather than a single diagram and must include the root
+discriminator `"backend": "structurizr"`; the CLI uses it to infer the
+Structurizr renderer. Such files cannot be rendered through the core,
+PlantUML, Mermaid, or D2 JSON paths. A LikeC4 JSON file is a project and
+must include `"backend": "likec4"`, which selects the LikeC4 renderer.
 
 - `c4 render diagram.json` — generate textual output (e.g. PlantUML)
 - `c4 export diagram.json` — generate rendered artifacts (e.g. PNG)
@@ -148,7 +153,7 @@ JSON-to-Python conversion.
 | <span style="white-space: nowrap;">`file.py:diagram`</span>     | Load a named diagram variable from a Python file.          | <span style="white-space: nowrap;">`c4 render diagrams/context.py:public_api`</span>  |
 | <span style="white-space: nowrap;">`module.path`</span>         | Import a Python module and auto-detect its single diagram. | <span style="white-space: nowrap;">`c4 render architecture.context`</span>            |
 | <span style="white-space: nowrap;">`module.path:diagram`</span> | Import a Python module and load a named diagram variable.  | <span style="white-space: nowrap;">`c4 render architecture.context:public_api`</span> |
-| <span style="white-space: nowrap;">`file.json`</span>           | Load a JSON diagram.                                       | <span style="white-space: nowrap;">`c4 render diagrams/context.json`</span>           |
+| <span style="white-space: nowrap;">`file.json`</span>           | Load a JSON diagram, Structurizr workspace (`"backend": "structurizr"`) or LikeC4 project (`"backend": "likec4"`). | <span style="white-space: nowrap;">`c4 render diagrams/context.json`</span>           |
 
 ## Examples
 
@@ -269,6 +274,8 @@ CLI flags take precedence over environment variables.
 | <span style="white-space: nowrap;">`MERMAID_BIN`</span>               | <span style="white-space: nowrap;">`c4 export --mermaid`</span>  | Local Mermaid CLI executable.                                                                            | `mmdc`                                            |
 | <span style="white-space: nowrap;">`MERMAID_SCALE_FACTOR`</span>      | <span style="white-space: nowrap;">`c4 export --mermaid`</span>  | Mermaid CLI Puppeteer scale factor.                                                                      | `1`                                               |
 | <span style="white-space: nowrap;">`D2_BIN`</span>                    | <span style="white-space: nowrap;">`c4 export --d2`</span>       | Local D2 executable.                                                                                     | `d2`                                              |
+| <span style="white-space: nowrap;">`STRUCTURIZR_BIN`</span>           | <span style="white-space: nowrap;">`c4 export --structurizr`</span> | Local Structurizr CLI command.                                                                           | `structurizr`                                     |
+| <span style="white-space: nowrap;">`LIKEC4_BIN`</span>                 | <span style="white-space: nowrap;">`c4 export --likec4`</span> | Local LikeC4 command.                                                                                    | `likec4`                                          |
 | <span style="white-space: nowrap;">`RENDERING_TIMEOUT_SECONDS`</span> | <span style="white-space: nowrap;">`c4 export`</span>            | Render timeout in seconds.                                                                               | `30.0`                                            |
 
 ## CLI Reference
@@ -281,8 +288,9 @@ Render a diagram to text output (by default, PlantUML source).
 
 ```shell
 c4 render [-h] [-o OUTPUT] \
-          [--renderer {plantuml,mermaid,d2} | --plantuml | --mermaid | --d2] \
+          [--renderer {plantuml,mermaid,structurizr,d2,likec4} | --plantuml | --mermaid | --d2 | --structurizr | --likec4] \
           [--plantuml-use-new-c4-style] \
+          [--structurizr-style-preset {classic,new-c4-style,none}] \
           [-w] [--watch-delay WATCH_DELAY] \
           [--watch-dir WATCH_DIR] [--watch-include WATCH_INCLUDE] \
           target
@@ -298,12 +306,24 @@ c4 render [-h] [-o OUTPUT] \
 
 | Name                                                       | Type                                 | Description                                                                                             | Default    |
 |------------------------------------------------------------|--------------------------------------|---------------------------------------------------------------------------------------------------------|------------|
-| `--renderer`                                               | choice (`plantuml`, `mermaid`, `d2`) | Renderer to use (overrides the diagram's default renderer).                                             | `plantuml` |
+| `--renderer`                                               | choice (`plantuml`, `mermaid`, `structurizr`, `d2`, `likec4`) | Renderer to use (overrides the diagram's default renderer).                                             | `plantuml` |
 | `--plantuml`                                               | boolean                              | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>) | False      |
 | `--mermaid`                                                | boolean                              | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>)   | False      |
 | `--d2`                                                     | boolean                              | Use D2 renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer d2`</span>)             | False      |
+| `--structurizr` | boolean | Use Structurizr renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer structurizr`</span>) | False |
+| `--likec4`                                                     | boolean                              | Use LikeC4 renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer likec4`</span>)             | False      |
 | <span style="white-space: nowrap;">`-o`, `--output`</span> | path                                 | Redirect output to a file.                                                                              | stdout     |
 | `-h`, `--help`                                             | boolean                              | Show this help message and exit.                                                                        | False      |
+
+**Structurizr Options**:
+
+These options apply when using the **structurizr** renderer.
+
+<!-- generated:start structurizr-render-options -->
+| Name | Type | Description | Default |
+|---|---|---|---|
+| `--structurizr-style-preset` | choice (`classic`, `new-c4-style`, `none`) | Structurizr style preset to emit. | `classic` |
+<!-- generated:end structurizr-render-options -->
 
 **Watch Options**:
 
@@ -321,9 +341,11 @@ These options require the `watch` extra and apply only to `render` and
 
 These options apply when using the **plantuml** renderer.
 
-| Name                                                                    | Type    | Description                          | Default |
-|-------------------------------------------------------------------------|---------|--------------------------------------|---------|
-| <span style="white-space: nowrap;">`--plantuml-use-new-c4-style`</span> | boolean | Activates the new C4-PlantUML style. | False   |
+<!-- generated:start plantuml-render-options -->
+| Name | Type | Description | Default |
+|---|---|---|---|
+| `--plantuml-use-new-c4-style` | boolean | Activates the new C4-PlantUML style. | False |
+<!-- generated:end plantuml-render-options -->
 
 <br/>
 
@@ -340,21 +362,28 @@ The available formats depend on the selected `renderer`.
 **Usage:**
 
 ```shell
-c4 export [-h] [-o OUTPUT] [-f {eps,latex,pdf,png,svg,txt,utxt}] \
+c4 export [-h] [-o OUTPUT] [-f {eps,jpg,latex,pdf,png,svg,txt,utxt}] \
           [--timeout TIMEOUT] \
-          [--renderer {plantuml,mermaid,d2} | --plantuml | --mermaid | --d2] \
-          [--plantuml-backend {local,remote}] \
+          [--renderer {plantuml,mermaid,structurizr,d2,likec4} | --plantuml | --mermaid | --d2 | --structurizr | --likec4] \
+          [--kroki-url KROKI_URL] [--kroki-method {get,post}] \
+          [--plantuml-backend {local,remote,kroki}] \
           [--plantuml-server-url PLANTUML_SERVER_URL] \
           [--plantuml-bin PLANTUML_BIN | --plantuml-jar PLANTUML_JAR] \
           [--java-bin JAVA_BIN] \
           [--plantuml-skinparam-dpi PLANTUML_SKINPARAM_DPI] \
           [--plantuml-use-new-c4-style] \
           [--plantuml-use-bundled-c4-plantuml PLANTUML_USE_BUNDLED_C4_PLANTUML] \
-          [--mermaid-bin MERMAID_BIN] \
+          [--mermaid-backend {local,kroki}] [--mermaid-bin MERMAID_BIN] \
           [--mermaid-scale-factor MERMAID_SCALE_FACTOR] \
           [--mermaid-puppeteer-headless MERMAID_PUPPETEER_HEADLESS | \
            --mermaid-puppeteer-config MERMAID_PUPPETEER_CONFIG] \
-          [--d2-bin D2_BIN] [--d2-layout {dagre,elk}] \
+          [--d2-backend {local,kroki}] [--d2-bin D2_BIN] \
+          [--d2-layout {dagre,elk}] \
+          [--structurizr-backend {kroki,local}] \
+          [--structurizr-bin STRUCTURIZR_BIN] \
+          [--structurizr-view-key STRUCTURIZR_VIEW_KEY] \
+          [--likec4-backend {local}] [--likec4-bin LIKEC4_BIN] \
+          [--likec4-view-key LIKEC4_VIEW_KEY] \
           [-w] [--watch-delay WATCH_DELAY] \
           [--watch-dir WATCH_DIR] [--watch-include WATCH_INCLUDE] \
           target
@@ -370,12 +399,14 @@ c4 export [-h] [-o OUTPUT] [-f {eps,latex,pdf,png,svg,txt,utxt}] \
 
 | Name                                                       | Type                                                        | Description                                                                                                                                             | Default    |
 |------------------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| <span style="white-space: nowrap;">`-f`, `--format`</span> | choice (`eps`, `latex`, `pdf`, `png`, `svg`, `txt`, `utxt`) | Output format (render-specific).<br/>Supported formats:<br/>`d2`: `pdf`, `png`, `svg`<br/>`mermaid`: `pdf`, `png`, `svg`<br/>`plantuml`: `eps`, `latex`, `png`, `svg`, `txt`, `utxt`. | `png`      |
+| <span style="white-space: nowrap;">`-f`, `--format`</span> | choice (`eps`, `jpg`, `latex`, `pdf`, `png`, `svg`, `txt`, `utxt`) | Output format (render-specific).<br/>Supported formats:<br/>`d2`: `pdf`, `png`, `svg`<br/>`likec4`: `jpg`, `png`<br/>`mermaid`: `pdf`, `png`, `svg`<br/>`plantuml`: `eps`, `latex`, `png`, `svg`, `txt`, `utxt`<br/>`structurizr`: `pdf`, `png`, `svg` (local backend: `png`, `svg`). | `png`      |
 | `--timeout`                                                | float                                                       | Render timeout in seconds.<br/>Can also be set via the `RENDERING_TIMEOUT_SECONDS` environment variable.                                                | 30.0       |
-| `--renderer`                                               | choice (`plantuml`, `mermaid`, `d2`)                         | Renderer to use (overrides the diagram's default renderer).                                                                                             | `plantuml` |
+| `--renderer`                                               | choice (`plantuml`, `mermaid`, `structurizr`, `d2`, `likec4`)                         | Renderer to use (overrides the diagram's default renderer).                                                                                             | `plantuml` |
 | `--plantuml`                                               | boolean                                                     | Use PlantUML renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer plantuml`</span>).                                                | False      |
 | `--mermaid`                                                | boolean                                                     | Use Mermaid renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer mermaid`</span>).                                                  | False      |
 | `--d2`                                                     | boolean                                                     | Use D2 renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer d2`</span>).                                                            | False      |
+| `--structurizr` | boolean | Use Structurizr renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer structurizr`</span>). | False |
+| `--likec4`                                                     | boolean                                                     | Use LikeC4 renderer <br/> (alias for <span style="white-space: nowrap;">`--renderer likec4`</span>).                                                            | False      |
 | <span style="white-space: nowrap;">`-o`, `--output`</span> | path                                                        | Redirect output to a file.                                                                                                                              | `stdout`   |
 | `-h`, `--help`                                             | boolean                                                     | Show this help message and exit.                                                                                                                        | False      |
 
@@ -391,40 +422,85 @@ These options require the `watch` extra and apply only to `render` and
 | <span style="white-space: nowrap;">`--watch-dir`</span>               | path    | Additional directory to watch for reusable diagram elements or helper files. Can be repeated.           | None    |
 | <span style="white-space: nowrap;">`--watch-include`</span>           | string  | Pattern for relevant changes under `--watch-dir`, matched with `Path.match`. Can be repeated.           | None    |
 
+**Kroki Options**:
+
+These options apply to every renderer exported through a `kroki` backend.
+
+<!-- generated:start kroki-export-options -->
+| Name | Type | Description | Default |
+|---|---|---|---|
+| `--kroki-url` | string | Kroki server root URL. If not provided, KROKI_SERVER_URL is used, falling back to https://kroki.io. | None |
+| `--kroki-method` | choice (`get`, `post`) | HTTP method used for Kroki rendering. | `get` |
+<!-- generated:end kroki-export-options -->
+
 **PlantUML Options**:
 
 These options apply when using the **plantuml** renderer.
 
-| Name                                                                           | Type                           | Description                                                                                                                                                                                                           | Default                                           |
-|--------------------------------------------------------------------------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
-| <span style="white-space: nowrap;">`--plantuml-backend`</span>                 | choice (`local`, `remote`)     | How to run PlantUML: local execution or remote server.                                                                                                                                                                | `local`                                           |
-| <span style="white-space: nowrap;">`--plantuml-server-url`</span>              | string                         | PlantUML server URL.<br/>If not provided, the `PLANTUML_SERVER_URL` environment variable will be used.                                                                                                                | [plantuml.com](https://www.plantuml.com/plantuml) |
-| <span style="white-space: nowrap;">`--plantuml-bin`</span>                     | string (path or command)       | PlantUML executable (command name or full path).<br/>If not provided, the `PLANTUML_BIN` environment variable will be used.                                                                                           | `plantuml`                                        |
-| <span style="white-space: nowrap;">`--plantuml-jar`</span>                     | path                           | Path to the PlantUML JAR file (runs via Java).<br/>If provided, the `PLANTUML_BIN` environment variable is ignored.<br/>Can also be set via the `PLANTUML_JAR` environment variable.                                  | None                                              |
-| <span style="white-space: nowrap;">`--java-bin`</span>                         | string (path or command)       | Java executable to use when running PlantUML via JAR.<br/>If not provided, the `JAVA_BIN` environment variable will be used.                                                                                          | `java`                                            |
-| <span style="white-space: nowrap;">`--plantuml-skinparam-dpi`</span>           | integer                        | Set PlantUML `skinparam dpi` value to control raster (PNG) resolution.<br/>This modifies diagram rendering and affects all output formats.<br/>Can also be set via the `PLANTUML_SKINPARAM_DPI` environment variable. | None                                              |
-| <span style="white-space: nowrap;">`--plantuml-use-new-c4-style`</span>        | boolean                        | Activates the new C4-PlantUML style.                                                                                                                                                                                  | False                                             |
-| <span style="white-space: nowrap;">`--plantuml-use-bundled-c4-plantuml`</span> | boolean value (`true`/`false`) | Use [bundled C4-PlantUML library](https://github.com/plantuml-stdlib/C4-PlantUML#including-the-c4-plantuml-library) files instead of fetching them from remote sources.                                               | **True**                                          |
+<!-- generated:start plantuml-export-options -->
+| Name | Type | Description | Default |
+|---|---|---|---|
+| `--plantuml-backend` | choice (`local`, `remote`, `kroki`) | How to run PlantUML: local execution, remote server, or Kroki. | `local` |
+| `--plantuml-server-url` | string | PlantUML server URL. If not provided, the PLANTUML_SERVER_URL environment variable will be used. | None |
+| `--plantuml-bin` | string | PlantUML executable (command name or full path). If not provided, the PLANTUML_BIN environment variable will be used. | None |
+| `--plantuml-jar` | string | Path to the PlantUML JAR file (runs via Java). If provided, the PLANTUML_BIN environment variable is ignored. Can also be set via the PLANTUML_JAR environment variable. | None |
+| `--java-bin` | string | Java executable to use when running PlantUML via JAR. If not provided, the JAVA_BIN environment variable will be used. | `java` |
+| `--plantuml-skinparam-dpi` | string | Set PlantUML 'skinparam dpi' value to control raster (PNG) resolution. This option modifies diagram rendering and affects all output formats. Can also be set via the PLANTUML_SKINPARAM_DPI environment variable. | None |
+| `--plantuml-use-new-c4-style` | boolean | Activates the new C4-PlantUML style. | False |
+| `--plantuml-use-bundled-c4-plantuml` | string | Use bundled C4-PlantUML library files instead of fetching them from remote sources. | `True` |
+<!-- generated:end plantuml-export-options -->
 
 **Mermaid Options**:
 
 These options apply when using the **mermaid** renderer.
 
-| Name                                                                     | Type                     | Description                                                                                                                                                    | Default |
-|--------------------------------------------------------------------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|
-| <span style="white-space: nowrap;">`--mermaid-bin`</span>                | string (path or command) | Mermaid executable (command name or full path).<br/>If not provided, the `MERMAID_BIN` environment variable will be used.                                      | `mmdc`  |
-| <span style="white-space: nowrap;">`--mermaid-scale-factor`</span>       | integer                  | Set Mermaid scale value to control Puppeteer scale factor.<br/>Can also be set via the `MERMAID_SCALE_FACTOR` environment variable.                            | 1       |
-| <span style="white-space: nowrap;">`--mermaid-puppeteer-headless`</span> | boolean                  | Generate a temporary Puppeteer config with the provided `headless` value and pass it to Mermaid CLI.<br/>Mutually exclusive with `--mermaid-puppeteer-config`. | None    |
-| <span style="white-space: nowrap;">`--mermaid-puppeteer-config`</span>   | path                     | Path to a Puppeteer config passed to Mermaid CLI.<br/>Mutually exclusive with `--mermaid-puppeteer-headless`.                                                  | None    |
+<!-- generated:start mermaid-export-options -->
+| Name | Type | Description | Default |
+|---|---|---|---|
+| `--mermaid-backend` | choice (`local`, `kroki`) | How to run Mermaid: local execution or Kroki. | `local` |
+| `--mermaid-bin` | string | Mermaid executable (command name or full path). If not provided, the MERMAID_BIN environment variable will be used. | None |
+| `--mermaid-scale-factor` | string | Set Mermaid scale value to control Puppeteer scale factor (default: 1). Can also be set via the MERMAID_SCALE_FACTOR environment variable. | None |
+| `--mermaid-puppeteer-headless` | string | Generate a temporary Mermaid Puppeteer config with the provided headless value and pass it to Mermaid CLI. | None |
+| `--mermaid-puppeteer-config` | string | Path to a Puppeteer config passed to Mermaid CLI. | None |
+<!-- generated:end mermaid-export-options -->
 
 **D2 Options**:
 
 These options apply when using the **d2** renderer.
 
-| Name                                                   | Type                     | Description                                                                                       | Default |
-|--------------------------------------------------------|--------------------------|---------------------------------------------------------------------------------------------------|---------|
-| <span style="white-space: nowrap;">`--d2-bin`</span>   | string (path or command) | D2 executable (command name or full path).<br/>If not provided, the `D2_BIN` environment variable will be used. | `d2`    |
-| <span style="white-space: nowrap;">`--d2-layout`</span> | choice (`dagre`, `elk`)  | D2 layout engine for exported artifacts. When omitted, `D2RenderOptions.layout` is used and defaults to `dagre`. When provided, this flag overrides diagram or renderer render options. | None    |
+<!-- generated:start d2-export-options -->
+| Name | Type | Description | Default |
+|---|---|---|---|
+| `--d2-backend` | choice (`local`, `kroki`) | How to run D2: local execution or Kroki. | `local` |
+| `--d2-bin` | string | D2 executable (command name or full path). If not provided, the D2_BIN environment variable will be used. | None |
+| `--d2-layout` | choice (`dagre`, `elk`) | D2 layout engine to use. | None |
+<!-- generated:end d2-export-options -->
+
+**Structurizr Options**:
+
+These options apply when using the **structurizr** renderer. See
+[Structurizr requirements](installation.md#structurizr-requirements).
+
+<!-- generated:start structurizr-export-options -->
+| Name | Type | Description | Default |
+|---|---|---|---|
+| `--structurizr-backend` | choice (`kroki`, `local`) | How to export Structurizr DSL: Kroki or the local structurizr CLI (PNG and SVG only; needs Playwright Chromium). | `kroki` |
+| `--structurizr-bin` | string (path or command) | Structurizr CLI executable (command name or full path) for --structurizr-backend local. If not provided, the STRUCTURIZR_BIN environment variable will be used. | `structurizr` |
+| `--structurizr-view-key` | string | Structurizr view key to export. Required with the local backend unless the workspace has exactly one view. | None |
+<!-- generated:end structurizr-export-options -->
+
+**LikeC4 Options**:
+
+These options apply when using the **likec4** renderer. See
+[LikeC4 requirements](installation.md#likec4-requirements).
+
+<!-- generated:start likec4-export-options -->
+| Name | Type | Description | Default |
+|---|---|---|---|
+| `--likec4-backend` | choice (`local`) | How to export LikeC4 views. Local likec4 CLI is the only backend (needs Node.js and Playwright Chromium). | `local` |
+| `--likec4-bin` | string (path or command) | LikeC4 executable (command name, full path, or a command such as "npx likec4@1.60.0"). If not provided, the LIKEC4_BIN environment variable will be used. | `likec4` |
+| `--likec4-view-key` | string | LikeC4 view key to export. Defaults to the project's view_key, or its only view. | None |
+<!-- generated:end likec4-export-options -->
 
 ### c4 convert
 

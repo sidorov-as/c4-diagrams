@@ -437,6 +437,9 @@ class PlantUMLRenderOptions:
         legend_title: Optional title for the diagram legend.
         tags: List of tag macros (e.g., AddElementTag, AddRelTag).
         styles: List of style update macros (e.g., UpdateElementStyle).
+        default_relationship_label: Label written for a relationship that
+            has none, because C4-PlantUML rejects a relationship without a
+            label. `None` writes the relationship as stored.
     """
 
     includes: list[str] = field(default_factory=list)
@@ -455,6 +458,7 @@ class PlantUMLRenderOptions:
     legend_title: str | None = None
     tags: list[BaseTag] = field(default_factory=list)
     styles: list[BaseStyle] = field(default_factory=list)
+    default_relationship_label: str | None = "uses"
 
 
 class PlantUMLRenderOptionsBuilder:
@@ -509,6 +513,7 @@ class PlantUMLRenderOptionsBuilder:
         self._tags: list[BaseTag] = []
         self._styles: list[BaseStyle] = []
         self._includes: list[str] = []
+        self._default_relationship_label: str | None = "uses"
 
     @property
     def sketch_style_defaults(self) -> dict[str, Any]:
@@ -1511,6 +1516,20 @@ class PlantUMLRenderOptionsBuilder:
 
         return self
 
+    def default_relationship_label(self, label: str | None) -> Self:
+        """
+        Set the label written for a relationship that has none.
+
+        Args:
+            label: The placeholder label. `None` turns the placeholder off.
+
+        Returns:
+            The updated render options.
+        """
+        self._default_relationship_label = label
+
+        return self
+
     def without_property_header(self) -> Self:
         """
         Enables WithoutPropertyHeader macro.
@@ -1765,4 +1784,5 @@ class PlantUMLRenderOptionsBuilder:
             show_floating_legend=show_floating_legend,
             hide_stereotype=self._hide_stereotype,
             without_property_header=self._without_property_header,
+            default_relationship_label=self._default_relationship_label,
         )

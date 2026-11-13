@@ -23,10 +23,13 @@ from c4.diagrams.core import (
     TDiagram,
 )
 from c4.enums import RendererEnum
-from c4.exceptions import MermaidBackendConfigurationError
+from c4.exceptions import (
+    MermaidBackendConfigurationError,
+    MermaidRenderingError,
+)
 from c4.renderers.base import (
     IGNORE_FOREIGN,
-    BaseRenderer,
+    BaseDiagramRenderer,
     ExtensionValidationModeType,
     IndentedStringBuilder,
 )
@@ -96,7 +99,7 @@ class MermaidRenderOptionsRenderer:
         return builder.get_result()
 
 
-class MermaidRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
+class MermaidRenderer(BaseDiagramRenderer, Generic[TDiagram]):
     """A renderer for converting a Diagram object into Mermaid syntax."""
 
     renderer_type: RendererEnum = RendererEnum.MERMAID
@@ -119,6 +122,9 @@ class MermaidRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
         """
         super().__init__(extension_validation_mode=extension_validation_mode)
         self._render_options = render_options or MermaidRenderOptions()
+        self._default_relationship_label = (
+            self._render_options.default_relationship_label
+        )
 
         self._builder = IndentedStringBuilder()
         self._mermaid_backend = backend
@@ -165,7 +171,10 @@ class MermaidRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
         return builder.get_result()
 
     def _render_relationship(self, relationship: Relationship) -> str:
-        macro = RelationshipMermaidMacro(relationship)
+        macro = RelationshipMermaidMacro(
+            relationship,
+            default_label=self._default_relationship_label,
+        )
 
         return macro.render()
 
@@ -197,6 +206,11 @@ class MermaidRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
     @override
     def validate(self, diagram: TDiagram) -> None:
         """Validate Mermaid-specific rendering constraints."""
+        if not isinstance(diagram, Diagram):
+            raise MermaidRenderingError(
+                "MermaidRenderer requires a c4.diagrams.core.Diagram; got "
+                f"{diagram.__class__.__name__}."
+            )
         validate_mermaid_diagram(
             diagram,
             renderer_name=self.__class__.__name__,
@@ -217,6 +231,10 @@ class MermaidRenderer(BaseRenderer[TDiagram], Generic[TDiagram]):
         render_options = self._render_options
         if diagram.render_options and diagram.render_options.mermaid:
             render_options = diagram.render_options.mermaid
+
+        self._default_relationship_label = (
+            render_options.default_relationship_label
+        )
 
         self.validate(diagram)
         self._builder.reset()

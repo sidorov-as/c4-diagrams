@@ -1,0 +1,43 @@
+direction: right
+__title: ||md
+  # Online Shop
+|| {
+  near: top-center
+}
+classes: {
+  c4_person: {
+    style.fill: "#f5f1ff"
+    style.stroke: "#6f4bb2"
+    style.font-color: "#211436"
+  }
+}
+customer: ||md
+  ## Customer
+
+  [Person]
+
+  Buys goods online.
+|| {
+  shape: c4-person
+  class: ["c4_person"]
+}
+online_shop: ||md
+  ## Online Shop
+
+  [Software System]
+
+  Takes orders from customers.
+|| {
+  shape: rectangle
+}
+payment_provider: ||md
+  ## Payment Provider
+
+  [Software System]
+
+  Processes card payments.
+|| {
+  shape: rectangle
+}
+customer -> online_shop: "Buys goods"
+online_shop -> payment_provider: "Takes payments"

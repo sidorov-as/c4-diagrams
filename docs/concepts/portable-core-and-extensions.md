@@ -68,6 +68,13 @@ with ContainerDiagram("Order Processing") as diagram:
     LayRight(api, database)
 ```
 
+## Whole-architecture backends
+
+Structurizr and LikeC4 do not render the portable core. They describe a whole
+architecture with their own authoring APIs, which
+[Two authoring models](authoring-models.md) explains. The
+[backend comparison](../renderers/comparison.md) lists all five backends.
+
 ## Backend extension kwargs
 
 Use backend kwargs for renderer-specific element and relationship metadata. The

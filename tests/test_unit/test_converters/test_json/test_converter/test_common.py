@@ -890,7 +890,7 @@ def test_diagram_backend_from_json__propagates_error(
 def test_diagram_backend_from_json__validation_error():
     expected_error = re.escape(
         "root->backend: Input should be 'plantuml', 'mermaid', "
-        "'structurizr' or 'd2'"
+        "'structurizr', 'd2' or 'likec4'"
     )
 
     with pytest.raises(DiagramJSONSchemaValidationError, match=expected_error):

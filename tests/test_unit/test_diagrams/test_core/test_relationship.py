@@ -326,6 +326,52 @@ def test_relationship_one_to_one_reversed_label_only_via_pipe(diagram: Diagram):
     assert diagram.relationships[0].label == "Uses"
 
 
+def test_relationship_element_to_element_is_unlabeled(diagram: Diagram):
+    frontend = Element("frontend", "Web app")
+    backend = Element("backend", "API")
+
+    result = frontend >> backend
+
+    assert diagram.relationships == [result]
+    assert result.from_element == frontend
+    assert result.to_element == backend
+    assert result.label is None
+
+
+def test_relationship_element_to_element_reversed_is_unlabeled(
+    diagram: Diagram,
+):
+    frontend = Element("frontend", "Web app")
+    backend = Element("backend", "API")
+
+    result = backend << frontend
+
+    assert diagram.relationships == [result]
+    assert result.from_element == frontend
+    assert result.to_element == backend
+    assert result.label is None
+
+
+def test_relationship_pipe_does_not_overwrite_label(diagram: Diagram):
+    frontend = Element("frontend", "Web app")
+    backend = Element("backend", "API")
+
+    with pytest.raises(ValueError, match="already has the label 'x'"):
+        frontend >> "x" >> backend | "y"
+
+    assert [r.label for r in diagram.relationships] == ["x"]
+
+
+def test_relationship_pipe_does_not_overwrite_empty_label(diagram: Diagram):
+    frontend = Element("frontend", "Web app")
+    backend = Element("backend", "API")
+
+    with pytest.raises(ValueError, match="already has the label ''"):
+        frontend >> Rel("") >> backend | "y"
+
+    assert [r.label for r in diagram.relationships] == [""]
+
+
 def test_relationship_one_to_one_uses(diagram: Diagram):
     frontend = Element("frontend", "Web app")
     backend = Element("backend", "API")

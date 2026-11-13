@@ -20,6 +20,9 @@ class ConversionError(Exception):
 
         super().__init__(message)
 
+    def __str__(self) -> str:
+        return self.message
+
 
 class DiagramJSONSchemaParsingError(ConversionError):
     """Raised when a JSON diagram cannot be parsed."""

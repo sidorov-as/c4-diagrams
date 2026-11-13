@@ -1,0 +1,1974 @@
+{
+  "title": "StructurizrWorkspaceSchema",
+  "type": "object",
+  "properties": {
+    "backend": {
+      "const": "structurizr",
+      "description": "Required discriminator for the Structurizr workspace JSON format.",
+      "title": "Backend",
+      "type": "string"
+    },
+    "name": {
+      "default": "Workspace",
+      "description": "Workspace name; defaults to the renderer's Workspace fallback.",
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "properties": {
+      "type": "object",
+      "additionalProperties": true,
+      "title": "Properties"
+    },
+    "theme": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Theme"
+    },
+    "styles": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StructurizrStylesSchema"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "render_options": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StructurizrRenderOptionsSchema"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "model": {
+      "$ref": "#/$defs/StructurizrModelSchema"
+    },
+    "views": {
+      "$ref": "#/$defs/StructurizrViewsSchema"
+    }
+  },
+  "required": [
+    "backend",
+    "model",
+    "views"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "StructurizrAutoLayoutSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "rank_direction": {
+          "default": "LeftRight",
+          "enum": [
+            "TopBottom",
+            "BottomTop",
+            "LeftRight",
+            "RightLeft"
+          ],
+          "title": "Rank Direction",
+          "type": "string"
+        },
+        "implementation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Implementation"
+        },
+        "rank_separation": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rank Separation"
+        },
+        "node_separation": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Node Separation"
+        }
+      },
+      "title": "StructurizrAutoLayoutSchema",
+      "type": "object"
+    },
+    "StructurizrComponentSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "StructurizrComponentSchema",
+      "type": "object"
+    },
+    "StructurizrComponentViewSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "component",
+          "title": "Type",
+          "type": "string"
+        },
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "include": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "animation": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/StructurizrSelectorSchema"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "title": "Animation",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "auto_layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StructurizrAutoLayoutSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scope": {
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "scope"
+      ],
+      "title": "StructurizrComponentViewSchema",
+      "type": "object"
+    },
+    "StructurizrContainerInstanceSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tags"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "container": {
+          "minLength": 1,
+          "title": "Container",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "container"
+      ],
+      "title": "StructurizrContainerInstanceSchema",
+      "type": "object"
+    },
+    "StructurizrContainerSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "components": {
+          "items": {
+            "$ref": "#/$defs/StructurizrComponentSchema"
+          },
+          "title": "Components",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "StructurizrContainerSchema",
+      "type": "object"
+    },
+    "StructurizrContainerViewSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "container",
+          "title": "Type",
+          "type": "string"
+        },
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "include": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "animation": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/StructurizrSelectorSchema"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "title": "Animation",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "auto_layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StructurizrAutoLayoutSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scope": {
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "scope"
+      ],
+      "title": "StructurizrContainerViewSchema",
+      "type": "object"
+    },
+    "StructurizrDeploymentEnvironmentSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "deployment_nodes": {
+          "items": {
+            "$ref": "#/$defs/StructurizrDeploymentNodeSchema"
+          },
+          "title": "Deployment Nodes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "StructurizrDeploymentEnvironmentSchema",
+      "type": "object"
+    },
+    "StructurizrDeploymentNodeSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "deployment_nodes": {
+          "items": {
+            "$ref": "#/$defs/StructurizrDeploymentNodeSchema"
+          },
+          "title": "Deployment Nodes",
+          "type": "array"
+        },
+        "infrastructure_nodes": {
+          "items": {
+            "$ref": "#/$defs/StructurizrInfrastructureNodeSchema"
+          },
+          "title": "Infrastructure Nodes",
+          "type": "array"
+        },
+        "software_system_instances": {
+          "items": {
+            "$ref": "#/$defs/StructurizrSoftwareSystemInstanceSchema"
+          },
+          "title": "Software System Instances",
+          "type": "array"
+        },
+        "container_instances": {
+          "items": {
+            "$ref": "#/$defs/StructurizrContainerInstanceSchema"
+          },
+          "title": "Container Instances",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "StructurizrDeploymentNodeSchema",
+      "type": "object"
+    },
+    "StructurizrDeploymentSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "environments": {
+          "items": {
+            "$ref": "#/$defs/StructurizrDeploymentEnvironmentSchema"
+          },
+          "title": "Environments",
+          "type": "array"
+        }
+      },
+      "title": "StructurizrDeploymentSchema",
+      "type": "object"
+    },
+    "StructurizrDeploymentViewSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "deployment",
+          "title": "Type",
+          "type": "string"
+        },
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "include": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "animation": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/StructurizrSelectorSchema"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "title": "Animation",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "auto_layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StructurizrAutoLayoutSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scope"
+        },
+        "environment": {
+          "minLength": 1,
+          "title": "Environment",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "environment"
+      ],
+      "title": "StructurizrDeploymentViewSchema",
+      "type": "object"
+    },
+    "StructurizrDynamicStepSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "minLength": 1,
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "minLength": 1,
+          "title": "To",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "title": "StructurizrDynamicStepSchema",
+      "type": "object"
+    },
+    "StructurizrDynamicViewSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "dynamic",
+          "title": "Type",
+          "type": "string"
+        },
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "include": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "animation": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/StructurizrSelectorSchema"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "title": "Animation",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "auto_layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StructurizrAutoLayoutSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scope"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/StructurizrDynamicStepSchema"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "StructurizrDynamicViewSchema",
+      "type": "object"
+    },
+    "StructurizrInfrastructureNodeSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "deployment_nodes": {
+          "items": {
+            "$ref": "#/$defs/StructurizrDeploymentNodeSchema"
+          },
+          "title": "Deployment Nodes",
+          "type": "array"
+        },
+        "infrastructure_nodes": {
+          "items": {
+            "$ref": "#/$defs/StructurizrInfrastructureNodeSchema"
+          },
+          "title": "Infrastructure Nodes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "StructurizrInfrastructureNodeSchema",
+      "type": "object"
+    },
+    "StructurizrModelSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "people": {
+          "items": {
+            "$ref": "#/$defs/StructurizrPersonSchema"
+          },
+          "title": "People",
+          "type": "array"
+        },
+        "software_systems": {
+          "items": {
+            "$ref": "#/$defs/StructurizrSoftwareSystemSchema"
+          },
+          "title": "Software Systems",
+          "type": "array"
+        },
+        "relationships": {
+          "items": {
+            "$ref": "#/$defs/StructurizrRelationshipSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        },
+        "deployment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StructurizrDeploymentSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "StructurizrModelSchema",
+      "type": "object"
+    },
+    "StructurizrPersonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "StructurizrPersonSchema",
+      "type": "object"
+    },
+    "StructurizrRelationshipSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "title": "To",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "technology": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technology"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "title": "StructurizrRelationshipSchema",
+      "type": "object"
+    },
+    "StructurizrRenderOptionsSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StructurizrAutoLayoutSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "style_preset": {
+          "anyOf": [
+            {
+              "enum": [
+                "classic",
+                "new-c4-style"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style Preset"
+        }
+      },
+      "title": "StructurizrRenderOptionsSchema",
+      "type": "object"
+    },
+    "StructurizrSelectorSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "StructurizrSelectorSchema",
+      "type": "object"
+    },
+    "StructurizrSoftwareSystemInstanceSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tags"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "software_system": {
+          "minLength": 1,
+          "title": "Software System",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "software_system"
+      ],
+      "title": "StructurizrSoftwareSystemInstanceSchema",
+      "type": "object"
+    },
+    "StructurizrSoftwareSystemSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "containers": {
+          "items": {
+            "$ref": "#/$defs/StructurizrContainerSchema"
+          },
+          "title": "Containers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "StructurizrSoftwareSystemSchema",
+      "type": "object"
+    },
+    "StructurizrStyleSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        }
+      },
+      "required": [
+        "target"
+      ],
+      "title": "StructurizrStyleSchema",
+      "type": "object"
+    },
+    "StructurizrStylesSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "elements": {
+          "items": {
+            "$ref": "#/$defs/StructurizrStyleSchema"
+          },
+          "title": "Elements",
+          "type": "array"
+        },
+        "relationships": {
+          "items": {
+            "$ref": "#/$defs/StructurizrStyleSchema"
+          },
+          "title": "Relationships",
+          "type": "array"
+        }
+      },
+      "title": "StructurizrStylesSchema",
+      "type": "object"
+    },
+    "StructurizrSystemContextViewSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "system_context",
+          "title": "Type",
+          "type": "string"
+        },
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "include": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "animation": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/StructurizrSelectorSchema"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "title": "Animation",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "auto_layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StructurizrAutoLayoutSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scope": {
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "scope"
+      ],
+      "title": "StructurizrSystemContextViewSchema",
+      "type": "object"
+    },
+    "StructurizrSystemLandscapeViewSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "system_landscape",
+          "title": "Type",
+          "type": "string"
+        },
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "include": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSelectorSchema"
+              }
+            ]
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "animation": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/StructurizrSelectorSchema"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "title": "Animation",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": true,
+          "title": "Properties"
+        },
+        "auto_layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StructurizrAutoLayoutSchema"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "StructurizrSystemLandscapeViewSchema",
+      "type": "object"
+    },
+    "StructurizrViewsSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "component": "#/$defs/StructurizrComponentViewSchema",
+                "container": "#/$defs/StructurizrContainerViewSchema",
+                "deployment": "#/$defs/StructurizrDeploymentViewSchema",
+                "dynamic": "#/$defs/StructurizrDynamicViewSchema",
+                "system_context": "#/$defs/StructurizrSystemContextViewSchema",
+                "system_landscape": "#/$defs/StructurizrSystemLandscapeViewSchema"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/StructurizrSystemLandscapeViewSchema"
+              },
+              {
+                "$ref": "#/$defs/StructurizrSystemContextViewSchema"
+              },
+              {
+                "$ref": "#/$defs/StructurizrContainerViewSchema"
+              },
+              {
+                "$ref": "#/$defs/StructurizrComponentViewSchema"
+              },
+              {
+                "$ref": "#/$defs/StructurizrDynamicViewSchema"
+              },
+              {
+                "$ref": "#/$defs/StructurizrDeploymentViewSchema"
+              }
+            ]
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "title": "StructurizrViewsSchema",
+      "type": "object"
+    }
+  }
+}

@@ -127,6 +127,36 @@ def test_alias_generator__generate__uses_default_for_invalid_custom_fallback(
     assert result == "element"
 
 
+def test_alias_generator__generate__uses_fallback_when_ascii_label_base_is_invalid(
+    alias_generator: AliasGenerator,
+):
+    result = alias_generator.generate(label="123")
+
+    assert result == "element"
+
+
+def test_alias_generator__generate__uses_stored_fallback_when_normalized_fallback_is_invalid(
+    alias_generator: AliasGenerator,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    alias_generator._fallback_prefix = "fallback"
+
+    def normalize_fallback_prefix(
+        _self: AliasGenerator, fallback_prefix: str
+    ) -> str:
+        return "123"
+
+    monkeypatch.setattr(
+        AliasGenerator,
+        "_normalize_fallback_prefix",
+        normalize_fallback_prefix,
+    )
+
+    result = alias_generator.generate(label="123")
+
+    assert result == "fallback"
+
+
 def test_alias_generator__generate__normalizes_stored_fallback_before_final_use(
     alias_generator: AliasGenerator,
 ):

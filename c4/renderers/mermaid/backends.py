@@ -21,6 +21,7 @@ from c4.exceptions import (
     MermaidBackendConfigurationError,
     MermaidLocalRenderingError,
 )
+from c4.renderers.kroki import KrokiBackend
 from c4.utils import MISSING, Maybe
 
 
@@ -110,6 +111,37 @@ class BaseMermaidBackend(ABC):
             raise ValueError(
                 f"{format.value!r} format is not supported by Mermaid renderer."
             )
+
+
+class KrokiMermaidBackend(BaseMermaidBackend):
+    """Generate Mermaid diagrams through a Kroki server."""
+
+    def __init__(
+        self,
+        *,
+        server_url: str | None = None,
+        timeout_seconds: float = DEFAULT_RENDERING_TIMEOUT_SECONDS,
+        use_post: bool = False,
+        diagram_options: Mapping[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> None:
+        self._kroki = KrokiBackend(
+            server_url=server_url,
+            diagram_type="mermaid",
+            timeout_seconds=timeout_seconds,
+            use_post=use_post,
+            diagram_options=diagram_options,
+            headers=headers,
+        )
+
+    def to_bytes(
+        self,
+        diagram: str,
+        *,
+        format: DiagramFormat = PNG,
+    ) -> bytes:
+        self._ensure_format_supported(format)
+        return self._kroki.to_bytes(diagram, format=format)
 
 
 class LocalMermaidBackend(BaseMermaidBackend):

@@ -31,6 +31,7 @@ from c4.diagrams.container import (
 from c4.diagrams.core import (
     BaseDiagramElement,
     Boundary,
+    Diagram,
     DiagramElementProperties,
     Element,
     Relationship,
@@ -49,10 +50,10 @@ from c4.diagrams.system_context import (
     SystemQueueExt,
 )
 from c4.enums import RendererEnum
-from c4.exceptions import D2BackendConfigurationError
+from c4.exceptions import D2BackendConfigurationError, D2RenderingError
 from c4.renderers.base import (
     IGNORE_FOREIGN,
-    BaseRenderer,
+    BaseDiagramRenderer,
     ExtensionValidationModeType,
 )
 from c4.renderers.d2.backends import BaseD2Backend
@@ -173,7 +174,7 @@ _C4_TYPE_NAMES = (
 )
 
 
-class D2Renderer(BaseRenderer[TDiagram], Generic[TDiagram]):
+class D2Renderer(BaseDiagramRenderer, Generic[TDiagram]):
     """A renderer for converting a Diagram object into D2 syntax."""
 
     renderer_type: RendererEnum = RendererEnum.D2
@@ -201,6 +202,11 @@ class D2Renderer(BaseRenderer[TDiagram], Generic[TDiagram]):
     @override
     def validate(self, diagram: TDiagram) -> None:
         """Validate D2-specific rendering constraints."""
+        if not isinstance(diagram, Diagram):
+            raise D2RenderingError(
+                "D2Renderer requires a c4.diagrams.core.Diagram; got "
+                f"{diagram.__class__.__name__}."
+            )
         validate_d2_diagram(
             diagram,
             extension_validation_mode=self._extension_validation_mode,

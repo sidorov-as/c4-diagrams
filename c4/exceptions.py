@@ -52,3 +52,11 @@ class D2BackendConfigurationError(D2Error):
 
 class D2LocalRenderingError(D2Error):
     """Error raised when rendering via a local D2 backend fails."""
+
+
+class KrokiError(C4Exception):
+    """Base exception class for all Kroki-related errors."""
+
+
+class KrokiRemoteRenderingError(KrokiError):
+    """Error raised when rendering via a Kroki server fails."""

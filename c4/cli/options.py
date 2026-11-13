@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import shlex
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -15,36 +16,64 @@ from c4.constants import (
     D2,
     DEFAULT_D2_BIN,
     DEFAULT_JAVA_BIN,
+    DEFAULT_KROKI_SERVER_URL,
+    DEFAULT_LIKEC4_BIN,
     DEFAULT_MERMAID_BIN,
     DEFAULT_MERMAID_SCALE_FACTOR,
     DEFAULT_PLANTUML_BIN,
     DEFAULT_PLANTUML_SERVER_URL,
     DEFAULT_RENDERER,
     DEFAULT_RENDERING_TIMEOUT_SECONDS,
+    DEFAULT_STRUCTURIZR_BIN,
     DIAGRAM_FORMATS_BY_RENDERER,
     KNOWN_RENDERERS,
+    KROKI_BACKEND,
+    LIKEC4,
     LOCAL_BACKEND,
     MERMAID,
     PLANTUML,
     PLANTUML_SKINPARAM_DPI_TEMPLATE,
+    REMOTE_BACKEND,
     STRUCTURIZR,
+)
+from c4.contrib.likec4.renderer import (
+    LikeC4BackendConfigurationError,
+    LikeC4Renderer,
+    LocalLikeC4Backend,
+)
+from c4.contrib.structurizr.renderer import (
+    BaseStructurizrBackend,
+    KrokiStructurizrBackend,
+    LocalStructurizrBackend,
+    StructurizrBackendConfigurationError,
+    StructurizrRenderer,
+    StructurizrRenderOptions,
+    StructurizrStylePreset,
 )
 from c4.enums import (
     JSON,
     PY,
+    STRUCTURIZR_LOCAL_DIAGRAM_FORMATS,
     ConvertShortcut,
     DiagramConvertionFormat,
     DiagramFormat,
     RendererEnum,
 )
+from c4.exceptions import C4Exception
 from c4.renderers import (
+    BaseD2Backend,
     BaseRenderer,
     D2Renderer,
+    KrokiD2Backend,
+    KrokiMermaidBackend,
+    KrokiPlantUMLBackend,
     MermaidRenderer,
     PlantUMLRenderer,
 )
+from c4.renderers.base import RenderTarget
 from c4.renderers.d2 import LocalD2Backend
 from c4.renderers.mermaid import LocalMermaidBackend
+from c4.renderers.mermaid.backends import BaseMermaidBackend
 from c4.renderers.plantuml import (
     LocalPlantUMLBackend,
     RemotePlantUMLBackend,
@@ -64,12 +93,7 @@ class CLIOptions:
                 "file.json").
     """
 
-    renderer: Literal[
-        RendererEnum.PLANTUML,
-        RendererEnum.MERMAID,
-        RendererEnum.STRUCTURIZR,
-        RendererEnum.D2,
-    ]
+    renderer: RendererEnum
     target: str
 
 
@@ -86,17 +110,30 @@ class PlantUMLRenderCLIOptions:
 
 
 @dataclass
+class StructurizrRenderCLIOptions:
+    """Structurizr-specific render options."""
+
+    render_options: StructurizrRenderOptions = field(
+        default_factory=StructurizrRenderOptions
+    )
+
+
+@dataclass
 class RenderCLIOptions(CLIOptions):
     """
     CLI options for the `render` command.
 
     Attributes:
-        renderer_options: Renderer-specific render options (e.g. PlantUML).
+        renderer_options: Renderer-specific render options for renderers
+            that expose textual render configuration, currently PlantUML and
+            Structurizr.
         output: Optional output path. If omitted, writes to stdout.
         watch: Watch mode options.
     """
 
-    renderer_options: PlantUMLRenderCLIOptions | None = None
+    renderer_options: (
+        PlantUMLRenderCLIOptions | StructurizrRenderCLIOptions | None
+    ) = None
     output: Path | None = None
     watch: WatchOptions = field(default_factory=WatchOptions)
 
@@ -120,6 +157,28 @@ class RenderCLIOptions(CLIOptions):
 
 
 @dataclass
+class KrokiExportCLIOptions:
+    """
+    Shared Kroki export options.
+
+    Attributes:
+        url: Kroki server root URL.
+        method: HTTP method used for Kroki requests.
+    """
+
+    url: str = DEFAULT_KROKI_SERVER_URL
+    method: Literal["get", "post"] = "get"
+
+    @property
+    def backend_kwargs(self) -> dict[str, Any]:
+        """Keyword arguments for Kroki-backed renderer adapters."""
+        return {
+            "server_url": self.url,
+            "use_post": self.method == "post",
+        }
+
+
+@dataclass
 class PlantUMLExportCLIOptions:
     """
     PlantUML-specific export options.
@@ -135,11 +194,12 @@ class PlantUMLExportCLIOptions:
         use_bundled_c4_plantuml: Uses bundled C4-PlantUML library files.
     """
 
-    plantuml_backend: Literal["local", "remote"] = "local"
+    plantuml_backend: Literal["local", "remote", "kroki"] = "local"
     plantuml_server_url: str = DEFAULT_PLANTUML_SERVER_URL
     plantuml_bin: str | None = DEFAULT_PLANTUML_BIN
     plantuml_jar: str | None = None
     java_bin: str | None = DEFAULT_JAVA_BIN
+    kroki: KrokiExportCLIOptions = field(default_factory=KrokiExportCLIOptions)
     plantuml_skinparam_dpi: int | None = None
     use_new_c4_style: bool = False
     use_bundled_c4_plantuml: bool = False
@@ -183,10 +243,12 @@ class MermaidExportCLIOptions:
             Mermaid CLI Puppeteer config.
     """
 
+    mermaid_backend: Literal["local", "kroki"] = "local"
     mermaid_bin: str = DEFAULT_MERMAID_BIN
     scale_factor: int = DEFAULT_MERMAID_SCALE_FACTOR
     puppeteer_config: Path | None = None
     puppeteer_headless: bool | None = None
+    kroki: KrokiExportCLIOptions = field(default_factory=KrokiExportCLIOptions)
 
     @property
     def local_backend_kwargs(self) -> dict[str, Any]:
@@ -216,8 +278,10 @@ class D2ExportCLIOptions:
         layout: D2 layout engine.
     """
 
+    d2_backend: Literal["local", "kroki"] = "local"
     d2_bin: str = DEFAULT_D2_BIN
     layout: str | None = None
+    kroki: KrokiExportCLIOptions = field(default_factory=KrokiExportCLIOptions)
 
     @property
     def local_backend_kwargs(self) -> dict[str, Any]:
@@ -235,6 +299,49 @@ class D2ExportCLIOptions:
 
 
 @dataclass
+class StructurizrExportCLIOptions:
+    """Structurizr-specific export options."""
+
+    structurizr_backend: Literal["local", "kroki"] = "kroki"
+    structurizr_bin: str = DEFAULT_STRUCTURIZR_BIN
+    view_key: str | None = None
+    kroki: KrokiExportCLIOptions = field(default_factory=KrokiExportCLIOptions)
+
+    @property
+    def local_backend_kwargs(self) -> dict[str, Any]:
+        """
+        Keyword arguments for LocalStructurizrBackend.
+        """
+        return {
+            "structurizr_bin": shlex.split(self.structurizr_bin),
+            "view_key": self.view_key,
+        }
+
+
+@dataclass
+class LikeC4ExportCLIOptions:
+    """
+    LikeC4-specific export options.
+
+    Attributes:
+        likec4_backend: Export backend; only the local CLI is supported.
+        likec4_bin: Local ``likec4`` command, possibly with arguments.
+        view_key: View to export; falls back to the project's own choice.
+    """
+
+    likec4_backend: Literal["local"] = "local"
+    likec4_bin: str = DEFAULT_LIKEC4_BIN
+    view_key: str | None = None
+
+    @property
+    def local_backend_kwargs(self) -> dict[str, Any]:
+        """
+        Keyword arguments for LocalLikeC4Backend.
+        """
+        return {"likec4_bin": shlex.split(self.likec4_bin)}
+
+
+@dataclass
 class ExportCLIOptions(CLIOptions):
     """
     CLI options for the `export` command.
@@ -249,7 +356,11 @@ class ExportCLIOptions(CLIOptions):
     """
 
     renderer_options: (
-        PlantUMLExportCLIOptions | MermaidExportCLIOptions | D2ExportCLIOptions
+        PlantUMLExportCLIOptions
+        | MermaidExportCLIOptions
+        | D2ExportCLIOptions
+        | StructurizrExportCLIOptions
+        | LikeC4ExportCLIOptions
     )
     format: DiagramFormat = PNG
     output: Path | None = None
@@ -321,7 +432,8 @@ def _get_renderer_name(args: argparse.Namespace) -> RendererEnum:
 
     Precedence:
         1) Explicit --renderer
-        2) Shorthand renderer flags (--plantuml/--mermaid/--structurizr/--d2)
+        2) Shorthand renderer flags
+           (--plantuml/--mermaid/--structurizr/--d2/--likec4)
         3) DEFAULT_RENDERER
 
     Raises:
@@ -334,10 +446,12 @@ def _get_renderer_name(args: argparse.Namespace) -> RendererEnum:
         renderer = PLANTUML.value
     elif getattr(args, MERMAID.value, False):
         renderer = MERMAID.value
-    elif getattr(args, STRUCTURIZR.value, False):
-        renderer = STRUCTURIZR.value
     elif getattr(args, D2.value, False):
         renderer = D2.value
+    elif getattr(args, STRUCTURIZR.value, False):
+        renderer = STRUCTURIZR.value
+    elif getattr(args, LIKEC4.value, False):
+        renderer = LIKEC4.value
     else:
         renderer = DEFAULT_RENDERER
 
@@ -356,8 +470,9 @@ def _renderer_was_provided(args: argparse.Namespace) -> bool:
         getattr(args, "renderer", None),
         getattr(args, PLANTUML.value, False),
         getattr(args, MERMAID.value, False),
-        getattr(args, STRUCTURIZR.value, False),
         getattr(args, D2.value, False),
+        getattr(args, STRUCTURIZR.value, False),
+        getattr(args, LIKEC4.value, False),
     ])
 
 
@@ -438,6 +553,21 @@ def _build_plantuml_render_cli_options(
     )
 
 
+def _build_structurizr_render_cli_options(
+    args: argparse.Namespace,
+) -> StructurizrRenderCLIOptions:
+    """Build Structurizr render options from parsed CLI args."""
+    style_preset: StructurizrStylePreset = getattr(
+        args, "structurizr_style_preset", "classic"
+    )
+    if style_preset == "none":
+        style_preset = None
+
+    return StructurizrRenderCLIOptions(
+        StructurizrRenderOptions(style_preset=style_preset)
+    )
+
+
 def _build_watch_options(args: argparse.Namespace) -> WatchOptions:
     """
     Build watch mode options from parsed CLI args.
@@ -468,14 +598,24 @@ def build_render_cli_options(
         target=args.target,
     )
 
+    renderer_options: (
+        PlantUMLRenderCLIOptions | StructurizrRenderCLIOptions | None
+    )
+
     if renderer == RendererEnum.PLANTUML:
         renderer_options = _build_plantuml_render_cli_options(args)
-    elif renderer in {RendererEnum.MERMAID, RendererEnum.D2}:
+    elif renderer == RendererEnum.STRUCTURIZR:
+        renderer_options = _build_structurizr_render_cli_options(args)
+    elif renderer in {
+        RendererEnum.MERMAID,
+        RendererEnum.D2,
+        RendererEnum.LIKEC4,
+    }:
         renderer_options = None
     else:
         raise CLIError(
-            f"Renderer {renderer.value!r} is not supported by "
-            f"the 'render' command."
+            f"Renderer {renderer.value!r} is not supported by the "
+            "'render' command."
         )
 
     return RenderCLIOptions(
@@ -529,7 +669,39 @@ def _build_d2_renderer() -> D2Renderer:
     return D2Renderer()
 
 
-def build_renderer(cli_options: RenderCLIOptions) -> BaseRenderer:
+def _build_likec4_renderer() -> LikeC4Renderer:
+    """
+    Build a LikeC4 renderer.
+
+    Returns:
+        A LikeC4Renderer instance.
+    """
+    return LikeC4Renderer()
+
+
+def _build_structurizr_renderer(
+    cli_options: RenderCLIOptions,
+) -> StructurizrRenderer:
+    """
+    Build a Structurizr DSL renderer.
+
+    Args:
+        cli_options: Parsed render CLI options containing
+            renderer-specific settings.
+
+    Returns:
+        A StructurizrRenderer instance.
+    """
+    options = cast(StructurizrRenderCLIOptions, cli_options.renderer_options)
+
+    return StructurizrRenderer(render_options=options.render_options)
+
+
+def build_renderer(
+    cli_options: RenderCLIOptions,
+    *,
+    target: RenderTarget | None = None,
+) -> BaseRenderer:
     """
     Build a renderer used by the `render` command.
 
@@ -537,15 +709,42 @@ def build_renderer(cli_options: RenderCLIOptions) -> BaseRenderer:
         CLIError: If the renderer is not supported by the render command.
     """
     renderer = cli_options.renderer
+    result: BaseRenderer
 
     if renderer == PLANTUML:
-        return _build_plantuml_renderer(cli_options)
+        result = _build_plantuml_renderer(cli_options)
     elif renderer == MERMAID:
-        return _build_mermaid_renderer()
+        result = _build_mermaid_renderer()
     elif renderer == D2:
-        return _build_d2_renderer()
+        result = _build_d2_renderer()
+    elif renderer == STRUCTURIZR:
+        result = _build_structurizr_renderer(cli_options)
+    elif renderer == LIKEC4:
+        result = _build_likec4_renderer()
+    else:
+        raise CLIError(f"Unsupported renderer: {renderer.value!r}")
 
-    raise CLIError(f"Unsupported renderer: {renderer.value!r}")
+    if target is not None:
+        _validate_renderer_target(result, target)
+    return result
+
+
+def _validate_renderer_target(
+    renderer: BaseRenderer,
+    target: RenderTarget,
+) -> None:
+    """Reject renderer/target combinations before rendering begins."""
+    try:
+        renderer.validate(cast(Any, target))
+    except C4Exception as exc:
+        target_title = getattr(target, "title", None) or getattr(
+            target, "name", None
+        )
+        title = f' "{target_title}"' if target_title else ""
+        raise CLIError(
+            f"Cannot render {target.__class__.__name__}{title} with renderer "
+            f"{renderer.renderer_type.value!r}: {exc}"
+        ) from None
 
 
 def _build_plantuml_export_cli_options(
@@ -569,11 +768,19 @@ def _build_plantuml_export_cli_options(
     )
 
     plantuml_server_url = args.plantuml_server_url
+    kroki = _build_kroki_export_cli_options(args)
 
     if plantuml_jar:
         # If plantuml_jar is provided, ignore plantuml_bin
         # to ensure JAR priority
         plantuml_bin = None
+
+    if args.plantuml_backend == KROKI_BACKEND and use_bundled_c4_plantuml:
+        raise CLIError(
+            "--plantuml-backend kroki cannot be used with "
+            "--plantuml-use-bundled-c4-plantuml true because Kroki cannot "
+            "read local bundled include files."
+        )
 
     return PlantUMLExportCLIOptions(
         plantuml_backend=args.plantuml_backend,
@@ -581,9 +788,25 @@ def _build_plantuml_export_cli_options(
         plantuml_bin=plantuml_bin,
         plantuml_jar=plantuml_jar,
         java_bin=args.java_bin,
+        kroki=kroki,
         plantuml_skinparam_dpi=args.plantuml_skinparam_dpi,
         use_new_c4_style=use_new_c4_style,
         use_bundled_c4_plantuml=use_bundled_c4_plantuml,
+    )
+
+
+def _build_kroki_export_cli_options(
+    args: argparse.Namespace,
+) -> KrokiExportCLIOptions:
+    """
+    Build shared Kroki export options from parsed CLI args.
+    """
+    return KrokiExportCLIOptions(
+        url=getattr(args, "kroki_url", None) or DEFAULT_KROKI_SERVER_URL,
+        method=cast(
+            Literal["get", "post"],
+            getattr(args, "kroki_method", "get"),
+        ),
     )
 
 
@@ -597,12 +820,27 @@ def _build_mermaid_export_cli_options(
     scale_factor = getattr(args, "mermaid_scale_factor", None)
     puppeteer_config = getattr(args, "mermaid_puppeteer_config", None)
     puppeteer_headless = getattr(args, "mermaid_puppeteer_headless", None)
+    mermaid_backend = getattr(args, "mermaid_backend", LOCAL_BACKEND)
+
+    if mermaid_backend == KROKI_BACKEND and any([
+        mermaid_bin,
+        scale_factor is not None,
+        puppeteer_config is not None,
+        puppeteer_headless is not None,
+    ]):
+        raise CLIError(
+            "--mermaid-backend kroki cannot be used with local Mermaid CLI "
+            "options such as --mermaid-bin, --mermaid-scale-factor, "
+            "--mermaid-puppeteer-config, or --mermaid-puppeteer-headless."
+        )
 
     return MermaidExportCLIOptions(
+        mermaid_backend=cast(Literal["local", "kroki"], mermaid_backend),
         mermaid_bin=mermaid_bin or DEFAULT_MERMAID_BIN,
         scale_factor=scale_factor or DEFAULT_MERMAID_SCALE_FACTOR,
         puppeteer_config=puppeteer_config,
         puppeteer_headless=puppeteer_headless,
+        kroki=_build_kroki_export_cli_options(args),
     )
 
 
@@ -614,10 +852,57 @@ def _build_d2_export_cli_options(
     """
     d2_bin = getattr(args, "d2_bin", None)
     d2_layout = getattr(args, "d2_layout", None)
+    d2_backend = getattr(args, "d2_backend", LOCAL_BACKEND)
+
+    if d2_backend == KROKI_BACKEND and d2_layout is not None:
+        raise CLIError(
+            "--d2-layout is not supported with --d2-backend kroki. "
+            "Remove --d2-layout or use --d2-backend local."
+        )
 
     return D2ExportCLIOptions(
+        d2_backend=cast(Literal["local", "kroki"], d2_backend),
         d2_bin=d2_bin or DEFAULT_D2_BIN,
         layout=d2_layout,
+        kroki=_build_kroki_export_cli_options(args),
+    )
+
+
+def _build_structurizr_export_cli_options(
+    args: argparse.Namespace,
+) -> StructurizrExportCLIOptions:
+    """Build Structurizr export options from parsed CLI args."""
+    structurizr_backend = getattr(args, "structurizr_backend", KROKI_BACKEND)
+    structurizr_bin = getattr(args, "structurizr_bin", None)
+
+    if structurizr_backend == KROKI_BACKEND and structurizr_bin:
+        raise CLIError(
+            "--structurizr-backend kroki cannot be used with the local "
+            "Structurizr CLI option --structurizr-bin."
+        )
+
+    return StructurizrExportCLIOptions(
+        structurizr_backend=cast(
+            Literal["local", "kroki"], structurizr_backend
+        ),
+        structurizr_bin=structurizr_bin or DEFAULT_STRUCTURIZR_BIN,
+        view_key=getattr(args, "structurizr_view_key", None),
+        kroki=_build_kroki_export_cli_options(args),
+    )
+
+
+def _build_likec4_export_cli_options(
+    args: argparse.Namespace,
+) -> LikeC4ExportCLIOptions:
+    """Build LikeC4 export options from parsed CLI args."""
+    likec4_backend = getattr(args, "likec4_backend", LOCAL_BACKEND)
+    if likec4_backend != LOCAL_BACKEND:
+        raise CLIError(
+            "LikeC4 export currently requires --likec4-backend local."
+        )
+    return LikeC4ExportCLIOptions(
+        likec4_bin=getattr(args, "likec4_bin", None) or DEFAULT_LIKEC4_BIN,
+        view_key=getattr(args, "likec4_view_key", None),
     )
 
 
@@ -649,17 +934,27 @@ def _build_plantuml_exporter(
     renderer_options = cast(
         PlantUMLExportCLIOptions, cli_options.renderer_options
     )
-
     backend: BasePlantUMLBackend
+
     if renderer_options.plantuml_backend == LOCAL_BACKEND:
         backend = LocalPlantUMLBackend(
             timeout_seconds=cli_options.timeout,
             **renderer_options.local_backend_kwargs,
         )
-    else:
+    elif renderer_options.plantuml_backend == REMOTE_BACKEND:
         backend = RemotePlantUMLBackend(
             timeout_seconds=cli_options.timeout,
             **renderer_options.remote_backend_kwargs,
+        )
+    elif renderer_options.plantuml_backend == KROKI_BACKEND:
+        backend = KrokiPlantUMLBackend(
+            timeout_seconds=cli_options.timeout,
+            **renderer_options.kroki.backend_kwargs,
+        )
+    else:  # pragma: no cover
+        raise CLIError(
+            f"Unsupported PlantUML backend: "
+            f"{renderer_options.plantuml_backend!r}"
         )
 
     includes = []
@@ -697,10 +992,22 @@ def _build_mermaid_exporter(
     renderer_options = cast(
         MermaidExportCLIOptions, cli_options.renderer_options
     )
-    backend = LocalMermaidBackend(
-        timeout_seconds=cli_options.timeout,
-        **renderer_options.local_backend_kwargs,
-    )
+    backend: BaseMermaidBackend
+
+    if renderer_options.mermaid_backend == LOCAL_BACKEND:
+        backend = LocalMermaidBackend(
+            timeout_seconds=cli_options.timeout,
+            **renderer_options.local_backend_kwargs,
+        )
+    elif renderer_options.mermaid_backend == KROKI_BACKEND:
+        backend = KrokiMermaidBackend(
+            timeout_seconds=cli_options.timeout,
+            **renderer_options.kroki.backend_kwargs,
+        )
+    else:  # pragma: no cover
+        raise CLIError(
+            f"Unsupported Mermaid backend: {renderer_options.mermaid_backend!r}"
+        )
 
     return MermaidRenderer(backend=backend)
 
@@ -712,12 +1019,81 @@ def _build_d2_exporter(
     Build a D2 renderer configured for exporting binary artifacts.
     """
     renderer_options = cast(D2ExportCLIOptions, cli_options.renderer_options)
-    backend = LocalD2Backend(
-        timeout_seconds=cli_options.timeout,
-        **renderer_options.local_backend_kwargs,
-    )
+    backend: BaseD2Backend
+
+    if renderer_options.d2_backend == LOCAL_BACKEND:
+        backend = LocalD2Backend(
+            timeout_seconds=cli_options.timeout,
+            **renderer_options.local_backend_kwargs,
+        )
+    elif renderer_options.d2_backend == KROKI_BACKEND:
+        backend = KrokiD2Backend(
+            timeout_seconds=cli_options.timeout,
+            **renderer_options.kroki.backend_kwargs,
+        )
+    else:  # pragma: no cover
+        raise CLIError(
+            f"Unsupported D2 backend: {renderer_options.d2_backend!r}"
+        )
 
     return D2Renderer(backend=backend)
+
+
+def _build_structurizr_exporter(
+    cli_options: ExportCLIOptions,
+) -> StructurizrRenderer:
+    """Build a Structurizr renderer exporting through Kroki or the local CLI."""
+    options = cast(StructurizrExportCLIOptions, cli_options.renderer_options)
+
+    backend: BaseStructurizrBackend
+    if options.structurizr_backend == LOCAL_BACKEND:
+        if cli_options.format not in STRUCTURIZR_LOCAL_DIAGRAM_FORMATS:
+            raise CLIError(
+                "--structurizr-backend local exports only png and svg; "
+                "use --structurizr-backend kroki for "
+                f"{cli_options.format.value}."
+            )
+        try:
+            backend = LocalStructurizrBackend(
+                timeout_seconds=cli_options.timeout,
+                **options.local_backend_kwargs,
+            )
+        except StructurizrBackendConfigurationError as exc:
+            raise CLIError(str(exc)) from None
+    elif options.structurizr_backend == KROKI_BACKEND:
+        backend = KrokiStructurizrBackend(
+            timeout_seconds=cli_options.timeout,
+            view_key=options.view_key,
+            **options.kroki.backend_kwargs,
+        )
+    else:  # pragma: no cover
+        raise CLIError(
+            f"Unsupported Structurizr backend: {options.structurizr_backend!r}"
+        )
+
+    return StructurizrRenderer(backend=backend)
+
+
+def _build_likec4_exporter(
+    cli_options: ExportCLIOptions,
+) -> LikeC4Renderer:
+    """Build a LikeC4 renderer exporting images through the local CLI."""
+    options = cast(LikeC4ExportCLIOptions, cli_options.renderer_options)
+
+    if options.likec4_backend != LOCAL_BACKEND:
+        raise CLIError(
+            "LikeC4 export currently requires --likec4-backend local."
+        )
+
+    try:
+        backend = LocalLikeC4Backend(
+            timeout_seconds=cli_options.timeout,
+            **options.local_backend_kwargs,
+        )
+    except LikeC4BackendConfigurationError as exc:
+        raise CLIError(str(exc)) from None
+
+    return LikeC4Renderer(backend=backend, view_key=options.view_key)
 
 
 def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
@@ -736,7 +1112,11 @@ def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
     )
 
     renderer_options: (
-        PlantUMLExportCLIOptions | MermaidExportCLIOptions | D2ExportCLIOptions
+        PlantUMLExportCLIOptions
+        | MermaidExportCLIOptions
+        | D2ExportCLIOptions
+        | StructurizrExportCLIOptions
+        | LikeC4ExportCLIOptions
     )
 
     if renderer == PLANTUML:
@@ -745,10 +1125,14 @@ def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
         renderer_options = _build_mermaid_export_cli_options(args)
     elif renderer == D2:
         renderer_options = _build_d2_export_cli_options(args)
+    elif renderer == STRUCTURIZR:
+        renderer_options = _build_structurizr_export_cli_options(args)
+    elif renderer == LIKEC4:
+        renderer_options = _build_likec4_export_cli_options(args)
     else:
         raise CLIError(
-            f"Renderer {renderer.value!r} is not supported by "
-            f"the 'export' command."
+            f"Renderer {renderer.value!r} is not supported by the "
+            "'export' command."
         )
 
     return ExportCLIOptions(
@@ -762,7 +1146,11 @@ def build_export_cli_options(args: argparse.Namespace) -> ExportCLIOptions:
     )
 
 
-def build_exporter(cli_options: ExportCLIOptions) -> BaseRenderer:
+def build_exporter(
+    cli_options: ExportCLIOptions,
+    *,
+    target: RenderTarget | None = None,
+) -> BaseRenderer:
     """
     Build a renderer configured for exporting binary artifacts (e.g. PNG).
 
@@ -774,14 +1162,23 @@ def build_exporter(cli_options: ExportCLIOptions) -> BaseRenderer:
     """
     renderer = cli_options.renderer
 
+    result: BaseRenderer
     if renderer == PLANTUML:
-        return _build_plantuml_exporter(cli_options)
+        result = _build_plantuml_exporter(cli_options)
     elif renderer == MERMAID:
-        return _build_mermaid_exporter(cli_options)
+        result = _build_mermaid_exporter(cli_options)
     elif renderer == D2:
-        return _build_d2_exporter(cli_options)
+        result = _build_d2_exporter(cli_options)
+    elif renderer == STRUCTURIZR:
+        result = _build_structurizr_exporter(cli_options)
+    elif renderer == LIKEC4:
+        result = _build_likec4_exporter(cli_options)
+    else:
+        raise CLIError(f"Unsupported renderer: {renderer.value!r}")
 
-    raise CLIError(f"Unsupported renderer: {renderer.value!r}")
+    if target is not None:
+        _validate_renderer_target(result, target)
+    return result
 
 
 def resolve_convert_formats(

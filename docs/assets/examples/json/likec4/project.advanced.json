@@ -1,0 +1,393 @@
+{
+  "backend": "likec4",
+  "name": "Shop",
+  "render_options": {
+    "view_key": "index"
+  },
+  "specification": {
+    "colors": [
+      {
+        "name": "brand",
+        "value": "#0b5fff"
+      }
+    ],
+    "elements": [
+      {
+        "name": "actor",
+        "notation": "Person",
+        "style": {
+          "color": "brand",
+          "shape": "person"
+        }
+      },
+      {
+        "name": "system",
+        "style": {
+          "color": "primary"
+        }
+      },
+      {
+        "name": "service",
+        "technology": "Python",
+        "style": {
+          "shape": "component"
+        }
+      },
+      {
+        "name": "database",
+        "style": {
+          "shape": "storage",
+          "color": "amber"
+        }
+      }
+    ],
+    "relationships": [
+      {
+        "name": "async",
+        "style": {
+          "line": "dotted",
+          "head": "diamond"
+        }
+      }
+    ],
+    "tags": [
+      {
+        "name": "critical",
+        "color": "red"
+      },
+      {
+        "name": "deprecated"
+      }
+    ],
+    "deployment_nodes": [
+      {
+        "name": "environment",
+        "notation": "Environment",
+        "style": {
+          "color": "gray"
+        }
+      },
+      {
+        "name": "vm"
+      }
+    ]
+  },
+  "model": {
+    "elements": [
+      {
+        "id": "customer",
+        "alias": "customer",
+        "kind": "actor",
+        "title": "Customer",
+        "description": "Buys goods in the **shop**."
+      },
+      {
+        "id": "shop",
+        "alias": "shop",
+        "kind": "system",
+        "title": "Online Shop",
+        "summary": "Sells goods online",
+        "metadata": {
+          "owner": "team-shop",
+          "tiers": [
+            "web",
+            "api"
+          ]
+        },
+        "links": [
+          {
+            "url": "https://example.com/shop",
+            "title": "Docs"
+          }
+        ],
+        "elements": [
+          {
+            "id": "web",
+            "alias": "web",
+            "kind": "service",
+            "title": "Web",
+            "icon": "tech:react"
+          },
+          {
+            "id": "api",
+            "alias": "api",
+            "kind": "service",
+            "title": "API",
+            "tags": [
+              "critical"
+            ],
+            "description": "Handles [[orders]] and payments."
+          },
+          {
+            "id": "db",
+            "alias": "db",
+            "kind": "database",
+            "title": "Database",
+            "tags": [
+              "deprecated"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "queue",
+        "alias": "queue",
+        "kind": "service",
+        "title": "Order Queue"
+      }
+    ],
+    "relationships": [
+      {
+        "from": "customer",
+        "to": "web",
+        "title": "opens",
+        "technology": "HTTPS"
+      },
+      {
+        "from": "web",
+        "to": "api",
+        "title": "calls",
+        "technology": "REST",
+        "tags": [
+          "critical"
+        ]
+      },
+      {
+        "from": "api",
+        "to": "db",
+        "title": "reads and writes",
+        "technology": "SQL"
+      },
+      {
+        "from": "api",
+        "to": "queue",
+        "title": "publishes orders",
+        "kind": "async",
+        "navigate_to": "checkout"
+      }
+    ]
+  },
+  "deployment": {
+    "nodes": [
+      {
+        "id": "prod",
+        "alias": "prod",
+        "kind": "environment",
+        "title": "Production",
+        "nodes": [
+          {
+            "id": "app",
+            "alias": "app",
+            "kind": "vm",
+            "title": "App VM",
+            "instances": [
+              {
+                "element": "api",
+                "name": "primary"
+              },
+              {
+                "element": "api",
+                "name": "secondary"
+              },
+              {
+                "element": "web"
+              }
+            ]
+          },
+          {
+            "id": "data",
+            "alias": "data",
+            "kind": "vm",
+            "title": "Data VM",
+            "instances": [
+              {
+                "element": "db"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "from": "app",
+        "to": "data",
+        "title": "queries",
+        "technology": "TCP/5432"
+      }
+    ]
+  },
+  "views": {
+    "items": [
+      {
+        "type": "element",
+        "key": "index",
+        "title": "Landscape",
+        "rules": [
+          {
+            "rule": "include",
+            "items": [
+              {
+                "type": "wildcard"
+              }
+            ]
+          },
+          {
+            "rule": "style",
+            "targets": [
+              {
+                "type": "element",
+                "id": "customer"
+              }
+            ],
+            "properties": {
+              "color": "brand"
+            }
+          },
+          {
+            "rule": "auto_layout",
+            "direction": "LeftRight",
+            "rank_sep": 80,
+            "node_sep": 100
+          }
+        ]
+      },
+      {
+        "type": "element",
+        "key": "shop-detail",
+        "title": "Shop",
+        "of": "shop",
+        "tags": [
+          "critical"
+        ],
+        "rules": [
+          {
+            "rule": "include",
+            "items": [
+              {
+                "type": "wildcard"
+              },
+              {
+                "type": "where",
+                "item": {
+                  "type": "children",
+                  "of": "shop"
+                },
+                "tag": "critical"
+              },
+              {
+                "type": "between",
+                "source": {
+                  "type": "element",
+                  "id": "web"
+                },
+                "target": {
+                  "type": "element",
+                  "id": "api"
+                }
+              }
+            ]
+          },
+          {
+            "rule": "exclude",
+            "items": [
+              {
+                "type": "element",
+                "id": "db"
+              }
+            ]
+          },
+          {
+            "rule": "include",
+            "items": [
+              {
+                "type": "element",
+                "id": "api"
+              }
+            ],
+            "navigate_to": "checkout"
+          }
+        ]
+      },
+      {
+        "type": "element",
+        "key": "critical",
+        "rules": [
+          {
+            "rule": "include",
+            "items": [
+              {
+                "type": "raw",
+                "text": "shop.** where tag is #critical"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "deployment",
+        "key": "production",
+        "title": "Production",
+        "rules": [
+          {
+            "rule": "include",
+            "items": [
+              {
+                "type": "element",
+                "id": "prod"
+              },
+              {
+                "type": "children",
+                "of": "prod"
+              }
+            ]
+          },
+          {
+            "rule": "style",
+            "targets": [
+              {
+                "type": "element",
+                "id": "prod"
+              }
+            ],
+            "properties": {
+              "color": "green"
+            }
+          }
+        ]
+      },
+      {
+        "type": "dynamic",
+        "key": "checkout",
+        "title": "Checkout",
+        "variant": "sequence",
+        "steps": [
+          {
+            "from": "customer",
+            "to": "web",
+            "title": "opens checkout",
+            "technology": "HTTPS"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "title": "places order",
+            "notes": "Validates the **cart**."
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "title": "order id",
+            "backward": true
+          },
+          {
+            "from": "api",
+            "to": "queue",
+            "title": "enqueues",
+            "color": "amber"
+          }
+        ]
+      }
+    ]
+  }
+}

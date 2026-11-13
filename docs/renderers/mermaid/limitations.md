@@ -26,12 +26,17 @@ with SystemContextDiagram() as diagram:
     customer >> Rel("Uses") >> web_app
 ```
 
+## Relationship helpers
+
+| Helper                                                                    | Mermaid behavior                                                              |
+|---------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| Bidirectional helpers such as `BiRel`                                     | Supported through `c4.contrib.mermaid`; drawn with arrows on both ends        |
+| Directional helpers such as `RelRight`, `RelR`, `RelUp`, `RelDown`        | Generated; Mermaid accepts the syntax but the direction has no layout effect  |
+
 ## Unsupported PlantUML behavior
 
 | PlantUML feature                                                                 | Mermaid behavior                                                |
 |----------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| Directional relationship helpers such as `RelRight`                              | Not supported                                                   |
-| Bidirectional relationship helpers such as `BiRel`                               | Not supported                                                   |
 | Relative layout helpers such as `LayRight`                                       | Not supported                                                   |
 | Dynamic index helpers such as `Index` and `set_index`                            | Not supported                                                   |
 | Deployment node variants `NodeLeft` and `NodeRight`                              | Supported as `Node_L` and `Node_R` through `c4.contrib.mermaid` |
@@ -46,7 +51,8 @@ must fail if a diagram contains PlantUML-owned extension data.
 
 ## Local CLI requirements
 
-Image rendering requires the Mermaid CLI (`mmdc`) to be available locally. Source
+Image rendering through the local backend requires the Mermaid CLI (`mmdc`) to be
+available locally; the Kroki backend needs a Kroki server instead. Source
 rendering with `diagram.as_mermaid()` does not require the CLI.
 
 Configure the local backend with constructor arguments or the `MERMAID_BIN`

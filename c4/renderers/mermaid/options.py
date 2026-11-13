@@ -90,10 +90,14 @@ class MermaidRenderOptions:
             and relationships.
         update_layout_config: Optional layout configuration override.
             If not provided, Mermaid defaults are used.
+        default_relationship_label: Label written for a relationship that
+            has none, because C4-Mermaid rejects a relationship without a
+            label. `None` writes the relationship as stored.
     """
 
     styles: list[BaseStyle] = field(default_factory=list)
     update_layout_config: UpdateLayoutConfig | None = None
+    default_relationship_label: str | None = "uses"
 
 
 class MermaidRenderOptionsBuilder:
@@ -108,6 +112,7 @@ class MermaidRenderOptionsBuilder:
         """Initialize an empty render options."""
         self._styles: list[BaseStyle] = []
         self._layout_config: UpdateLayoutConfig | None = None
+        self._default_relationship_label: str | None = "uses"
 
     def update_element_style(
         self,
@@ -209,6 +214,19 @@ class MermaidRenderOptionsBuilder:
         )
         return self
 
+    def default_relationship_label(self, label: str | None) -> Self:
+        """
+        Set the label written for a relationship that has none.
+
+        Args:
+            label: The placeholder label. `None` turns the placeholder off.
+
+        Returns:
+            The updated render options.
+        """
+        self._default_relationship_label = label
+        return self
+
     def build(self) -> MermaidRenderOptions:
         """
         Build and return the final MermaidRenderOptions instance.
@@ -216,4 +234,5 @@ class MermaidRenderOptionsBuilder:
         return MermaidRenderOptions(
             styles=self._styles,
             update_layout_config=self._layout_config,
+            default_relationship_label=self._default_relationship_label,
         )

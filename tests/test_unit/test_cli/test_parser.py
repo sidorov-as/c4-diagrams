@@ -320,10 +320,69 @@ def test_render_default_cli_args(
     assert args.renderer is None
     assert args.plantuml is False
     assert args.mermaid is False
+    assert args.structurizr is False
     assert args.watch is False
     assert args.watch_delay == 0.25
     assert args.watch_dir is None
     assert args.watch_include is None
+
+
+@pytest.mark.parametrize(
+    ("argv", "expected_renderer", "expected_structurizr"),
+    [
+        (["--structurizr"], None, True),
+        (["--renderer", "structurizr"], "structurizr", False),
+    ],
+)
+def test_render_structurizr_cli_args(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+    argv: list[str],
+    expected_renderer: str | None,
+    expected_structurizr: bool,
+):
+    module_path = make_tmp_py_file("module.py")
+    mocked_handle_render = mocker.patch(
+        "c4.cli.parser.handle_render", return_value=0
+    )
+
+    main(["render", str(module_path), *argv])
+
+    mocked_handle_render.assert_called_once()
+    context = mocked_handle_render.call_args.args[0]
+    assert isinstance(context, CommandContext)
+    args = context.args
+    assert args.target == str(module_path)
+    assert args.renderer == expected_renderer
+    assert args.structurizr is expected_structurizr
+    assert args.plantuml is False
+    assert args.mermaid is False
+    assert args.d2 is False
+    assert args.structurizr_style_preset == "classic"
+
+
+@pytest.mark.parametrize("style_preset", ["classic", "new-c4-style", "none"])
+def test_render_structurizr_style_preset_cli_args(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+    style_preset: str,
+):
+    module_path = make_tmp_py_file("module.py")
+    mocked_handle_render = mocker.patch(
+        "c4.cli.parser.handle_render", return_value=0
+    )
+
+    main([
+        "render",
+        str(module_path),
+        "--structurizr",
+        "--structurizr-style-preset",
+        style_preset,
+    ])
+
+    mocked_handle_render.assert_called_once()
+    context = mocked_handle_render.call_args.args[0]
+    assert context.args.structurizr_style_preset == style_preset
 
 
 def test_export_default_cli_args(
@@ -360,21 +419,139 @@ def test_export_default_cli_args(
     assert args.renderer is None
     assert args.plantuml is False
     assert args.mermaid is False
+    assert args.structurizr is False
     assert args.format == "png"
     assert args.timeout == 30.0
+    assert args.kroki_url is None
+    assert args.kroki_method == "get"
     assert args.plantuml_backend == "local"
     assert args.plantuml_bin is None
+    assert args.mermaid_backend == "local"
     assert args.mermaid_bin is None
     assert args.mermaid_scale_factor is None
     assert args.mermaid_puppeteer_headless is None
     assert args.mermaid_puppeteer_config is None
+    assert args.d2_backend == "local"
     assert args.d2_layout is None
+    assert args.structurizr_backend == "kroki"
+    assert args.structurizr_bin is None
+    assert args.structurizr_view_key is None
     assert args.java_bin == "java"
     assert args.plantuml_server_url is None
     assert args.watch is False
     assert args.watch_delay == 0.25
     assert args.watch_dir is None
     assert args.watch_include is None
+
+
+def test_export_kroki_cli_args(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    module_path = make_tmp_py_file("module.py")
+    mocked_handle_export = mocker.patch(
+        "c4.cli.parser.handle_export", return_value=0
+    )
+
+    main([
+        "export",
+        str(module_path),
+        "--plantuml",
+        "--plantuml-backend",
+        "kroki",
+        "--plantuml-use-bundled-c4-plantuml",
+        "false",
+        "--kroki-url",
+        "https://kroki.example",
+        "--kroki-method",
+        "post",
+    ])
+
+    context = mocked_handle_export.call_args.args[0]
+    args = context.args
+    assert args.plantuml is True
+    assert args.plantuml_backend == "kroki"
+    assert args.plantuml_use_bundled_c4_plantuml is False
+    assert args.kroki_url == "https://kroki.example"
+    assert args.kroki_method == "post"
+
+
+def test_export_structurizr_kroki_cli_args(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    module_path = make_tmp_py_file("module.py")
+    mocked_handle_export = mocker.patch(
+        "c4.cli.parser.handle_export", return_value=0
+    )
+
+    main([
+        "export",
+        str(module_path),
+        "--structurizr",
+        "--structurizr-backend",
+        "kroki",
+        "--structurizr-view-key",
+        "container-view",
+    ])
+
+    context = mocked_handle_export.call_args.args[0]
+    args = context.args
+    assert args.structurizr is True
+    assert args.structurizr_backend == "kroki"
+    assert args.structurizr_view_key == "container-view"
+
+
+def test_export_structurizr_local_cli_args(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+):
+    module_path = make_tmp_py_file("module.py")
+    mocker.patch("shutil.which", return_value="/usr/bin/structurizr")
+    mocked_handle_export = mocker.patch(
+        "c4.cli.parser.handle_export", return_value=0
+    )
+
+    main([
+        "export",
+        str(module_path),
+        "--structurizr",
+        "--structurizr-backend",
+        "local",
+        "--structurizr-bin",
+        "structurizr",
+        "--structurizr-view-key",
+        "container-view",
+    ])
+
+    args = mocked_handle_export.call_args.args[0].args
+    assert args.structurizr_backend == "local"
+    assert args.structurizr_bin == "structurizr"
+    assert args.structurizr_view_key == "container-view"
+
+
+def test_export_structurizr_bin_rejects_missing_binary(
+    mocker: MockerFixture,
+    make_tmp_py_file: MakeTmpPyFile,
+    capsys: pytest.CaptureFixture[str],
+):
+    module_path = make_tmp_py_file("module.py")
+    mocker.patch("shutil.which", return_value=None)
+
+    with pytest.raises(SystemExit):
+        main([
+            "export",
+            str(module_path),
+            "--structurizr",
+            "--structurizr-backend",
+            "local",
+            "--structurizr-bin",
+            "missing-structurizr",
+        ])
+
+    assert "Structurizr binary 'missing-structurizr' was not found" in (
+        capsys.readouterr().err
+    )
 
 
 def _assert_watch_cli_args(

@@ -1,4 +1,8 @@
-from c4.renderers.d2.backends import BaseD2Backend, LocalD2Backend
+from c4.renderers.d2.backends import (
+    BaseD2Backend,
+    KrokiD2Backend,
+    LocalD2Backend,
+)
 from c4.renderers.d2.options import (
     D2Layout,
     D2Legend,
@@ -33,6 +37,7 @@ __all__ = (
     "D2Renderer",
     "D2UnresolvedRelationshipEndpointError",
     "D2UnsupportedDeclarationError",
+    "KrokiD2Backend",
     "LocalD2Backend",
     "validate_d2_diagram",
 )

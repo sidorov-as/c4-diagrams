@@ -1,3 +1,4 @@
+import json
 import sys
 import textwrap
 from pathlib import Path
@@ -157,9 +158,9 @@ def test_render__absolute_file_path__diagram_not_found(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        f"c4: error: No Diagram instances found in '{module_path!s}'. "
-        f"Define a Diagram at module level or specify one "
-        f"explicitly as '<target>:<name>'.\n"
+        f"c4: error: No render targets found in '{module_path!s}'. "
+        "Define a render target at module level or "
+        "specify one explicitly as '<target>:<name>'.\n"
     )
 
     result = cli(["render", str(module_path), "-o", str(diagram_output)])
@@ -186,9 +187,9 @@ def test_render__module__diagram_not_found(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        "c4: error: No Diagram instances found in module 'module'. "
-        "Define a Diagram at module level or specify one "
-        "explicitly as '<target>:<name>'.\n"
+        "c4: error: No render targets found in module 'module'. "
+        "Define a render target at module level or "
+        "specify one explicitly as '<target>:<name>'.\n"
     )
 
     result = cli(["render", "module", "-o", str(diagram_output)])
@@ -217,7 +218,7 @@ def test_render__absolute_file_path_with_ref__diagram_not_found(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        f"c4: error: Diagram reference 'diagram' was not found "
+        f"c4: error: Render target reference 'diagram' was not found "
         f"in {str(module_path)!r}.\n"
     )
 
@@ -252,7 +253,7 @@ def test_render__module_with_ref__diagram_not_found(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        "c4: error: Diagram reference 'diagram' was not found "
+        "c4: error: Render target reference 'diagram' was not found "
         "in module 'module'.\n"
     )
 
@@ -352,10 +353,11 @@ def test_render__absolute_file_path__multiple_diagrams(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        f"c4: error: Multiple diagrams found in '{module_path!s}': "
-        f"diagram1, diagram2. "
-        f"Either ensure the target contains exactly one Diagram, or "
-        f"specify one explicitly as '{module_path!s}:<diagram_name>'.\n"
+        f"c4: error: Multiple render targets found in "
+        f"'{module_path!s}': diagram1, diagram2. "
+        "Either ensure the target contains exactly one render target, "
+        "or specify one explicitly as "
+        f"'{module_path!s}:<target_name>'.\n"
     )
 
     result = cli(["render", str(module_path), "-o", str(diagram_output)])
@@ -385,10 +387,11 @@ def test_render__module__multiple_diagrams(
     )
     expected_error = (
         "usage: c4 [-h] [-V] {render,export,convert} ...\n"
-        "c4: error: Multiple diagrams found in module 'module': "
+        "c4: error: Multiple render targets found in module 'module': "
         "diagram1, diagram2. "
-        "Either ensure the target contains exactly one Diagram, or "
-        "specify one explicitly as 'module:<diagram_name>'.\n"
+        "Either ensure the target contains exactly one render target, "
+        "or specify one explicitly as "
+        "'module:<target_name>'.\n"
     )
 
     result = cli(["render", "module", "-o", str(diagram_output)])
@@ -818,6 +821,228 @@ def test_render_d2_to_output_path(
     assert not result.stdout
     assert not result.stderr
     assert diagram_output.read_text(encoding="utf-8").strip() == expected_result
+
+
+STRUCTURIZR_LANDSCAPE_SOURCE = textwrap.dedent(
+    """
+    from c4.contrib.structurizr import Workspace
+
+    with Workspace("Payments landscape") as workspace:
+        with workspace.model as model:
+            customer = model.Person("Customer", alias="customer")
+            payments = model.SoftwareSystem("Payments", alias="payments")
+
+            customer.uses(payments, "Uses")
+
+        with workspace.views as views:
+            views.SystemLandscapeView(
+                key="SystemLandscapeDiagram_Payments_landscape",
+                title="Payments landscape",
+            )
+    """
+)
+
+EXPECTED_STRUCTURIZR_LANDSCAPE_DSL = textwrap.dedent(
+    """
+    workspace "Payments landscape" {
+      model {
+        customer = person "Customer" {
+          tags "Person"
+        }
+        payments = softwareSystem "Payments" {
+          tags "Software System"
+        }
+        customer -> payments "Uses" {
+          tags "Relationship"
+        }
+      }
+      views {
+        systemLandscape "SystemLandscapeDiagram_Payments_landscape" {
+          title "Payments landscape"
+          include *
+          autoLayout lr
+        }
+        styles {
+          element "Person" {
+            shape Person
+            background #08427b
+            color #ffffff
+            fontSize 22
+          }
+          element "Software System" {
+            background #1168bd
+            color #ffffff
+          }
+          element "Container" {
+            background #438dd5
+            color #ffffff
+          }
+          element "Component" {
+            background #85bbf0
+            color #000000
+          }
+          element "Database" {
+            shape Cylinder
+          }
+          element "Queue" {
+            shape Pipe
+          }
+          element "External" {
+            background #999999
+            color #ffffff
+          }
+          element "Boundary" {
+            stroke #444444
+            strokeWidth 1
+            border Dashed
+          }
+        }
+      }
+    }
+    """
+).strip()
+
+
+def test_render_structurizr_shortcut_to_stdout_autodetect_workspace(
+    make_tmp_py_file: MakeTmpPyFile,
+    cli: CLI,
+):
+    module_path = make_tmp_py_file(
+        "module.py",
+        STRUCTURIZR_LANDSCAPE_SOURCE,
+    )
+
+    result = cli([
+        "render",
+        str(module_path),
+        "--structurizr",
+    ])
+
+    assert result.exit_code == 0
+    assert result.stdout.strip() == EXPECTED_STRUCTURIZR_LANDSCAPE_DSL
+    assert not result.stderr
+
+
+def test_render_structurizr_renderer_to_output_path_with_ref(
+    tmp_path: Path,
+    make_tmp_py_file: MakeTmpPyFile,
+    cli: CLI,
+):
+    diagram_output = tmp_path / "diagram.dsl"
+    module_path = make_tmp_py_file(
+        "module.py",
+        STRUCTURIZR_LANDSCAPE_SOURCE,
+    )
+
+    result = cli([
+        "render",
+        f"{module_path!s}:workspace",
+        "--renderer",
+        "structurizr",
+        "-o",
+        str(diagram_output),
+    ])
+
+    assert result.exit_code == 0
+    assert not result.stdout
+    assert not result.stderr
+    assert (
+        diagram_output.read_text(encoding="utf-8").strip()
+        == EXPECTED_STRUCTURIZR_LANDSCAPE_DSL
+    )
+
+
+def test_render_structurizr_rejects_core_diagram(
+    make_tmp_py_file: MakeTmpPyFile,
+    cli: CLI,
+):
+    module_path = make_tmp_py_file(
+        "module.py",
+        textwrap.dedent(
+            """
+            from c4 import SystemLandscapeDiagram
+
+            diagram = SystemLandscapeDiagram("Example")
+            """
+        ),
+    )
+
+    result = cli([
+        "render",
+        f"{module_path!s}:diagram",
+        "--renderer",
+        "structurizr",
+    ])
+
+    assert result.exit_code == 2
+    assert not result.stdout
+    assert (
+        'Cannot render SystemLandscapeDiagram "Example" with renderer '
+        "'structurizr': "
+        "Structurizr rendering accepts only "
+        "c4.contrib.structurizr.Workspace instances."
+    ) in result.stderr
+
+
+def test_render_json_backend_mismatch_with_structurizr(
+    tmp_path: Path,
+    cli: CLI,
+):
+    diagram_path = tmp_path / "diagram.json"
+    diagram_path.write_text(
+        """
+        {"backend": "structurizr", "type": "SystemLandscapeDiagram", "title": "Example"}
+        """,
+        encoding="utf-8",
+    )
+    expected_error = (
+        "c4: error: JSON diagram backend 'structurizr' does not match "
+        "selected renderer 'mermaid'.\n"
+    )
+
+    result = cli([
+        "render",
+        str(diagram_path),
+        "--renderer",
+        "mermaid",
+    ])
+
+    assert result.exit_code == 2
+    assert not result.stdout
+    assert expected_error in result.stderr
+
+
+def test_render_structurizr_json_workspace_infers_structurizr_renderer(
+    tmp_path: Path,
+    cli: CLI,
+):
+    workspace_path = tmp_path / "workspace.json"
+    output_path = tmp_path / "workspace.dsl"
+    workspace_path.write_text(
+        json.dumps(
+            {
+                "backend": "structurizr",
+                "model": {
+                    "people": [{"id": "customer", "name": "Customer"}],
+                },
+                "views": {
+                    "items": [
+                        {"type": "system_landscape", "key": "landscape"},
+                    ],
+                },
+            },
+        ),
+        encoding="utf-8",
+    )
+
+    result = cli(["render", str(workspace_path), "-o", str(output_path)])
+
+    assert result.exit_code == 0
+    assert not result.stdout
+    assert not result.stderr
+    rendered = output_path.read_text(encoding="utf-8")
+    assert 'workspace "Workspace"' in rendered
+    assert 'systemLandscape "landscape"' in rendered
 
 
 @pytest.mark.skipif(

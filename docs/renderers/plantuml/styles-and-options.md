@@ -29,6 +29,26 @@ available methods and configuration options.
 
 Layout configuration can also be set via [RenderOptions](../render-options.md).
 
+## Unlabeled Relationships
+
+C4-PlantUML rejects `Rel(a, b)` without a label. A relationship whose label is
+`None` (for example `a >> b`) is therefore written with the placeholder
+`uses`: `Rel(a, b, "uses")`. Change the text with `default_relationship_label`,
+or pass `None` to write the relationship as it is stored:
+
+```python
+from c4.renderers.plantuml import PlantUMLRenderOptionsBuilder
+
+render_options = (
+    PlantUMLRenderOptionsBuilder()
+    .default_relationship_label("relates to")  # or None to turn it off
+    .build()
+)
+```
+
+An explicit empty label (`""`) is written as `Rel(a, b, "")`, not replaced.
+The placeholder is added at render time; the relationship is not changed.
+
 ## C4 Visual Styles
 
 Starting July 2025, the official [c4model.com](https://c4model.com) website introduced

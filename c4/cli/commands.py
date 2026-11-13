@@ -18,6 +18,7 @@ from c4.cli.watch import (
 from c4.converters.exceptions import ConversionError
 from c4.converters.python.converter import diagram_to_python_code
 from c4.enums import DiagramConvertionFormat
+from c4.exceptions import C4Exception
 
 
 def _run_with_watch(
@@ -42,9 +43,11 @@ def render_once(cli_options: RenderCLIOptions) -> int:
     on CLI options.
     """
     diagram = resolve_diagram(cli_options.target)
-    renderer = build_renderer(cli_options)
-
-    diagram_source = renderer.render(diagram)
+    renderer = build_renderer(cli_options, target=diagram)
+    try:
+        diagram_source = renderer.render(diagram)
+    except C4Exception as exc:
+        raise CLIError(str(exc)) from None
 
     with cli_options.open_output() as out:
         out.write(diagram_source)
@@ -77,12 +80,15 @@ def export_once(cli_options: ExportCLIOptions) -> int:
     a file, depending on CLI options.
     """
     diagram = resolve_diagram(cli_options.target)
-    exporter = build_exporter(cli_options)
+    exporter = build_exporter(cli_options, target=diagram)
 
-    diagram_bytes = exporter.render_bytes(
-        diagram,
-        format=cli_options.format,
-    )
+    try:
+        diagram_bytes = exporter.render_bytes(
+            diagram,
+            format=cli_options.format,
+        )
+    except C4Exception as exc:
+        raise CLIError(str(exc)) from None
 
     with cli_options.open_output() as out:
         out.write(diagram_bytes)
@@ -120,8 +126,8 @@ def handle_convert(context: CommandContext) -> int:
             try:
                 diagram, backend = resolve_json_diagram(args.target)
                 diagram_source = diagram_to_python_code(diagram, backend)
-            except ConversionError as exc:
-                raise CLIError(exc.message) from None
+            except (C4Exception, ConversionError, ValueError) as exc:
+                raise CLIError(str(exc)) from None
         case _:
             raise CLIError(
                 f"Unsupported conversion: "

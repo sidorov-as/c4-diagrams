@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import inspect
-from inspect import cleandoc
 from typing import Any, Generic, TypeVar, cast
 
 from pydantic import BaseModel, ConfigDict
@@ -11,39 +10,11 @@ from pydantic.json_schema import (
     JsonSchemaValue,
 )
 
+from c4.converters.json.mixins import JSONSchemaMixin
 from c4.diagrams.core import BaseDiagramElement
 
 TDiagramElement = TypeVar("TDiagramElement", bound=BaseDiagramElement)
 TypeDiagramElement = type[TDiagramElement]
-
-
-class JSONSchemaMixin:
-    """
-    Mixin that post-processes the generated JSON Schema.
-
-    Removes redundant `description` fields when they duplicate the
-    class docstring, keeping the schema output cleaner.
-    """
-
-    @classmethod
-    def __get_pydantic_json_schema__(
-        cls,
-        core_schema: CoreSchema,
-        handler: GetJsonSchemaHandler,
-    ) -> JsonSchemaValue:
-        """
-        Drop redundant JSON Schema description if it equals
-        the class docstring.
-        """
-        json_schema = handler(core_schema)
-
-        doc = cls.__doc__
-        description = json_schema.get("description")
-
-        if doc and description and cleandoc(doc) == description:
-            json_schema.pop("description", None)
-
-        return json_schema
 
 
 class BaseSchemaItem(JSONSchemaMixin, BaseModel, Generic[TDiagramElement]):

@@ -3,7 +3,7 @@
 > **Source:** [core.component-diagram.json](../../../assets/specs/core.component-diagram.json)
 
 
-This schema describes the [ComponentDiagram][c4.diagrams.component.ComponentDiagram] spec for the Core backend.
+This schema describes the [ComponentDiagram][c4.diagrams.component.ComponentDiagram] diagram spec for the Core backend.
 
 ## Properties
 
@@ -61,18 +61,15 @@ This schema describes the [ComponentDiagram][c4.diagrams.component.ComponentDiag
 - [ComponentDbExtSchema](#componentdbextschema)
 - [ComponentQueueSchema](#componentqueueschema)
 - [ComponentQueueExtSchema](#componentqueueextschema)
-
 ### Boundaries
 
 - [BoundarySchema](#boundaryschema)
 - [EnterpriseBoundarySchema](#enterpriseboundaryschema)
 - [SystemBoundarySchema](#systemboundaryschema)
 - [ContainerBoundarySchema](#containerboundaryschema)
-
 ### Relationships
 
 - [RelationshipSchema](#relationshipschema)
-
 ## Definitions
 
 
@@ -110,7 +107,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### ComponentDbExtSchema
 
 This schema describes the
@@ -129,7 +125,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ComponentDbSchema
 
 This schema describes the
@@ -148,7 +143,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ComponentExtSchema
 
 This schema describes the
@@ -167,7 +161,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ComponentQueueExtSchema
 
 This schema describes the
@@ -186,7 +179,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ComponentQueueSchema
 
 This schema describes the
@@ -205,7 +197,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ComponentSchema
 
 This schema describes the
@@ -224,7 +215,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerBoundarySchema
 
 This schema describes the
@@ -245,7 +235,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### ContainerDbExtSchema
 
 This schema describes the
@@ -264,7 +253,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerDbSchema
 
 This schema describes the
@@ -283,7 +271,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerExtSchema
 
 This schema describes the
@@ -302,7 +289,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerQueueExtSchema
 
 This schema describes the
@@ -321,7 +307,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerQueueSchema
 
 This schema describes the
@@ -340,7 +325,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### ContainerSchema
 
 This schema describes the
@@ -359,7 +343,6 @@ diagram component.
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional technology. |
-
 ### DiagramElementPropertiesSchema
 
 JSON schema for tabular diagram element properties.
@@ -373,7 +356,6 @@ JSON schema for tabular diagram element properties.
     | `header` | <code>array[string]</code> | Header columns. Default: `["Property", "Value"]`. |
     | **`properties(required)`** | <code>array[array[string]]</code> | List of rows (each row is a list of string values). |
     | `show_header` | `boolean` | Whether to display the header row. Default: `true`. |
-
 ### EnterpriseBoundarySchema
 
 This schema describes the
@@ -394,7 +376,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### PersonExtSchema
 
 This schema describes the
@@ -411,7 +392,6 @@ This schema describes the
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### PersonSchema
 
 This schema describes the [`Person`][c4.diagrams.system_context.Person]
@@ -428,7 +408,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### RelationshipSchema
 
 This schema describes the [`Relationship`][c4.diagrams.core.Relationship]
@@ -447,7 +426,6 @@ diagram component.
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
     | `technology` | <span style="white-space: nowrap;">`string` \| `null`</span> | The technology used in the communication. |
     | **`to(required)`** | `string` | The destination element alias (or unique label). |
-
 ### SystemBoundarySchema
 
 This schema describes the
@@ -468,7 +446,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemDbExtSchema
 
 This schema describes the
@@ -486,7 +463,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemDbSchema
 
 This schema describes the
@@ -504,7 +480,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemExtSchema
 
 This schema describes the
@@ -521,7 +496,6 @@ This schema describes the
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemQueueExtSchema
 
 This schema describes the
@@ -539,7 +513,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemQueueSchema
 
 This schema describes the
@@ -557,7 +530,6 @@ diagram component.
     | `description` | <span style="white-space: nowrap;">`string` \| `null`</span> | Optional description text. |
     | **`label(required)`** | `string` | Display name for the element. |
     | `properties` | <code><a href="#diagramelementpropertiesschema">DiagramElementPropertiesSchema</a></code> | Optional property table metadata. |
-
 ### SystemSchema
 
 This schema describes the

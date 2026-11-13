@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from inspect import cleandoc
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, get_args, get_origin
+
+from pydantic import BaseModel
 
 from c4.contrib.d2.converters.json.render_options import D2RenderOptionsSchema
 from c4.contrib.d2.converters.json.schemas import (
@@ -16,6 +19,10 @@ from c4.contrib.d2.converters.json.schemas import (
     D2SystemContextDiagramSchema,
     D2SystemLandscapeDiagramSchema,
 )
+from c4.contrib.likec4.converters.json.schemas import LikeC4ProjectSchema
+from c4.contrib.mermaid.converters.json.render_options import (
+    MermaidRenderOptionsSchema,
+)
 from c4.contrib.mermaid.converters.json.schemas import (
     MermaidComponentDiagramSchema,
     MermaidContainerDiagramSchema,
@@ -24,7 +31,9 @@ from c4.contrib.mermaid.converters.json.schemas import (
     MermaidSystemContextDiagramSchema,
     MermaidSystemLandscapeDiagramSchema,
 )
-from c4.contrib.mermaid.converters.json.render_options import MermaidRenderOptionsSchema
+from c4.contrib.plantuml.converters.json.render_options import (
+    PlantUMLRenderOptionsSchema,
+)
 from c4.contrib.plantuml.converters.json.schemas import (
     PlantUMLComponentDiagramSchema,
     PlantUMLContainerDiagramSchema,
@@ -33,10 +42,9 @@ from c4.contrib.plantuml.converters.json.schemas import (
     PlantUMLSystemContextDiagramSchema,
     PlantUMLSystemLandscapeDiagramSchema,
 )
-from c4.contrib.plantuml.converters.json.render_options import PlantUMLRenderOptionsSchema
-from pydantic import BaseModel
-from typing_extensions import get_args, get_origin
-
+from c4.contrib.structurizr.converters.json.schemas import (
+    StructurizrWorkspaceSchema,
+)
 from c4.converters.json.schemas.backends import (
     CoreComponentDiagramSchema,
     CoreContainerDiagramSchema,
@@ -45,7 +53,6 @@ from c4.converters.json.schemas.backends import (
     CoreSystemContextDiagramSchema,
     CoreSystemLandscapeDiagramSchema,
 )
-from c4.converters.json.schemas.diagrams.common import BaseDiagramSchema
 from c4.diagrams.core.enums import EnumDescriptionsMixin
 
 Json = dict[str, Any]
@@ -63,6 +70,8 @@ RENDERED_SOURCE_SUFFIXES = {
     "d2": ("d2", "D2"),
     "plantuml": ("puml", "PlantUML"),
     "mermaid": ("mmd", "Mermaid"),
+    "structurizr": ("dsl", "Structurizr DSL"),
+    "likec4": ("c4", "LikeC4 DSL"),
 }
 
 
@@ -72,7 +81,9 @@ class BackendSchemas:
 
     slug: str
     title: str
-    schemas: tuple[type[BaseDiagramSchema], ...]
+    schemas: tuple[type[BaseModel], ...]
+    schema_names: tuple[str, ...] | None = None
+    subject: str = "Workspace"
 
 
 BACKEND_SCHEMAS = (
@@ -123,6 +134,19 @@ BACKEND_SCHEMAS = (
             MermaidDeploymentDiagramSchema,
             MermaidDynamicDiagramSchema,
         ),
+    ),
+    BackendSchemas(
+        slug="structurizr",
+        title="Structurizr",
+        schemas=(StructurizrWorkspaceSchema,),
+        schema_names=("workspace",),
+    ),
+    BackendSchemas(
+        slug="likec4",
+        title="LikeC4",
+        schemas=(LikeC4ProjectSchema,),
+        schema_names=("project",),
+        subject="Project",
     ),
 )
 
@@ -198,6 +222,34 @@ DEFINITIONS_ORDER = [
     "D2LegendSchema",
     "D2LegendElementSchema",
     "D2LegendRelSchema",
+    # Structurizr workspace
+    "StructurizrWorkspaceSchema",
+    "StructurizrModelSchema",
+    "StructurizrPersonSchema",
+    "StructurizrSoftwareSystemSchema",
+    "StructurizrContainerSchema",
+    "StructurizrComponentSchema",
+    "StructurizrRelationshipSchema",
+    "StructurizrDeploymentSchema",
+    "StructurizrDeploymentEnvironmentSchema",
+    "StructurizrDeploymentNodeSchema",
+    "StructurizrInfrastructureNodeSchema",
+    "StructurizrSoftwareSystemInstanceSchema",
+    "StructurizrContainerInstanceSchema",
+    "StructurizrViewsSchema",
+    "StructurizrSystemLandscapeViewSchema",
+    "StructurizrSystemContextViewSchema",
+    "StructurizrContainerViewSchema",
+    "StructurizrComponentViewSchema",
+    "StructurizrDynamicViewSchema",
+    "StructurizrDeploymentViewSchema",
+    "StructurizrDynamicStepSchema",
+    "StructurizrSelectorSchema",
+    "StructurizrAutoLayoutSchema",
+    "StructurizrStylesSchema",
+    "StructurizrStyleSchema",
+    "StructurizrThemeSchema",
+    "StructurizrRenderOptionsSchema",
 ]
 
 
@@ -501,13 +553,13 @@ class DiagramSpecDocsGenerator:
         backend: BackendSchemas,
         spec_path: Path,
         md_path: Path,
-        diagram_schema: type[BaseDiagramSchema],
+        diagram_schema: type[BaseModel],
     ) -> None:
         self.backend = backend
         self.spec_path = spec_path
         self.md_path = md_path
         self.diagram_schema = diagram_schema
-        self.diagram_cls = diagram_schema.__diagram_class__
+        self.diagram_cls = getattr(diagram_schema, "__diagram_class__", None)
 
         self.diagram_spec = self._get_diagram_spec(diagram_schema)
         self.defs: Json = self._get_defs(self.diagram_spec)
@@ -531,7 +583,7 @@ class DiagramSpecDocsGenerator:
 
     @staticmethod
     def _get_diagram_spec(
-        diagram_schema: type[BaseDiagramSchema],
+        diagram_schema: type[BaseModel],
     ) -> Json:
         raw_schema = diagram_schema.model_json_schema()
         return reorder_schema_for_model(
@@ -540,7 +592,7 @@ class DiagramSpecDocsGenerator:
 
     @staticmethod
     def _get_def_type_map(
-        diagram_schema: type[BaseDiagramSchema],
+        diagram_schema: type[BaseModel],
         defs: Json,
     ) -> dict[str, type]:
         model_types = collect_model_types(diagram_schema)
@@ -558,11 +610,12 @@ class DiagramSpecDocsGenerator:
         self.md_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.spec_path.write_text(
-            json.dumps(self.diagram_spec, indent=4),
+            json.dumps(self.diagram_spec, indent=2) + "\n",
             encoding="utf-8",
         )
 
         markdown = self._render_markdown()
+        markdown = "\n".join(line.rstrip() for line in markdown.splitlines()) + "\n"
         self.md_path.write_text(markdown, encoding="utf-8")
 
     def _render_markdown(self) -> str:
@@ -570,11 +623,20 @@ class DiagramSpecDocsGenerator:
 
         source_link = f"../../../assets/specs/{self.spec_path.name}"
 
-        diagram_class_repr = (
-            f"[{self.diagram_cls.__name__}]"
-            f"[{self.diagram_cls.__module__}.{self.diagram_cls.__name__}]"
+        if self.diagram_cls is not None:
+            subject_repr = (
+                f"[{self.diagram_cls.__name__}]"
+                f"[{self.diagram_cls.__module__}.{self.diagram_cls.__name__}]"
+            )
+            subject = "diagram"
+        else:
+            subject_repr = f"`{self.backend.subject}`"
+            subject = self.backend.subject.lower()
+        title = (
+            self.diagram_spec.get("title", self.spec_path.stem)
+            if self.diagram_cls is not None
+            else self.backend.subject
         )
-        title = self.diagram_spec.get("title", self.spec_path.stem)
 
         lines: list[str] = [
             f"# {self.backend.title} {title} Spec",
@@ -582,7 +644,7 @@ class DiagramSpecDocsGenerator:
             f"> **Source:** [{self.spec_path.name}]({source_link})",
             "",
             "",
-            f"This schema describes the {diagram_class_repr} spec for "
+            f"This schema describes the {subject_repr} {subject} spec for "
             f"the {self.backend.title} backend.",
             "",
             "## Properties",
@@ -617,7 +679,8 @@ class DiagramSpecDocsGenerator:
         ]
 
         lines.extend(["## Definitions", "", ""])
-        lines.extend(self._render_note_on_aliases())
+        if self.diagram_cls is not None:
+            lines.extend(self._render_note_on_aliases())
         lines.extend(self._render_definitions(exclude=render_options_defs))
         lines.extend(self._render_definitions(include=["RenderOptionsSchema"]))
 
@@ -642,13 +705,15 @@ class DiagramSpecDocsGenerator:
             )
         )
 
-        return "\n".join(lines).rstrip() + "\n"
+        return "\n".join(line.rstrip() for line in lines).rstrip() + "\n"
 
     def _example_asset_path(self, variant: str, suffix: str) -> Path:
-        diagram_slug = camel_to_snake(self.diagram_cls.__name__).replace(
-            "_", "-"
+        schema_slug = (
+            camel_to_snake(self.diagram_cls.__name__).replace("_", "-")
+            if self.diagram_cls is not None
+            else self.backend.subject.lower()
         )
-        example_file = f"{diagram_slug}.{variant}.{suffix}"
+        example_file = f"{schema_slug}.{variant}.{suffix}"
         if suffix == "json":
             return JSON_EXAMPLES_DIR / self.backend.slug / example_file
         return EXAMPLES_DIR / self.backend.slug / example_file
@@ -687,7 +752,12 @@ class DiagramSpecDocsGenerator:
             return []
 
         variant_title = variant.title()
-        alt_text = f"{self.diagram_cls.__name__} {variant} example"
+        schema_name = (
+            self.diagram_cls.__name__
+            if self.diagram_cls is not None
+            else self.backend.subject
+        )
+        alt_text = f"{schema_name} {variant} example"
 
         lines = [
             f'    === "{variant_title}"',
@@ -815,11 +885,11 @@ class DiagramSpecDocsGenerator:
         """
         Render type with special links for known collections and $ref defs.
         """
-        if prop_name == "elements":
+        if prop_name == "elements" and self.diagram_cls is not None:
             return TypeLinkContext(
                 anchor="elements", label="Element"
             ).render_array()
-        if prop_name == "boundaries":
+        if prop_name == "boundaries" and self.diagram_cls is not None:
             return TypeLinkContext(
                 anchor="boundaries", label="Boundary"
             ).render_array()
@@ -1164,7 +1234,7 @@ def generate(
     backend: BackendSchemas,
     spec_path: Path,
     md_path: Path,
-    diagram_schema: type[BaseDiagramSchema],
+    diagram_schema: type[BaseModel],
 ) -> None:
     """Generate docs for a single diagram schema."""
     generator = DiagramSpecDocsGenerator(
@@ -1179,15 +1249,18 @@ def generate(
 def main() -> None:
     """Generate docs for all registered diagram schemas."""
     for backend in BACKEND_SCHEMAS:
-        for diagram_schema in backend.schemas:
-            diagram_cls = diagram_schema.__diagram_class__
-            diagram_name = camel_to_snake(diagram_cls.__name__)
-            spec_diagram_name = diagram_name.replace("_", "-")
+        for index, diagram_schema in enumerate(backend.schemas):
+            if backend.schema_names is not None:
+                schema_name = backend.schema_names[index]
+            else:
+                diagram_cls = diagram_schema.__diagram_class__
+                schema_name = camel_to_snake(diagram_cls.__name__)
+            spec_schema_name = schema_name.replace("_", "-")
 
             spec_path = SPECS_DIR / (
-                f"{backend.slug}.{spec_diagram_name}.json"
+                f"{backend.slug}.{spec_schema_name}.json"
             )
-            md_path = MD_SPECS_DIR / f"{backend.slug}.{diagram_name}.md"
+            md_path = MD_SPECS_DIR / f"{backend.slug}.{schema_name}.md"
 
             generate(
                 backend=backend,

@@ -128,10 +128,26 @@ Regenerate checked-in example artifacts with:
 make generate-docs-artifacts
 ```
 
-Regenerate JSON schema docs and specs with:
+This also regenerates the JSON schema docs and specs and the Structurizr and
+LikeC4 reference tables (`docs/renderers/*/reference.md` and the backend flag
+tables in `docs/cli.md`). The image export needs the backend tools (PlantUML,
+Mermaid CLI, D2, Structurizr CLI, LikeC4 CLI); see
+[Installation](https://sidorov-as.github.io/c4-diagrams/installation/). CI does not regenerate these artifacts,
+so run it locally whenever you change examples, JSON schemas, style
+constants, validation rules or CLI flags.
+
+Check that nothing is stale with:
+
+```bash
+make check-docs-artifacts
+```
+
+Regenerate only the JSON schema docs and specs, or only the backend reference
+tables, with:
 
 ```bash
 make generate-diagram-specs
+make generate-backend-reference
 ```
 
 ### 5. (Optional) Run tox

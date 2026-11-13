@@ -220,8 +220,14 @@ __marimo__/
 .AppleDouble
 .LSOverride
 
+openspec
+.codex
+.claude
+
 local.py
 local.svg
 local/
 local.md
 local.json
+
+architecture.c4

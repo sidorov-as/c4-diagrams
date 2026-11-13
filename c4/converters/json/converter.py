@@ -19,6 +19,7 @@ from c4.contrib.d2.converters.json.schemas import (
     D2SystemContextDiagramSchema,
     D2SystemLandscapeDiagramSchema,
 )
+from c4.contrib.likec4.converters.json import project_from_dict
 from c4.contrib.mermaid.converters.json.render_options import (
     MermaidRenderOptionsSchema,
 )
@@ -42,6 +43,7 @@ from c4.contrib.plantuml.converters.json.schemas import (
     PlantUMLSystemContextDiagramSchema,
     PlantUMLSystemLandscapeDiagramSchema,
 )
+from c4.contrib.structurizr.converters.json import workspace_from_dict
 from c4.converters.exceptions import (
     ConversionError,
     DiagramJSONSchemaParsingError,
@@ -66,6 +68,7 @@ from c4.converters.json.schemas.diagrams.common import (
 from c4.diagrams.core import Boundary, Diagram, Element
 from c4.enums import RendererEnum
 from c4.renderers import RenderOptions
+from c4.renderers.base import RenderTarget
 from c4.renderers.d2.validation import validate_d2_diagram
 from c4.renderers.mermaid.validation import validate_mermaid_diagram
 from c4.renderers.plantuml.validation import validate_plantuml_diagram
@@ -363,10 +366,26 @@ class JSONToDiagramConverter:
         return self._diagram
 
 
+_PROJECT_CONVERTERS = {
+    RendererEnum.STRUCTURIZR: workspace_from_dict,
+    RendererEnum.LIKEC4: project_from_dict,
+}
+
+
 def diagram_from_dict(
     data: Mapping[str, Any],
-) -> tuple[Diagram, RendererEnum | None]:
-    """Build a diagram from a parsed JSON mapping."""
+) -> tuple[Any, RendererEnum | None]:
+    """Build a diagram, Structurizr workspace or LikeC4 project from JSON."""
+    backend = JSONToDiagramConverter.parse_diagram_backend(data)
+    if backend in _PROJECT_CONVERTERS:
+        try:
+            return _PROJECT_CONVERTERS[backend](data)
+        except ValidationError as exc:
+            message = format_validation_error(exc)
+            raise DiagramJSONSchemaValidationError(message) from None
+        except ValueError as exc:
+            raise ConversionError(str(exc)) from None
+
     converter = JSONToDiagramConverter(data)
 
     return converter.convert(), converter.backend
@@ -408,9 +427,9 @@ def diagram_backend_from_json(
 
 def diagram_from_json(
     src: str | bytes | Path | IO[str] | IO[bytes],
-) -> tuple[Diagram, RendererEnum | None]:
+) -> tuple[RenderTarget, RendererEnum | None]:
     """
-    Parse JSON into a Diagram.
+    Parse JSON into a Diagram, Structurizr Workspace or LikeC4 Project.
 
     Args:
         src: JSON string/bytes, a Path, or a file-like object.
