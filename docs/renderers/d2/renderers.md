@@ -135,7 +135,7 @@ source = diagram.as_d2(
 
 [`LocalD2Backend`](../../api_docs/d2/renderers/#c4.renderers.d2.backends.LocalD2Backend) generates rendered artifacts
 using a locally installed [D2 CLI](https://d2lang.com/tour/install/).
-D2 `v0.7.1` or newer is required for local export.
+Local export is tested with D2 `v0.9.0`.
 
 The backend supports SVG, PNG, and PDF. `.d2` is source output and is handled by
 the render path, not by `DiagramFormat`.

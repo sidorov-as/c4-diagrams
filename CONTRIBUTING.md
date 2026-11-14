@@ -150,7 +150,13 @@ make generate-diagram-specs
 make generate-backend-reference
 ```
 
-### 5. (Optional) Run tox
+### 5. Keep the skill's tested versions in sync
+
+When you change a tool version in CI (`.github/workflows/main.yml` or
+`.github/actions/*/action.yml`), update
+`skills/c4-diagrams/references/tested-versions.md` to match.
+
+### 6. (Optional) Run tox
 
 ```bash
 tox

@@ -90,6 +90,19 @@ The same diagram renders with Mermaid and D2, and Structurizr and LikeC4 have th
 authoring models. See the [documentation](https://sidorov-as.github.io/c4-diagrams/) for all backends,
 and the [Examples](https://sidorov-as.github.io/c4-diagrams/examples/) page for more diagram types.
 
+## Agent skills
+
+Skills for AI coding agents teach them the `c4-diagrams` DSL, backend selection and safe
+exporting, how to migrate a diagram between backends, how to import C4-PlantUML, Mermaid C4,
+Structurizr DSL, LikeC4 and D2 source as Python, and how to generate a diagram from Docker Compose or
+Kubernetes manifests in CI:
+
+```console
+npx skills add sidorov-as/c4-diagrams
+```
+
+See [Agent skills](https://sidorov-as.github.io/c4-diagrams/installation/#agent-skills).
+
 ## Project Links
 
 - [**PyPI**](https://pypi.org/project/c4-diagrams/)
