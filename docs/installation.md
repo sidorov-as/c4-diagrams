@@ -279,7 +279,7 @@ c4 export diagram.py --mermaid \
 ### D2 Requirements
 
 Use D2 when you want D2 source or locally rendered D2 artifacts.
-The minimum required version is D2 `v0.7.1`.
+Tested with D2 `v0.9.0`.
 
 Rendering D2 source with `c4 render` does not require the D2 CLI:
 
@@ -369,3 +369,28 @@ c4 export project.py --likec4 \
 
 If Chromium is missing, the command fails with a message that suggests
 installing it.
+
+## Agent skills
+
+The repository ships four skills for AI coding agents, installed with the
+[`skills`](https://www.npmjs.com/package/skills) CLI:
+
+```bash
+npx skills add sidorov-as/c4-diagrams
+```
+
+- `c4-diagrams` writes, renders and exports diagrams, picks the right authoring
+  model, asks before sending diagram source to a remote service (Kroki, a
+  PlantUML server), and warns before network downloads.
+- `c4-migrate-backend` rewrites a diagram between the portable `Diagram`
+  (PlantUML, Mermaid, D2) and a Structurizr `Workspace` or LikeC4 `Project`,
+  and reports what was lost.
+- `c4-import` rewrites C4-PlantUML, Mermaid C4, Structurizr DSL, LikeC4 and D2
+  source as `c4-diagrams` Python (the last three best-effort), checks the result
+  by rendering it back, and reports what was kept, approximated or dropped.
+- `c4-pipeline` first assesses whether Docker Compose or Kubernetes manifests
+  can feed an automatic diagram, gives a verdict with evidence, and only then
+  helps write a generator and a CI drift check in your repository.
+
+The skills are Markdown only. They read optional tool settings from a
+`## c4-diagrams` section in your `AGENTS.md` or `CLAUDE.md`.
