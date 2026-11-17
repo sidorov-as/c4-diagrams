@@ -42,10 +42,20 @@ class FakeCatalog(BaseHTTPRequestHandler):
                 if nxt < len(CATALOG["items"])
                 else {},
             }
-        elif url.path.endswith(
-            "/entities/by-name/system/default/order-processing"
-        ):
-            body = CATALOG["system"]
+        elif "/entities/by-name/" in url.path:
+            kind, _, name = url.path.split("/entities/by-name/")[1].split("/")
+            known = [*CATALOG["items"], *CATALOG["external"], CATALOG["system"]]
+            body = next(
+                (
+                    e
+                    for e in known
+                    if e["kind"].lower() == kind and e["metadata"]["name"] == name
+                ),
+                None,
+            )
+            if body is None:
+                self.send_error(404)
+                return
         else:
             self.send_error(404)
             return
@@ -82,22 +92,34 @@ def test_export_round_trip(base_url, capsys, backend):
     diagram, _ = diagram_from_dict(data)
     assert diagram is not None
 
+    assert data["type"] == "ContainerDiagram"
+    assert data["title"] == "Order Processing - Container Diagram"
     boundary = data["boundaries"][0]
-    assert boundary["label"] == "Order Processing API"
-    assert len(boundary["elements"]) == 7  # 4 components + 3 resources
-    assert data["title"] == "Order Processing API - Component Diagram"
+    assert boundary["type"] == "SystemBoundary"
+    assert boundary["label"] == "Order Processing"
+    # 3 services + database + queue inside the system; the gateway is not owned
+    # by the system (no spec.system), it is fetched by reference and drawn outside
+    assert {e["alias"]: e["type"] for e in boundary["elements"]} == {
+        "order_api": "Container",
+        "inventory_service": "Container",
+        "payment_service": "Container",
+        "order_db": "ContainerDb",
+        "order_events_bus": "ContainerQueue",
+    }
+    assert [(e["alias"], e["type"]) for e in data["elements"]] == [
+        ("payment_gateway", "SystemExt")
+    ]
 
 
 def test_relationships_and_pagination(base_url, capsys):
     data = export(base_url, "core", capsys)
     edges = {(r["from"], r["to"]): r["label"] for r in data["relationships"]}
     assert edges == {
-        ("order_controller", "order_app_service"): "Invokes",
-        ("order_app_service", "inventory_checker"): "Depends on",
-        ("order_app_service", "payment_adapter"): "Depends on",
-        ("order_app_service", "order_db"): "Reads and writes",
-        ("order_app_service", "order_events_bus"): "Publishes events to",
-        ("payment_adapter", "payment_gateway_api"): "Authorizes payment via",
+        ("order_api", "inventory_service"): "Checks stock availability",
+        ("order_api", "payment_service"): "Requests payment",
+        ("order_api", "order_db"): "Reads and writes",
+        ("order_api", "order_events_bus"): "Publishes events to",
+        ("payment_service", "payment_gateway"): "Authorizes payment via",
     }
 
 
@@ -106,3 +128,34 @@ def test_core_backend_drops_plantuml_fields(base_url, capsys):
     assert "backend" not in data
     for element in data["boundaries"][0]["elements"]:
         assert not {"sprite", "tags", "stereotype"} & element.keys()
+
+
+def test_foreign_entity_without_ext_type_is_drawn_outside():
+    service = {
+        "kind": "Component",
+        "metadata": {"name": "svc", "namespace": "default"},
+        "spec": {},
+        "relations": [
+            {"type": "dependsOn", "targetRef": "resource:default/other-db"}
+        ],
+    }
+    foreign_db = {
+        "kind": "Resource",
+        "metadata": {
+            "name": "other-db",
+            "namespace": "default",
+            "annotations": {"c4.io/type": "ContainerDb"},
+        },
+        "spec": {},
+        "relations": [],
+    }
+    data = exporter.build_diagram(
+        [service], None, "sys", None, "core", [foreign_db]
+    )
+    assert [e["alias"] for e in data["boundaries"][0]["elements"]] == ["svc"]
+    assert [(e["alias"], e["type"]) for e in data["elements"]] == [
+        ("other_db", "ContainerDbExt")
+    ]
+    assert [(r["from"], r["to"], r["label"]) for r in data["relationships"]] == [
+        ("svc", "other_db", "Reads and writes")
+    ]

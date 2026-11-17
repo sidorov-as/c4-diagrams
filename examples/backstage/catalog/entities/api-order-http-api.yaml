@@ -3,12 +3,7 @@ kind: API
 metadata:
   name: order-http-api
   title: Order HTTP API
-  description: HTTP API exposed by Order Controller and handled by Order Application Service.
-  annotations:
-    c4.io/sourceComponent: component:default/order-application-service
-    c4.io/edgeLabel: Invokes
-    c4.io/edgeTechnology: Python call
-    c4.io/edgeTags: SyncCall
+  description: HTTP API exposed by Order API.
 spec:
   type: openapi
   lifecycle: production

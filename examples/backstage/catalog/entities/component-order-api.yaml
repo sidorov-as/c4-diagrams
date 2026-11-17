@@ -1,0 +1,24 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: order-api
+  title: Order API
+  description: Accepts orders over HTTP, coordinates stock checks and payment, and publishes order events.
+  annotations:
+    c4.io/alias: order_api
+    c4.io/type: Container
+    c4.io/sprite: server
+    c4.io/technology: Python, FastAPI
+    c4.io/tags: CoreService,Orders
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/platform-team
+  system: order-processing
+  providesApis:
+    - order-http-api
+  dependsOn:
+    - component:default/inventory-service
+    - component:default/payment-service
+    - resource:default/order-database
+    - resource:default/order-events-bus

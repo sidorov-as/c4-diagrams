@@ -348,88 +348,70 @@ The following example shows how architecture information can be extracted from a
 ??? abstract "Compose file"
 
     ```yaml
-    version: "3.9"
-    name: "Order Processing API"
+    name: "Order Processing"
 
     services:
-      order_controller:
+      order_api:
         image: python:3.12-slim
-        container_name: order_controller
-        command: ["sh", "-c", "echo starting order_controller && sleep infinity"]
+        container_name: order_api
+        command: ["sh", "-c", "echo starting order_api && sleep infinity"]
         depends_on:
-          - order_app_service
+          - inventory_service
+          - payment_service
+          - order_db
+          - order_events_bus
         ports:
           - "8000:8000"
         labels:
           c4.type: "Container"
-          c4.label: "Order Controller"
-          c4.technology: "FastAPI"
-          c4.description: "HTTP entrypoint for order submission and status queries."
-          c4.tags: "Entrypoint,CoreComponent"
+          c4.label: "Order API"
+          c4.technology: "Python, FastAPI"
+          c4.description: "Accepts orders over HTTP, coordinates stock checks and payment, and publishes order events."
+          c4.tags: "CoreService,Orders"
 
-          c4.rel.order_app_service.label: "Invokes"
-          c4.rel.order_app_service.technology: "Python call"
-          c4.rel.order_app_service.tags: "SyncCall"
+          c4.rel.inventory_service.label: "Checks stock availability"
+          c4.rel.inventory_service.technology: "gRPC"
+          c4.rel.inventory_service.tags: "SyncCall"
 
-      order_app_service:
-        image: python:3.12-slim
-        container_name: order_app_service
-        command: ["sh", "-c", "echo starting order_app_service && sleep infinity"]
-        depends_on:
-          - inventory_checker
-          - payment_adapter
-          - order_db
-          - order_events_bus
-        labels:
-          c4.type: "Container"
-          c4.label: "Order Application Service"
-          c4.technology: "Python"
-          c4.description: "Coordinates validation, payment, and order creation."
-          c4.tags: "CoreComponent,Orders"
-
-          c4.rel.inventory_checker.label: "Checks stock via"
-          c4.rel.inventory_checker.technology: "Python call"
-          c4.rel.inventory_checker.tags: "SyncCall"
-
-          c4.rel.payment_adapter.label: "Requests payment through"
-          c4.rel.payment_adapter.technology: "Python call"
-          c4.rel.payment_adapter.tags: "SyncCall"
+          c4.rel.payment_service.label: "Requests payment"
+          c4.rel.payment_service.technology: "REST/HTTPS"
+          c4.rel.payment_service.tags: "SyncCall"
 
           c4.rel.order_db.label: "Reads and writes"
-          c4.rel.order_db.technology: "SQL"
+          c4.rel.order_db.technology: "PostgreSQL"
           c4.rel.order_db.tags: "DataAccess"
 
           c4.rel.order_events_bus.label: "Publishes events to"
           c4.rel.order_events_bus.technology: "RabbitMQ"
           c4.rel.order_events_bus.tags: "AsyncFlow"
 
-      inventory_checker:
+      inventory_service:
         image: python:3.12-slim
-        container_name: inventory_checker
-        command: ["sh", "-c", "echo starting inventory_checker && sleep infinity"]
+        container_name: inventory_service
+        command: ["sh", "-c", "echo starting inventory_service && sleep infinity"]
         labels:
           c4.type: "Container"
-          c4.label: "Inventory Checker"
-          c4.technology: "Python"
+          c4.label: "Inventory Service"
+          c4.technology: "Python, gRPC"
           c4.description: "Verifies stock availability before an order is confirmed."
-          c4.tags: "CoreComponent"
+          c4.tags: "CoreService"
 
-      payment_adapter:
+      payment_service:
         image: python:3.12-slim
-        container_name: payment_adapter
-        command: ["sh", "-c", "echo starting payment_adapter && sleep infinity"]
+        container_name: payment_service
+        command: ["sh", "-c", "echo starting payment_service && sleep infinity"]
         depends_on:
-          - payment_gateway_api
+          - payment_gateway
         labels:
           c4.type: "Container"
-          c4.label: "Payment Adapter"
+          c4.label: "Payment Service"
           c4.technology: "Python"
           c4.description: "Wraps external payment provider calls."
-          c4.tags: "CoreComponent,Payments"
+          c4.tags: "CoreService,Payments"
 
-          c4.rel.payment_gateway_api.label: "Authorizes payment via"
-          c4.rel.payment_gateway_api.technology: "HTTPS/JSON"
-          c4.rel.payment_gateway_api.tags: "ExternalCall"
+          c4.rel.payment_gateway.label: "Authorizes payment via"
+          c4.rel.payment_gateway.technology: "HTTPS/JSON"
+          c4.rel.payment_gateway.tags: "ExternalCall"
 
       order_db:
         image: postgres:16
@@ -447,7 +429,7 @@ The following example shows how architecture information can be extracted from a
           c4.label: "Order Database"
           c4.technology: "PostgreSQL"
           c4.description: "Stores orders, line items, and order status history."
-          c4.tags: "ComponentDatabase"
+          c4.tags: "DataStore"
 
       order_events_bus:
         image: rabbitmq:3.13-management
@@ -460,20 +442,19 @@ The following example shows how architecture information can be extracted from a
           c4.label: "Order Events Bus"
           c4.technology: "RabbitMQ"
           c4.description: "Publishes order-created and order-paid events."
-          c4.tags: "AsyncComponent"
+          c4.tags: "AsyncChannel"
 
-      payment_gateway_api:
+      payment_gateway:
         image: nginx:alpine
-        container_name: payment_gateway_api
+        container_name: payment_gateway
         command: ["sh", "-c", "echo 'mock gateway' > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"]
         ports:
           - "8080:80"
         labels:
-          c4.type: "ContainerExt"
-          c4.label: "Payment Gateway API"
-          c4.technology: "REST API"
-          c4.description: "External provider API for payment authorization and capture."
-          c4.tags: "ExternalComponent"
+          c4.type: "SystemExt"
+          c4.label: "Payment Gateway"
+          c4.description: "External provider for payment authorization and capture."
+          c4.tags: "ExternalSystem"
 
     volumes:
       order_db_data:
@@ -561,8 +542,10 @@ This generates the diagram below:
 
 ### Backstage
 
-A service catalog already holds most of what a C4 diagram needs: components,
-the resources they use, and the dependencies between them. The
+A service catalog already holds most of what a C4 diagram needs: services,
+the data stores they use, and the dependencies between them. A Backstage
+`Component` usually describes a whole deployable service, so it maps to a C4
+container and the catalog fits a Container Diagram. The
 [`examples/backstage`](https://github.com/sidorov-as/c4-diagrams/tree/main/examples/backstage)
 directory shows how to turn a [Backstage](https://backstage.io) catalog into
 JSON. It contains a local Backstage started with `docker compose`, a demo
@@ -585,8 +568,8 @@ relationships:
 | Backstage   | JSON                                                                                             |
 |-------------|--------------------------------------------------------------------------------------------------|
 | `System`    | `SystemBoundary` around the diagram; its title is the boundary label                             |
-| `Component` | `Component` element                                                                              |
-| `Resource`  | `ComponentDb` element (queues and external services through `c4.io/type`)                        |
+| `Component` | `Container` element                                                                              |
+| `Resource`  | `ContainerDb` element (queues and external systems through `c4.io/type`; `*Ext` types and entities the system depends on but does not own are drawn outside the boundary) |
 | `dependsOn` | `REL`; label and technology depend on the target (for example "Reads and writes" for a database) |
 | `API`       | relationship label, technology and tags, through annotations                                     |
 
@@ -596,17 +579,17 @@ on the entities:
 ```yaml
 kind: Component
 metadata:
-  name: order-controller
-  title: Order Controller
+  name: order-api
+  title: Order API
   annotations:
-    c4.io/alias: order_controller
-    c4.io/type: Component
-    c4.io/technology: FastAPI
-    c4.io/tags: Entrypoint,CoreComponent
+    c4.io/alias: order_api
+    c4.io/type: Container
+    c4.io/technology: Python, FastAPI
+    c4.io/tags: CoreService,Orders
 spec:
   system: order-processing
   dependsOn:
-    - component:default/order-application-service
+    - component:default/inventory-service
 ```
 
 The export produces a document in the shape described above, here trimmed:
@@ -614,21 +597,24 @@ The export produces a document in the shape described above, here trimmed:
 ```json
 {
   "backend": "plantuml",
-  "type": "ComponentDiagram",
-  "title": "Order Processing API - Component Diagram",
+  "type": "ContainerDiagram",
+  "title": "Order Processing - Container Diagram",
   "boundaries": [
     {
       "type": "SystemBoundary",
       "alias": "order_processing",
-      "label": "Order Processing API",
+      "label": "Order Processing",
       "elements": [
-        {"type": "Component", "alias": "order_controller", "label": "Order Controller", "technology": "FastAPI"},
-        {"type": "ComponentDb", "alias": "order_db", "label": "Order Database", "technology": "PostgreSQL"}
+        {"type": "Container", "alias": "order_api", "label": "Order API", "technology": "Python, FastAPI"},
+        {"type": "ContainerDb", "alias": "order_db", "label": "Order Database", "technology": "PostgreSQL"}
       ]
     }
   ],
+  "elements": [
+    {"type": "SystemExt", "alias": "payment_gateway", "label": "Payment Gateway"}
+  ],
   "relationships": [
-    {"type": "REL", "from": "order_controller", "to": "order_app_service", "label": "Invokes", "technology": "Python call"}
+    {"type": "REL", "from": "order_api", "to": "order_db", "label": "Reads and writes", "technology": "PostgreSQL"}
   ]
 }
 ```
@@ -640,27 +626,31 @@ exporter.
 This generates the diagram below:
 
 <figure markdown="span">
-  ![backstage-component-diagram](../../assets/converters/backstage-component-diagram.png)
-  <figcaption>backstage-component-diagram</figcaption>
+  ![backstage-container-diagram](../../assets/converters/backstage-container-diagram.png)
+  <figcaption>backstage-container-diagram</figcaption>
 </figure>
 
 Backstage only supplies the data; the diagram itself comes from `c4`. The same
 JSON, exported with `--backend core`, can also be rendered to Mermaid or D2.
 
-For comparison, this is how Backstage itself draws the same catalog with its
-built-in catalog graph plugin:
+For comparison, this is how Backstage itself draws the same catalog (components,
+resources and the system) with its built-in catalog graph plugin, centred on
+Order API:
 
 <figure markdown="span">
   ![backstage-catalog-graph](../../assets/converters/backstage-catalog-graph-tb.png)
-  <figcaption>backstage-catalog-graph</figcaption>
+  <figcaption>backstage-catalog-graph, centred on Order API</figcaption>
 </figure>
 
-The catalog graph shows every entity and every relation type: ownership
-(`ownedBy`), system membership (`partOf`), API providers and consumers next to
-the components. It is a general view of the catalog. The C4 diagram keeps only
-the architecture: components and resources inside the system boundary, with
-labelled, technology-annotated relationships ("Reads and writes", "Publishes
-events to") and the system as a boundary instead of a node.
+The graph is limited to components, resources and the system, and it is still
+a general view of the catalog. It is built around one entity, so only Order API
+shows its `hasPart` link to the system; the other services, the database and the
+queue belong to the system in the catalog too. Otherwise the graph shows every
+relation type (`dependsOn`, `hasPart`) with its inverse name, and the system is
+just another node. The C4
+diagram keeps only the architecture: containers and data stores inside the
+system boundary, external systems outside it, and labelled, technology-annotated
+relationships ("Reads and writes", "Publishes events to").
 
 ### Atlas
 
