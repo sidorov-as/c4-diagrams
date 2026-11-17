@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: order-events-bus
+  title: Order Events Bus
+  description: Publishes order-created and order-paid events.
+  annotations:
+    c4.io/alias: order_events_bus
+    c4.io/type: ComponentQueue
+    c4.io/sprite: queue
+    c4.io/technology: Kafka
+    c4.io/tags: AsyncComponent
+spec:
+  type: message-bus
+  owner: group:default/platform-team
+  system: order-processing

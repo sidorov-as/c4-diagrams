@@ -1,0 +1,9 @@
+services:
+  backstage:
+    build:
+      context: ./backstage
+    ports:
+      - "7007:7007"
+    volumes:
+      - ./backstage/app-config.demo.yaml:/app/app-config.demo.yaml:ro
+      - ./catalog:/app/catalog:ro

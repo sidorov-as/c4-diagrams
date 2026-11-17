@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: order-processing
+  title: Order Processing API
+  description: Main order processing system.
+  annotations:
+    c4.io/alias: order_processing
+    c4.io/type: SystemBoundary
+    c4.io/label: Order Processing API
+    c4.io/tags: SystemBoundary
+spec:
+  owner: group:default/platform-team
+  domain: commerce

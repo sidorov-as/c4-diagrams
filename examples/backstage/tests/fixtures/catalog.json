@@ -1,0 +1,459 @@
+{
+  "items": [
+    {
+      "kind": "API",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/providerResource": "resource:default/order-events-bus",
+          "c4.io/edgeLabel": "Publishes events to",
+          "c4.io/edgeTechnology": "Kafka",
+          "c4.io/edgeTags": "AsyncFlow"
+        },
+        "name": "order-events-api",
+        "title": "Order Events API",
+        "description": "Logical API for asynchronous order-created and order-paid events."
+      },
+      "spec": {
+        "type": "asyncapi",
+        "lifecycle": "production",
+        "owner": "group:default/platform-team",
+        "system": "order-processing"
+      },
+      "relations": [
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        }
+      ]
+    },
+    {
+      "kind": "API",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/sourceComponent": "component:default/order-application-service",
+          "c4.io/edgeLabel": "Invokes",
+          "c4.io/edgeTechnology": "Python call",
+          "c4.io/edgeTags": "SyncCall"
+        },
+        "name": "order-http-api",
+        "title": "Order HTTP API",
+        "description": "HTTP API exposed by Order Controller and handled by Order Application Service."
+      },
+      "spec": {
+        "type": "openapi",
+        "lifecycle": "production",
+        "owner": "group:default/platform-team",
+        "system": "order-processing"
+      },
+      "relations": [
+        {
+          "type": "apiProvidedBy",
+          "targetRef": "component:default/order-controller"
+        },
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        }
+      ]
+    },
+    {
+      "kind": "API",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/providerResource": "resource:default/payment-gateway-api",
+          "c4.io/edgeLabel": "Authorizes payment via",
+          "c4.io/edgeTechnology": "HTTPS/JSON",
+          "c4.io/edgeTags": "ExternalCall"
+        },
+        "name": "payment-provider-api",
+        "title": "Payment Provider API",
+        "description": "External payment provider API consumed by Payment Adapter."
+      },
+      "spec": {
+        "type": "openapi",
+        "lifecycle": "production",
+        "owner": "group:default/platform-team",
+        "system": "order-processing"
+      },
+      "relations": [
+        {
+          "type": "apiConsumedBy",
+          "targetRef": "component:default/payment-adapter"
+        },
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        }
+      ]
+    },
+    {
+      "kind": "Component",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/alias": "inventory_checker",
+          "c4.io/type": "Component",
+          "c4.io/sprite": "server",
+          "c4.io/technology": "Python",
+          "c4.io/tags": "CoreComponent"
+        },
+        "name": "inventory-checker",
+        "title": "Inventory Checker",
+        "description": "Verifies stock availability before an order is confirmed."
+      },
+      "spec": {
+        "type": "service",
+        "lifecycle": "production",
+        "owner": "group:default/platform-team",
+        "system": "order-processing"
+      },
+      "relations": [
+        {
+          "type": "dependencyOf",
+          "targetRef": "component:default/order-application-service"
+        },
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        }
+      ]
+    },
+    {
+      "kind": "Component",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/alias": "order_app_service",
+          "c4.io/type": "Component",
+          "c4.io/sprite": "server",
+          "c4.io/technology": "Python",
+          "c4.io/tags": "CoreComponent,Orders"
+        },
+        "name": "order-application-service",
+        "title": "Order Application Service",
+        "description": "Coordinates validation, payment, and order creation."
+      },
+      "spec": {
+        "type": "service",
+        "lifecycle": "production",
+        "owner": "group:default/platform-team",
+        "system": "order-processing",
+        "dependsOn": [
+          "component:default/inventory-checker",
+          "component:default/payment-adapter",
+          "resource:default/order-database",
+          "resource:default/order-events-bus"
+        ]
+      },
+      "relations": [
+        {
+          "type": "dependencyOf",
+          "targetRef": "component:default/order-controller"
+        },
+        {
+          "type": "dependsOn",
+          "targetRef": "component:default/inventory-checker"
+        },
+        {
+          "type": "dependsOn",
+          "targetRef": "component:default/payment-adapter"
+        },
+        {
+          "type": "dependsOn",
+          "targetRef": "resource:default/order-database"
+        },
+        {
+          "type": "dependsOn",
+          "targetRef": "resource:default/order-events-bus"
+        },
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        }
+      ]
+    },
+    {
+      "kind": "Component",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/alias": "order_controller",
+          "c4.io/type": "Component",
+          "c4.io/sprite": "server",
+          "c4.io/technology": "FastAPI",
+          "c4.io/tags": "Entrypoint,CoreComponent"
+        },
+        "name": "order-controller",
+        "title": "Order Controller",
+        "description": "HTTP entrypoint for order submission and status queries."
+      },
+      "spec": {
+        "type": "service",
+        "lifecycle": "production",
+        "owner": "group:default/platform-team",
+        "system": "order-processing",
+        "providesApis": [
+          "order-http-api"
+        ],
+        "dependsOn": [
+          "component:default/order-application-service"
+        ]
+      },
+      "relations": [
+        {
+          "type": "dependsOn",
+          "targetRef": "component:default/order-application-service"
+        },
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        },
+        {
+          "type": "providesApi",
+          "targetRef": "api:default/order-http-api"
+        }
+      ]
+    },
+    {
+      "kind": "Component",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/alias": "payment_adapter",
+          "c4.io/type": "Component",
+          "c4.io/sprite": "server",
+          "c4.io/technology": "Python",
+          "c4.io/tags": "CoreComponent,Payments"
+        },
+        "name": "payment-adapter",
+        "title": "Payment Adapter",
+        "description": "Wraps external payment provider calls."
+      },
+      "spec": {
+        "type": "service",
+        "lifecycle": "production",
+        "owner": "group:default/platform-team",
+        "system": "order-processing",
+        "consumesApis": [
+          "payment-provider-api"
+        ]
+      },
+      "relations": [
+        {
+          "type": "consumesApi",
+          "targetRef": "api:default/payment-provider-api"
+        },
+        {
+          "type": "dependencyOf",
+          "targetRef": "component:default/order-application-service"
+        },
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        }
+      ]
+    },
+    {
+      "kind": "Resource",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/alias": "order_db",
+          "c4.io/type": "ComponentDb",
+          "c4.io/sprite": "database",
+          "c4.io/technology": "PostgreSQL",
+          "c4.io/tags": "ComponentDatabase"
+        },
+        "name": "order-database",
+        "title": "Order Database",
+        "description": "Stores orders, line items, and order status history."
+      },
+      "spec": {
+        "type": "database",
+        "owner": "group:default/platform-team",
+        "system": "order-processing"
+      },
+      "relations": [
+        {
+          "type": "dependencyOf",
+          "targetRef": "component:default/order-application-service"
+        },
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        }
+      ]
+    },
+    {
+      "kind": "Resource",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/alias": "order_events_bus",
+          "c4.io/type": "ComponentQueue",
+          "c4.io/sprite": "queue",
+          "c4.io/technology": "Kafka",
+          "c4.io/tags": "AsyncComponent"
+        },
+        "name": "order-events-bus",
+        "title": "Order Events Bus",
+        "description": "Publishes order-created and order-paid events."
+      },
+      "spec": {
+        "type": "message-bus",
+        "owner": "group:default/platform-team",
+        "system": "order-processing"
+      },
+      "relations": [
+        {
+          "type": "dependencyOf",
+          "targetRef": "component:default/order-application-service"
+        },
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        }
+      ]
+    },
+    {
+      "kind": "Resource",
+      "metadata": {
+        "namespace": "default",
+        "annotations": {
+          "c4.io/alias": "payment_gateway_api",
+          "c4.io/type": "ComponentExt",
+          "c4.io/sprite": "cloud",
+          "c4.io/technology": "REST API",
+          "c4.io/tags": "ExternalComponent"
+        },
+        "name": "payment-gateway-api",
+        "title": "Payment Gateway API",
+        "description": "External provider API for payment authorization and capture."
+      },
+      "spec": {
+        "type": "external-service",
+        "owner": "group:default/platform-team",
+        "system": "order-processing"
+      },
+      "relations": [
+        {
+          "type": "ownedBy",
+          "targetRef": "group:default/platform-team"
+        },
+        {
+          "type": "partOf",
+          "targetRef": "system:default/order-processing"
+        }
+      ]
+    }
+  ],
+  "system": {
+    "apiVersion": "backstage.io/v1alpha1",
+    "kind": "System",
+    "metadata": {
+      "namespace": "default",
+      "annotations": {
+        "c4.io/alias": "order_processing",
+        "c4.io/type": "SystemBoundary",
+        "c4.io/label": "Order Processing API",
+        "c4.io/tags": "SystemBoundary"
+      },
+      "name": "order-processing",
+      "title": "Order Processing API",
+      "description": "Main order processing system."
+    },
+    "spec": {
+      "owner": "group:default/platform-team",
+      "domain": "commerce"
+    },
+    "relations": [
+      {
+        "type": "hasPart",
+        "targetRef": "api:default/order-events-api"
+      },
+      {
+        "type": "hasPart",
+        "targetRef": "api:default/order-http-api"
+      },
+      {
+        "type": "hasPart",
+        "targetRef": "api:default/payment-provider-api"
+      },
+      {
+        "type": "hasPart",
+        "targetRef": "component:default/inventory-checker"
+      },
+      {
+        "type": "hasPart",
+        "targetRef": "component:default/order-application-service"
+      },
+      {
+        "type": "hasPart",
+        "targetRef": "component:default/order-controller"
+      },
+      {
+        "type": "hasPart",
+        "targetRef": "component:default/payment-adapter"
+      },
+      {
+        "type": "hasPart",
+        "targetRef": "resource:default/order-database"
+      },
+      {
+        "type": "hasPart",
+        "targetRef": "resource:default/order-events-bus"
+      },
+      {
+        "type": "hasPart",
+        "targetRef": "resource:default/payment-gateway-api"
+      },
+      {
+        "type": "ownedBy",
+        "targetRef": "group:default/platform-team"
+      },
+      {
+        "type": "partOf",
+        "targetRef": "domain:default/commerce"
+      }
+    ]
+  }
+}

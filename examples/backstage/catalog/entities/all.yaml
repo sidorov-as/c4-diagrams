@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: order-processing-demo
+  description: Seed location that registers all entities for the order processing component diagram.
+spec:
+  targets:
+    - ./group-platform-team.yaml
+    - ./system-order-processing.yaml
+    - ./component-order-controller.yaml
+    - ./component-order-application-service.yaml
+    - ./component-inventory-checker.yaml
+    - ./component-payment-adapter.yaml
+    - ./resource-order-database.yaml
+    - ./resource-order-events-bus.yaml
+    - ./resource-payment-gateway-api.yaml
+    - ./api-order-http-api.yaml
+    - ./api-payment-provider-api.yaml
+    - ./api-order-events-api.yaml

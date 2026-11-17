@@ -19,10 +19,13 @@ runs:
         BIN_DIR="$HOME/.local/bin"
 
         echo "Installing D2 ${VERSION}..."
-        curl -fsSL https://d2lang.com/install.sh | sh -s -- \
-          --version "$VERSION" \
-          --method standalone \
-          --prefix "$HOME/.local"
+        # Download the release archive directly: d2lang.com/install.sh queries the
+        # GitHub API without a token and fails with 403 on shared runner IPs.
+        ARCHIVE="d2-${VERSION}-linux-amd64.tar.gz"
+        mkdir -p "$HOME/.local"
+        curl -fsSL --retry 5 --retry-delay 2 --retry-all-errors \
+          "https://github.com/d2lang/d2/releases/download/${VERSION}/${ARCHIVE}" \
+          | tar -xz --strip-components=1 -C "$HOME/.local"
 
         export PATH="$BIN_DIR:$PATH"
         echo "$BIN_DIR" >> "$GITHUB_PATH"

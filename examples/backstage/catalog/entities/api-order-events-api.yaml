@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: order-events-api
+  title: Order Events API
+  description: Logical API for asynchronous order-created and order-paid events.
+  annotations:
+    c4.io/providerResource: resource:default/order-events-bus
+    c4.io/edgeLabel: Publishes events to
+    c4.io/edgeTechnology: Kafka
+    c4.io/edgeTags: AsyncFlow
+spec:
+  type: asyncapi
+  lifecycle: production
+  owner: group:default/platform-team
+  system: order-processing
+  definition: |
+    asyncapi: '2.6.0'
+    info:
+      title: Order Events API
+      version: '1.0.0'
+    channels: {}

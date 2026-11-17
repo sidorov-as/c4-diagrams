@@ -1,0 +1,25 @@
+# Demo overrides, mounted into the container by docker-compose.yml.
+backend:
+  auth:
+    # Static service token used by the scripts in ../scripts (local demo only).
+    externalAccess:
+      - type: static
+        options:
+          token: demo-c4-token
+          subject: c4-export
+        accessRestrictions:
+          - plugin: catalog
+
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location, Group]
+  locations:
+    # Paths are relative to the backend process (/app in the container)
+    - type: file
+      target: ./catalog/entities/all.yaml
+
+auth:
+  providers:
+    # The container runs with NODE_ENV=production, where guest is off by default
+    guest:
+      dangerouslyAllowOutsideDevelopment: true

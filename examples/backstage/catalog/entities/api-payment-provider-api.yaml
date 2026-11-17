@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: payment-provider-api
+  title: Payment Provider API
+  description: External payment provider API consumed by Payment Adapter.
+  annotations:
+    c4.io/providerResource: resource:default/payment-gateway-api
+    c4.io/edgeLabel: Authorizes payment via
+    c4.io/edgeTechnology: HTTPS/JSON
+    c4.io/edgeTags: ExternalCall
+spec:
+  type: openapi
+  lifecycle: production
+  owner: group:default/platform-team
+  system: order-processing
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Payment Provider API
+      version: 1.0.0
+    paths: {}
