@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: inventory-checker
+  title: Inventory Checker
+  description: Verifies stock availability before an order is confirmed.
+  annotations:
+    c4.io/alias: inventory_checker
+    c4.io/type: Component
+    c4.io/sprite: server
+    c4.io/technology: Python
+    c4.io/tags: CoreComponent
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/platform-team
+  system: order-processing

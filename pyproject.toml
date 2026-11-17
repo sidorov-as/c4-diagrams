@@ -62,6 +62,7 @@ build-backend = "hatchling.build"
 exclude = [
   "tests/",
   "docs/",
+  "examples/",
   "CHANGELOG.md",
   "CONTRIBUTING.md",
   "Makefile",
@@ -116,6 +117,7 @@ exclude = [
     "tests/test_integration/test_cli/snapshots",
     "docs/assets/examples",
     "docs/scripts/generate_diagram_spec_docs.py",
+    "examples/backstage/",
 ]
 
 [tool.ruff.lint]

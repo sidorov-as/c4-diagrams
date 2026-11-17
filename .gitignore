@@ -223,6 +223,8 @@ __marimo__/
 openspec
 .codex
 .claude
+.qwen
+.agents
 
 local.py
 local.svg

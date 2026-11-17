@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform-team
+  title: Platform Team
+  description: Owns the order processing API and related components.
+spec:
+  type: team
+  profile:
+    displayName: Platform Team
+  children: []

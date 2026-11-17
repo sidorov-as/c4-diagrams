@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: order-controller
+  title: Order Controller
+  description: HTTP entrypoint for order submission and status queries.
+  annotations:
+    c4.io/alias: order_controller
+    c4.io/type: Component
+    c4.io/sprite: server
+    c4.io/technology: FastAPI
+    c4.io/tags: Entrypoint,CoreComponent
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/platform-team
+  system: order-processing
+  providesApis:
+    - order-http-api
+  dependsOn:
+    - component:default/order-application-service

@@ -340,6 +340,8 @@ boundary `stereotype` field. Mermaid boundary stereotypes normalize into
 
 ## How JSON diagrams can be generated
 
+### Docker Compose
+
 The following example shows how architecture information can be extracted from a `docker-compose.yaml` file:
 
 
@@ -556,3 +558,116 @@ This generates the diagram below:
   ![docker-compose-diagram](../../assets/converters/docker-compose-diagram.png)
   <figcaption>docker-compose-diagram</figcaption>
 </figure>
+
+### Backstage
+
+A service catalog already holds most of what a C4 diagram needs: components,
+the resources they use, and the dependencies between them. The
+[`examples/backstage`](https://github.com/sidorov-as/c4-diagrams/tree/main/examples/backstage)
+directory shows how to turn a [Backstage](https://backstage.io) catalog into
+JSON. It contains a local Backstage started with `docker compose`, a demo
+catalog, and an export script that reads the Catalog API and writes a JSON
+document.
+
+```shell
+cd examples/backstage
+docker compose up -d --build
+./scripts/populate_catalog.sh
+./scripts/export_c4_from_backstage.py > order-processing.json
+
+c4 render order-processing.json > order-processing.puml
+c4 export order-processing.json -f png -o order-processing.png
+```
+
+The script maps catalog entities to JSON elements and relations to
+relationships:
+
+| Backstage   | JSON                                                                                             |
+|-------------|--------------------------------------------------------------------------------------------------|
+| `System`    | `SystemBoundary` around the diagram; its title is the boundary label                             |
+| `Component` | `Component` element                                                                              |
+| `Resource`  | `ComponentDb` element (queues and external services through `c4.io/type`)                        |
+| `dependsOn` | `REL`; label and technology depend on the target (for example "Reads and writes" for a database) |
+| `API`       | relationship label, technology and tags, through annotations                                     |
+
+C4 details that Backstage has no field for are stored as `c4.io/*` annotations
+on the entities:
+
+```yaml
+kind: Component
+metadata:
+  name: order-controller
+  title: Order Controller
+  annotations:
+    c4.io/alias: order_controller
+    c4.io/type: Component
+    c4.io/technology: FastAPI
+    c4.io/tags: Entrypoint,CoreComponent
+spec:
+  system: order-processing
+  dependsOn:
+    - component:default/order-application-service
+```
+
+The export produces a document in the shape described above, here trimmed:
+
+```json
+{
+  "backend": "plantuml",
+  "type": "ComponentDiagram",
+  "title": "Order Processing API - Component Diagram",
+  "boundaries": [
+    {
+      "type": "SystemBoundary",
+      "alias": "order_processing",
+      "label": "Order Processing API",
+      "elements": [
+        {"type": "Component", "alias": "order_controller", "label": "Order Controller", "technology": "FastAPI"},
+        {"type": "ComponentDb", "alias": "order_db", "label": "Order Database", "technology": "PostgreSQL"}
+      ]
+    }
+  ],
+  "relationships": [
+    {"type": "REL", "from": "order_controller", "to": "order_app_service", "label": "Invokes", "technology": "Python call"}
+  ]
+}
+```
+
+Pass `--backend core` to drop the PlantUML-only fields and get a portable
+document. The example README lists all annotations and the limits of the demo
+exporter.
+
+This generates the diagram below:
+
+<figure markdown="span">
+  ![backstage-component-diagram](../../assets/converters/backstage-component-diagram.png)
+  <figcaption>backstage-component-diagram</figcaption>
+</figure>
+
+Backstage only supplies the data; the diagram itself comes from `c4`. The same
+JSON, exported with `--backend core`, can also be rendered to Mermaid or D2.
+
+For comparison, this is how Backstage itself draws the same catalog with its
+built-in catalog graph plugin:
+
+<figure markdown="span">
+  ![backstage-catalog-graph](../../assets/converters/backstage-catalog-graph-tb.png)
+  <figcaption>backstage-catalog-graph</figcaption>
+</figure>
+
+The catalog graph shows every entity and every relation type: ownership
+(`ownedBy`), system membership (`partOf`), API providers and consumers next to
+the components. It is a general view of the catalog. The C4 diagram keeps only
+the architecture: components and resources inside the system boundary, with
+labelled, technology-annotated relationships ("Reads and writes", "Publishes
+events to") and the system as a boundary instead of a node.
+
+### Atlas
+
+[Atlas](https://github.com/sidorov-as/atlas) is a self-hosted software catalog.
+Repositories describe themselves with `catalog-info.yaml` manifests, which Atlas
+ingests from Git, and it renders C4 diagrams of the catalog and of single
+entities itself. It fits the same idea as the examples above: keep architecture
+data next to the code, and generate diagrams from it instead of drawing them by
+hand. See the Atlas [documentation](https://sidorov-as.github.io/atlas/) for
+setup.
