@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: inventory-api
+  title: Inventory API
+  description: Stock availability API handled by Inventory Service.
+  annotations:
+    c4.io/sourceComponent: component:default/inventory-service
+    c4.io/edgeLabel: Checks stock availability
+    c4.io/edgeTechnology: gRPC
+    c4.io/edgeTags: SyncCall
+spec:
+  type: grpc
+  lifecycle: production
+  owner: group:default/platform-team
+  system: order-processing
+  definition: |
+    syntax = "proto3";
+    service Inventory {}

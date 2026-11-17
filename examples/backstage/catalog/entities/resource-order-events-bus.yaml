@@ -6,10 +6,10 @@ metadata:
   description: Publishes order-created and order-paid events.
   annotations:
     c4.io/alias: order_events_bus
-    c4.io/type: ComponentQueue
+    c4.io/type: ContainerQueue
     c4.io/sprite: queue
-    c4.io/technology: Kafka
-    c4.io/tags: AsyncComponent
+    c4.io/technology: RabbitMQ
+    c4.io/tags: AsyncChannel
 spec:
   type: message-bus
   owner: group:default/platform-team

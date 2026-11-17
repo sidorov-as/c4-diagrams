@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: payment-api
+  title: Payment API
+  description: Payment authorization API handled by Payment Service.
+  annotations:
+    c4.io/sourceComponent: component:default/payment-service
+    c4.io/edgeLabel: Requests payment
+    c4.io/edgeTechnology: REST/HTTPS
+    c4.io/edgeTags: SyncCall
+spec:
+  type: openapi
+  lifecycle: production
+  owner: group:default/platform-team
+  system: order-processing
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Payment API
+      version: 1.0.0
+    paths: {}

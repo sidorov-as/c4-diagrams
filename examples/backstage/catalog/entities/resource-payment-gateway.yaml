@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: payment-gateway
+  title: Payment Gateway
+  description: External provider for payment authorization and capture.
+  annotations:
+    c4.io/alias: payment_gateway
+    c4.io/type: SystemExt
+    c4.io/sprite: cloud
+    c4.io/tags: ExternalSystem
+spec:
+  type: external-service
+  owner: group:default/platform-team

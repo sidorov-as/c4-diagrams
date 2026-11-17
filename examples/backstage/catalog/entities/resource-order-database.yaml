@@ -6,10 +6,10 @@ metadata:
   description: Stores orders, line items, and order status history.
   annotations:
     c4.io/alias: order_db
-    c4.io/type: ComponentDb
+    c4.io/type: ContainerDb
     c4.io/sprite: database
     c4.io/technology: PostgreSQL
-    c4.io/tags: ComponentDatabase
+    c4.io/tags: DataStore
 spec:
   type: database
   owner: group:default/platform-team

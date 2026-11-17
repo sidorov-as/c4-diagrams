@@ -7,7 +7,7 @@ metadata:
   annotations:
     c4.io/providerResource: resource:default/order-events-bus
     c4.io/edgeLabel: Publishes events to
-    c4.io/edgeTechnology: Kafka
+    c4.io/edgeTechnology: RabbitMQ
     c4.io/edgeTags: AsyncFlow
 spec:
   type: asyncapi

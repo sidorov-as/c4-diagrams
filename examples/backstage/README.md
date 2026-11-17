@@ -1,6 +1,6 @@
 # Backstage catalog → C4 diagram
 
-Build a C4 component diagram from a [Backstage](https://backstage.io) software
+Build a C4 container diagram from a [Backstage](https://backstage.io) software
 catalog. The demo runs a local Backstage with a seeded catalog, reads it through
 the Catalog API, and exports a JSON document for the `c4` CLI.
 
@@ -59,7 +59,7 @@ c4 render order-processing.json --mermaid
 | `docker-compose.yml`                  | One service: Backstage with in-memory SQLite                                                  |
 | `backstage/`                          | Trimmed Backstage app (catalog, auth, permissions only) and its `Dockerfile`                  |
 | `backstage/app-config.demo.yaml`      | Catalog location, rules (Group allowed), static service token                                 |
-| `catalog/entities/*.yaml`             | Demo entities: system `order-processing` with its components, resources, APIs and owner group |
+| `catalog/entities/*.yaml`             | Demo entities: system `order-processing` with its services, data stores, an external system, APIs and owner group |
 | `scripts/populate_catalog.sh`         | Waits for the catalog and refreshes every entity                                              |
 | `scripts/query_entities.sh`           | Prints entities and relations as JSON                                                         |
 | `scripts/export_c4_from_backstage.py` | Catalog entities → C4 JSON                                                                    |
@@ -84,9 +84,9 @@ Other settings: `BACKSTAGE_URL` (default `http://localhost:7007/api/catalog`),
 
 | Backstage   | C4 JSON                                                                                              |
 |-------------|------------------------------------------------------------------------------------------------------|
-| `System`    | `SystemBoundary` around the diagram; its `title` is the boundary label and the default diagram title |
-| `Component` | element, `Component` by default                                                                      |
-| `Resource`  | element, `ComponentDb` by default                                                                    |
+| `System`    | `SystemBoundary` around the containers; its `title` is the boundary label and the default diagram title |
+| `Component` | element, `Container` by default (a Backstage component is a deployable service, i.e. a C4 container) |
+| `Resource`  | element, `ContainerDb` by default                                                                    |
 | `API`       | not drawn; it supplies labels for relationships (see below)                                          |
 | `Group`     | not drawn; owner only                                                                                |
 
@@ -95,8 +95,8 @@ Relationships come from standard catalog relations:
 | Source                                               | Relationship                                                                                   |
 |------------------------------------------------------|------------------------------------------------------------------------------------------------|
 | `dependsOn` to a `Component`                         | `REL`, "Depends on"                                                                            |
-| `dependsOn` to a `Resource` of type `ComponentDb`    | `REL`, "Reads and writes"                                                                      |
-| `dependsOn` to a `Resource` of type `ComponentQueue` | `REL`, "Publishes events to"                                                                   |
+| `dependsOn` to a `Resource` of type `ContainerDb`    | `REL`, "Reads and writes"                                                                      |
+| `dependsOn` to a `Resource` of type `ContainerQueue` | `REL`, "Publishes events to"                                                                   |
 | `consumesApis` an API with `c4.io/providerResource`  | consumer → provider resource, label from the API annotations                                   |
 | API with `c4.io/sourceComponent`                     | every component that `dependsOn` the source component → source component, "Invokes" by default |
 
@@ -112,10 +112,23 @@ On `Component` and `Resource`:
 | Annotation                                       | Meaning                                                                                 |
 |--------------------------------------------------|-----------------------------------------------------------------------------------------|
 | `c4.io/alias`                                    | Element alias (default: name with `-` replaced by `_`)                                  |
-| `c4.io/type`                                     | C4 element type, such as `Component`, `ComponentDb`, `ComponentQueue`, `ComponentExt`   |
+| `c4.io/type`                                     | C4 element type, such as `Container`, `ContainerDb`, `ContainerQueue`, `SystemExt`       |
 | `c4.io/label`                                    | Label (default: `metadata.title`, then the name)                                        |
 | `c4.io/technology`                               | Technology                                                                              |
 | `c4.io/tags`, `c4.io/sprite`, `c4.io/stereotype` | Comma-separated tags, sprite, stereotype (PlantUML only; dropped with `--backend core`) |
+
+Things that are not part of the system are drawn outside the boundary:
+
+- Entities the system depends on but does not own (no `spec.system`, or another
+  system) are fetched by reference from the Catalog API, so a `dependsOn` or an
+  API annotation can point at them. Without an explicit `c4.io/type` they get the
+  `*Ext` form of the default type (`ContainerExt`, `ContainerDbExt`).
+- Members of the system whose `c4.io/type` ends in `Ext` (for example `SystemExt`)
+  are drawn outside too.
+
+Only entities of the system are sources of relationships; outside entities are
+targets. In the demo the payment gateway is a `Resource` with no `spec.system`,
+and `payment-service` has `dependsOn: resource:default/payment-gateway`.
 
 On `System`: `c4.io/alias`, `c4.io/label`, `c4.io/tags`.
 
@@ -142,7 +155,9 @@ python -m pytest examples/backstage
 This is a demo exporter, not a production tool:
 
 - one system per run, selected with `--system`; no nested boundaries;
-- only `Component` and `Resource` entities are drawn, and only in a component diagram;
+- outside entities are drawn one level deep: their own dependencies are not followed;
+- only `Component` and `Resource` entities are drawn, and only in a Container Diagram. A Component
+  Diagram needs the internals of one container, which a service catalog does not hold;
 - relationships are inferred from `dependsOn` and the API annotations above;
 - the static token and the allow-all permission policy are for local use.
 

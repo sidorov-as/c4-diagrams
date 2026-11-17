@@ -19,7 +19,7 @@ DEFAULT_TOKEN = "demo-c4-token"
 PAGE_SIZE = 100
 FIELDS = "kind,metadata,spec,relations"
 PLANTUML_ONLY_FIELDS = ("sprite", "tags", "stereotype")
-DEFAULT_C4_TYPES = {"Component": "Component", "Resource": "ComponentDb"}
+DEFAULT_C4_TYPES = {"Component": "Container", "Resource": "ContainerDb"}
 
 
 def fetch_json(url: str, token: str | None = None) -> dict[str, Any]:
@@ -50,17 +50,59 @@ def fetch_system_entities(
         query = {"cursor": cursor, "fields": FIELDS, "limit": str(PAGE_SIZE)}
 
 
-def fetch_system_entity(
-    base_url: str, system: str, namespace: str, token: str | None
+def fetch_entity(
+    base_url: str, kind: str, namespace: str, name: str, token: str | None
 ) -> dict[str, Any] | None:
-    """The System entity has no ``spec.system``, so it is looked up by name."""
-    url = f"{base_url}/entities/by-name/system/{urllib.parse.quote(namespace)}/{urllib.parse.quote(system)}"
+    """Look an entity up by name; ``None`` if the catalog does not know it."""
+    path = "/".join(
+        urllib.parse.quote(part) for part in (kind.lower(), namespace, name)
+    )
     try:
-        return fetch_json(url, token)
+        return fetch_json(f"{base_url}/entities/by-name/{path}", token)
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
             return None
         raise
+
+
+def parse_ref(ref: str) -> tuple[str, str, str] | None:
+    """``kind:namespace/name`` -> (kind, namespace, name)."""
+    kind, sep, rest = ref.partition(":")
+    namespace, sep2, name = rest.partition("/")
+    return (kind, namespace, name) if sep and sep2 and name else None
+
+
+def referenced_refs(items: list[dict[str, Any]]) -> set[str]:
+    """Refs of components and resources that system entities point at."""
+    refs: set[str] = set()
+    for entity in items:
+        if entity["kind"] in DEFAULT_C4_TYPES:
+            refs.update(
+                r["targetRef"]
+                for r in entity.get("relations", [])
+                if r.get("type") == "dependsOn" and "targetRef" in r
+            )
+        elif entity["kind"] == "API":
+            for key in ("c4.io/providerResource", "c4.io/sourceComponent"):
+                if annotation(entity, key):
+                    refs.add(annotation(entity, key))
+    return refs
+
+
+def fetch_external_entities(
+    base_url: str, items: list[dict[str, Any]], token: str | None
+) -> list[dict[str, Any]]:
+    """Components and resources outside the system that the system refers to."""
+    members = {entity_ref(e) for e in items}
+    external: list[dict[str, Any]] = []
+    for ref in sorted(referenced_refs(items) - members):
+        parsed = parse_ref(ref)
+        if parsed is None or parsed[0].capitalize() not in DEFAULT_C4_TYPES:
+            continue
+        entity = fetch_entity(base_url, *parsed, token)
+        if entity is not None:
+            external.append(entity)
+    return external
 
 
 def entity_ref(entity: dict[str, Any]) -> str:
@@ -87,10 +129,17 @@ def alias_for(entity: dict[str, Any]) -> str:
     )
 
 
-def make_element(entity: dict[str, Any]) -> dict[str, Any]:
+def c4_type(entity: dict[str, Any], external: bool = False) -> str:
+    """Explicit ``c4.io/type``, else the kind's default (``*Ext`` when outside the system)."""
+    c4 = annotation(entity, "c4.io/type") or DEFAULT_C4_TYPES[entity["kind"]]
+    return c4 + "Ext" if external and not c4.endswith("Ext") else c4
+
+
+def make_element(
+    entity: dict[str, Any], external: bool = False
+) -> dict[str, Any]:
     elem: dict[str, Any] = {
-        "type": annotation(entity, "c4.io/type")
-        or DEFAULT_C4_TYPES[entity["kind"]],
+        "type": c4_type(entity, external),
         "alias": alias_for(entity),
         "label": annotation(entity, "c4.io/label", title_of(entity)),
         "description": entity.get("metadata", {}).get("description", ""),
@@ -136,30 +185,35 @@ def api_edge_style(
 
 def depends_on_style(target: dict[str, Any]) -> tuple[str, str, list[str]]:
     if target["kind"] == "Resource":
-        target_type = annotation(target, "c4.io/type")
-        if target_type == "ComponentDb":
+        target_type = annotation(target, "c4.io/type").removesuffix("Ext")
+        if target_type == "ContainerDb":
             return (
                 "Reads and writes",
                 annotation(target, "c4.io/technology", "SQL"),
                 ["DataAccess"],
             )
-        if target_type == "ComponentQueue":
+        if target_type == "ContainerQueue":
             return (
                 "Publishes events to",
-                annotation(target, "c4.io/technology", "Kafka"),
+                annotation(target, "c4.io/technology", "RabbitMQ"),
                 ["AsyncFlow"],
             )
     return "Depends on", "", ["DependsOn"]
 
 
 def build_relationships(
-    entities: dict[str, dict[str, Any]],
+    entities: dict[str, dict[str, Any]], members: set[str]
 ) -> list[dict[str, Any]]:
     """API annotations win over plain ``dependsOn``; one edge per (from, to) pair."""
     nodes = {
         ref: e for ref, e in entities.items() if e["kind"] in DEFAULT_C4_TYPES
     }
-    components = [e for e in nodes.values() if e["kind"] == "Component"]
+    # Only components of the system are sources of edges; outside entities are targets.
+    components = [
+        e
+        for ref, e in nodes.items()
+        if e["kind"] == "Component" and ref in members
+    ]
     apis = {ref: e for ref, e in entities.items() if e["kind"] == "API"}
     relationships: list[dict[str, Any]] = []
     seen: set[tuple[str, str]] = set()
@@ -243,12 +297,24 @@ def build_diagram(
     items: list[dict[str, Any]],
     system_entity: dict[str, Any] | None,
     system: str,
-    diagram_type: str,
     title: str | None,
     backend: str,
+    external_items: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    entities = {entity_ref(e): e for e in items}
-    elements = [make_element(e) for e in items if e["kind"] in DEFAULT_C4_TYPES]
+    """Members of the system go inside the boundary. Entities that the system
+    refers to but does not own, and members typed ``*Ext``, go outside it."""
+    external_items = external_items or []
+    members = {entity_ref(e) for e in items}
+    entities = {entity_ref(e): e for e in [*items, *external_items]}
+    drawn = [e for e in items if e["kind"] in DEFAULT_C4_TYPES]
+    inside = [
+        make_element(e) for e in drawn if not c4_type(e).endswith("Ext")
+    ]
+    outside = [
+        make_element(e, external=True)
+        for e in [*drawn, *external_items]
+        if entity_ref(e) not in members or c4_type(e).endswith("Ext")
+    ]
 
     system_title = title_of(system_entity) if system_entity else system
     boundary: dict[str, Any] = {
@@ -265,16 +331,16 @@ def build_diagram(
         "tags": csv(annotation(system_entity, "c4.io/tags", "SystemBoundary"))
         if system_entity
         else ["SystemBoundary"],
-        "elements": elements,
+        "elements": inside,
         "boundaries": [],
         "relationships": [],
     }
     result: dict[str, Any] = {
-        "type": diagram_type,
-        "title": title or f"{system_title} - Component Diagram",
-        "elements": [],
+        "type": "ContainerDiagram",
+        "title": title or f"{system_title} - Container Diagram",
+        "elements": outside,
         "boundaries": [boundary],
-        "relationships": build_relationships(entities),
+        "relationships": build_relationships(entities, members),
     }
     if backend == "plantuml":
         # Backend-specific fields are accepted only when the document names its backend.
@@ -305,9 +371,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--title",
         default=None,
-        help="Diagram title (default: '<System title> - Component Diagram')",
+        help="Diagram title (default: '<System title> - Container Diagram')",
     )
-    parser.add_argument("--diagram-type", default="ComponentDiagram")
     parser.add_argument(
         "--backend",
         choices=["plantuml", "core"],
@@ -330,17 +395,20 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
-    system_entity = fetch_system_entity(
-        args.base_url, args.system, args.namespace, args.token
+    system_entity = fetch_entity(
+        args.base_url, "System", args.namespace, args.system, args.token
+    )
+    external_items = fetch_external_entities(
+        args.base_url, items, args.token
     )
 
     result = build_diagram(
         items,
         system_entity,
         args.system,
-        args.diagram_type,
         args.title,
         args.backend,
+        external_items,
     )
     print(json.dumps(result, indent=2 if args.pretty else None))
     return 0
