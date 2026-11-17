@@ -218,3 +218,4 @@ changelog_start_rev = "0.0.2"
 
 [tool.deptry]
 known_first_party = ["c4", "docs", "generate_examples"]
+extend_exclude = ["examples"]
